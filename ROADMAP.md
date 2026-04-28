@@ -37,6 +37,10 @@ Not 2 separate systems. One symbiotic system.
 
 - [x] Develop dynamic detection for yaml frontmatter and develop an element to display it if any is detected in markdown files. Design the element to be consistent visually with the citeation display element.
 
+Implement an auto-save feature for the IngestZone. Drafts of the source title and raw text should be saved to local storage and restored on page load or refresh.
+
+In the IngestZone component, implement an auto-save feature for the 'Source Title' and 'Raw Payload' fields. Drafts should be saved to local storage and restored when the component mounts, with a small indicator showing the save status.
+
 - [ ] In the SearchResults component, add a filter option that allows users to filter search results by document type (e.g., concept, system, entity). This filter should be accessible alongside existing filters for tags and author.
 
 - [x] In the ArticleView component, when a user hovers over a semantic cross-reference link within the article content, highlight all other nodes and links in the GraphView that are connected to the hovered node. Ensure this highlighting is visually distinct and adheres to the existing design system.
@@ -89,8 +93,6 @@ In the ArticleView component, add functionality to assign articles to specific u
 ---
 
 [DONE] - Add a feature to commit changes to the git repository from the UI. This should include a form for the commit message and a button to lock the claw.
-
-Implement an auto-save feature for the IngestZone. Drafts of the source title and raw text should be saved to local storage and restored on page load or refresh.
 
 [DONE] - Implement PDF and DOCX parsing for document ingestion using the mammoth and pdf-parse libraries. This should allow users to upload these file types in the IngestZone.
 
