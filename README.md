@@ -40,6 +40,7 @@
   - [Prerequisites](#prerequisites)
   - [Scuttling (Quick Start)](#-scuttling-quick-start)
   - [Expanded Setup Instructions](#-expanded-setup-instructions)
+- [Obsidian & LLM Wiki Integration](#️-obsidian--llm-wiki-integration)
 - [The Reef System](#-the-reef-system)
 - [Project Structure](#-project-structure)
 - [Available Scripts](#-available-scripts)
@@ -98,7 +99,19 @@ graph TD
 <details>
 <summary>Expand To View Screenshots</summary>
 
-*(Screenshots coming soon to the reef)*
+![Index](src/assets/index.png)
+
+![Index List](src/assets/index-list.png)
+
+![File Ingestion](src/assets/ingest.png)
+
+![Graph](src/assets/graph.png)
+
+![Graph Links](src/assets/graph-2.png)
+
+![Shipyard Settings](src/assets/shipyard.png)
+
+![CLI Agent Status](src/assets/cli.png)
 
 </details>
 
@@ -166,6 +179,19 @@ docker run -p 3000:3000 -v $(pwd)/wiki:/app/wiki lobsterpedia
 > All knowledge is stored in the `/wiki` directory. This is your reef. If you are running via Docker, ensure this volume is bound to your host to prevent data loss during molts.
 
 </details>
+
+---
+
+## 🏛️ Obsidian & LLM Wiki Integration
+
+Lobsterpedia is designed to coexist with your existing knowledge workflows, specifically supporting external **Obsidian Vaults** as a secondary UI and management layer.
+
+> **The Sovereign Bridge**: Lobsterpedia treats any `/wiki` directory precisely as an Obsidian Vault. You can drop pre-structured **LLM Wikis** (following the LLM Wiki Pattern) directly into the reef to provide an instant, high-fidelity UI layer for synthesis, visualization, and agentic maintenance.
+
+By anchoring your data in the `/wiki` directory, you gain the power of:
+- **Agentic Polishing**: Use the Molt Engine to refine notes taken in Obsidian.
+- **Topological Insight**: Visualize your vault's semantic structure via the D3 reef map.
+- **Micro-Service UI**: A dedicated, lightweight interface optimized for agent-human collaboration.
 
 ---
 
