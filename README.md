@@ -1,37 +1,257 @@
 # 🦞 Lobsterpedia©™
 
-[![Status](https://img.shields.io/badge/status-BETA-lobster)](https://ais-dev-a6u66cotcx5vc2s4zxqhhf-166286954532.us-west2.run.app)
-[![Architecture](https://img.shields.io/badge/architecture-Micro--Service-blue)](/ARCHITECTURE.md)
+<div align="center">
 
-> An agent-maintained LLM-powered wiki system that incrementally builds and maintains a persistent knowledge base from raw sources. Built on the **ClawStack©™** methodology.
+```
+ ██╗      ██████╗ ██████╗ ███████╗████████╗███████╗██████╗ ██████╗ ███████╗██████╗ ██╗ █████╗
+ ██║     ██╔═══██╗██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗██║██╔══██╗
+ ██║     ██║   ██║██████╔╝███████╗   ██║   █████╗  ██████╔╝██████╔╝█████╗  ██║  ██║██║███████║
+ ██║     ██║   ██║██╔══██╗╚════██║   ██║   ██╔══╝  ██╔══██╗██╔═══╝ ██╔══╝  ██║  ██║██║██╔══██║
+ ███████╗╚██████╔╝██████╔╝███████║   ██║   ███████╗██║  ██║██║     ███████╗██████╔╝██║██║  ██║
+ ╚══════╝ ╚═════╝ ╚═════╝ ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═════╝ ╚═╝╚═╝  ╚═╝
+```
+
+*Your Sovereign Knowledge Reef — where Humans and Agents scuttle raw data into synthesized wisdom.*
+
+</div>
+
+---
+
+[![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![FileSystem](https://img.shields.io/badge/Storage-Persistent_File_System-blue?style=for-the-badge)](#)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-yellow.svg?style=for-the-badge)](LICENSE)
+[![Phase](https://img.shields.io/badge/Phase-BETA-lobster?style=for-the-badge)](#)
+
+---
+
+## 📜 Table of Contents
+
+<details>
+<summary>Unfurl the Scroll 📜</summary>
+
+- [About](#-about)
+- [Architecture](#-architecture)
+- [Screenshots](#-screenshots)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Scuttling (Quick Start)](#-scuttling-quick-start)
+  - [Expanded Setup Instructions](#-expanded-setup-instructions)
+- [The Reef System](#-the-reef-system)
+- [Project Structure](#-project-structure)
+- [Available Scripts](#-available-scripts)
+- [Related Documentation](#-related-documentation)
+- [Contributing](#-contributing)
+- [Security](#-security)
+
+</details>
+
+---
+
+## 📌 About
+
+**Lobsterpedia©™** is an agent-maintained, LLM-powered wiki system designed to build and maintain a persistent knowledge reef from raw DNA (plain text, PDFs, and Word documents). It follows the **ClawStack©™** methodology, ensuring that every piece of information is incrementally synthesized, linked, and visualized for maximum observability.
+
+**Core Features:**
+- 🧬 **Incremental Synthesis** — Automatically scuttles raw input into structured wiki concepts via the Molt Engine.
+- 🗺️ **Topology Visualizer** — Interactive D3.js semantic relationship mapping to visualize the reef's structure.
+- 🏗️ **Shipyard (Maintenance)** — System-wide linting, auto-linking, and self-healing protocols for wiki integrity.
+- 📂 **Directory Sovereignty** — Native file system integration with drag & drop reorganization and renaming.
+- 🕹️ **Manual Protocol** — Master toggle to disable LLM automation for strict, un-augmented human control.
+- 🧪 **Operations CLI** — Real-time telemetry feed and command logs (The Molt Logs).
+- 🌓 **Theme Adaptive** — Elegant light/dark mode support built for the deep ocean.
+
+---
 
 ## 🏗️ Architecture
-- **Presentation**: React 19 + Vite 6 + Tailwind 4 + Motion
-- **Engine**: Express 4 / Native Node.js + Google Gemini AI
-- **Storage**: Persistent File System via `/wiki` directory
-- **Signature**: Developed with **CrustCode©™**
 
-## 🚀 Scuttling (Quick Start)
+```mermaid
+graph TD
+    subgraph Frontend ["🌐 Browser"]
+        UI["React / Tailwind UI\nVite + TSX"]
+        Features["src/features/\nwiki | shell-core | reef-presentation"]
+        Graph["D3.js Topology\nReef Mapping"]
+        CLI["Molt Terminal\nTelemetry UI"]
+    end
 
-### Dev Mode
+    subgraph Engine ["🖥️ Node.js Engine"]
+        API["Express Routes\n/api/wiki | /api/ingest | /api/lint"]
+        LLM["Gemini AI Integration\nSynthesis & Extraction"]
+        FS["Persistent File System\n/wiki directory"]
+    end
+
+    UI --> Features
+    Features --> API
+    API --> LLM
+    API --> FS
+    Features --> Graph
+    Features --> CLI
+```
+
+---
+
+## 📸 Screenshots
+
+<details>
+<summary>Expand To View Screenshots</summary>
+
+*(Screenshots coming soon to the reef)*
+
+</details>
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js** v20+
+- **npm** v10+
+- **Docker & Docker Compose** *(for sovereign containerized deployment)*
+
+---
+
+### 🦞 Scuttling (Quick Start)
+
+**Simplest path to hatch the reef:**
+
 ```bash
+# 1. Clone the repository
+git clone <repo> && cd Lobsterpedia
+
+# 2. Install dependencies
+npm install
+
+# 3. Hatch the development reef
 npm run dev
+
+# 4. Open the viewport
+open http://localhost:3000
 ```
 
-### Production Build & Launch
+---
+
+### 🛠️ Expanded Setup Instructions
+
+<details>
+<summary>View full npm & Docker setup guides</summary>
+
+#### Running with npm
+
+**Development Commands (The Coral Nursery):**
+- **Start All**: `npm run dev` (API + Frontend w/ HMR on `localhost:3000`)
+- **Lint Reef**: `npm run lint` (TypeScript integrity check)
+
+**Production Commands (The Great Scuttle):**
+- **Build Bundle**: `npm run build`
+- **Start Production**: `npm start` (Serves the reef on `0.0.0.0:3000`)
+
+#### Running with Docker
+
+Use the provided `Dockerfile` to build your own sovereign node in the global reef.
+
 ```bash
-npm run build
-npm start
+# Build the image
+docker build -t lobsterpedia .
+
+# Run the container (Map port 3000 and bind the wiki volume)
+docker run -p 3000:3000 -v $(pwd)/wiki:/app/wiki lobsterpedia
 ```
 
-## 🛠️ Features
-- **🧬 Incremental Synthesis**: Transform raw DNA (Text/PDF/DOCX) into synthesized wiki concepts.
-- **🗺️ Topology Visualizer**: Semantic relationship mapping via interactive D3.js graph view.
-- **🏗️ Shipyard (Maintenance)**: System-wide linting, auto-linking, and self-healing protocols.
-- **🕹️ Manual Protocol**: Master toggle to disable LLM automation for strict manual control.
-- **📂 Directory Sovereignty**: Native drag & drop reorganization and renaming operations.
-- **🧪 Operations CLI**: Real-time agentic shell telemetry and command logs.
-- **🌓 Theme Adaptive**: Full light/dark mode support across all UI elements (including Citations).
+> [!IMPORTANT]
+> **Data Sovereignty & Persistence**:
+> All knowledge is stored in the `/wiki` directory. This is your reef. If you are running via Docker, ensure this volume is bound to your host to prevent data loss during molts.
 
-Maintained by CrustAgent©™
-To the reef! 🦞
+</details>
+
+---
+
+## 🔑 The Reef System
+
+Lobsterpedia relies on a **Persistent Knowledge Directory** instead of a traditional database, ensuring your data remains human-readable (Markdown) even without the application.
+
+| Component | Description |
+|---|---|
+| **Raw DNA** | The `/wiki/log` and `/wiki/log.md` files serving as the input stream. |
+| **Synthesized Concepts** | Structured entries in `/wiki/concepts`, `/wiki/entities`, etc. |
+| **The Shipyard** | Background processes that maintain valid links and structural integrity. |
+| **Molt Engine** | The LLM logic that transforms raw text into the target wiki hierarchy. |
+
+> [!CAUTION]
+> The `/wiki` directory is your **Truth**. Direct manual edits are supported, but ensure the Shipyard is allowed to scuttle and re-index for full topological awareness.
+
+---
+
+## 📂 Project Structure
+
+```
+Lobsterpedia/
+├── wiki/                       # The Sovereign Data Reef (Markdown files)
+├── src/
+│   ├── features/               # Micro-Service Feature Architecture
+│   │   ├── wiki/               # Wiki logic, components, state
+│   │   ├── shell-core/         # System-wide types, providers, theme
+│   │   ├── reef-presentation/  # Design system, layout, visualizations
+│   │   └── molt-engine/        # Synthesis engine and agent protocols
+│   ├── services/               # Internal scuttle services (API client)
+│   ├── data/                   # Static patterns and reef constants
+│   ├── main.tsx                # Entry point
+│   └── index.css               # Global Tailwind styles
+├── server.ts                   # The Habitat Engine (Express Entry Point)
+├── vite.config.ts              # Bundler configuration
+└── package.json                # External dependencies & scuttle scripts
+```
+
+---
+
+## 🛠️ Available Scripts
+
+| Script | Port | Description |
+|---|---|---|
+| `npm run dev` | 3000 | 🦞 Hatch the development environment (API + UI) |
+| `npm start` | 3000 | Scuttle into production (Runs `tsx server.ts`) |
+| `npm run build` | — | Harden the shell (Builds production bundle) |
+| `npm run lint` | — | Scan the exoskeleton (TypeScript type-check) |
+| `npm run clean` | — | Purge the `dist/` directory |
+
+---
+
+## 📚 Related Documentation
+
+| Document | Purpose |
+|---|---|
+| [**CRUSTAGENT.md**](./CRUSTAGENT.md) | Project understanding, memory, and stability locks |
+| [**BLUEPRINT.md**](./BLUEPRINT.md) | ASCII construction-style blueprints of the codebase |
+| [**ROADMAP.md**](./ROADMAP.md) | Current and future development direction |
+| [**CONTRIBUTING.md**](./CONTRIBUTING.md) | How to scuttle alongside us |
+| [**SECURITY.md**](./SECURITY.md) | Security practices and ClawKeys©™ protocols |
+
+---
+
+## 🤝 Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide. We scuttle together.
+
+## 🛡️ Security
+
+See [SECURITY.md](./SECURITY.md) for vulnerability reporting and protective reef practices.
+
+---
+
+<div align="center">
+
+```
+       _..._
+     .'     '.      HATCH THE REEF.
+    /  _   _  \     SCUTTLE DATA.
+    | (q) (p) |     PUNCH THE CLOUD.
+    (_   Y   _)
+     '.__W__.'
+```
+
+*Maintained by CrustAgent©™*
+
+</div>
