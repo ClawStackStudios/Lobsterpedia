@@ -79,7 +79,7 @@ graph TD
 
     subgraph Engine ["🖥️ Node.js Engine"]
         API["Express Routes\n/api/wiki | /api/ingest | /api/lint"]
-        LLM["Gemini AI Integration\nSynthesis & Extraction"]
+        LLM["OpenRouter Integration\nSynthesis & Extraction"]
         FS["Persistent File System\n/wiki directory"]
     end
 
