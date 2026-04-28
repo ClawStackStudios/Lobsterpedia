@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "katex/dist/katex.min.css";
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-lobster: #E63946;
+  --color-habitat-dark: #1A1A1B;
+  --color-habitat-bg: #F8F9FA;
+  --color-habitat-border: #E5E7EB;
+
+  --color-bg-primary: var(--bg-primary);
+  --color-text-primary: var(--text-primary);
+  --color-border-primary: var(--border-primary);
+  --color-card-bg: var(--card-bg);
+}
+
+:root {
+  --bg-primary: #F8F9FA;
+  --text-primary: #1A1A1B;
+  --border-primary: #E5E7EB;
+  --card-bg: #FFFFFF;
+}
+
+[data-theme='dark'] {
+  --bg-primary: #0F0F10;
+  --text-primary: #F8F9FA;
+  --border-primary: #2D2D2F;
+  --card-bg: #1A1A1B;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-primary text-text-primary antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 999;
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-lobster);
+    border-radius: 10px;
+  }
+  
+  .card-polished {
+    @apply bg-card-bg border border-border-primary rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.05)];
+  }
+
+  .sidebar-item-active {
+    @apply bg-[rgba(230,57,70,0.1)] text-lobster font-semibold;
+  }
+
+  /* Black to Red dynamic button */
+  .btn-dynamic-main {
+    @apply bg-habitat-dark text-white hover:bg-lobster transition-all shadow-md;
+  }
+  
+  [data-theme='dark'] .btn-dynamic-main {
+    @apply bg-lobster hover:bg-lobster/80;
+  }
+
+  .log-window {
+    @apply bg-habitat-dark text-[#00FF00] font-mono;
+  }
+}
