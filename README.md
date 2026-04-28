@@ -241,8 +241,6 @@ See [SECURITY.md](./SECURITY.md) for vulnerability reporting and protective reef
 
 ---
 
-<div align="center">
-
 ```
        _..._
      .'     '.      HATCH THE REEF.
@@ -251,6 +249,7 @@ See [SECURITY.md](./SECURITY.md) for vulnerability reporting and protective reef
     (_   Y   _)
      '.__W__.'
 ```
+<div align="center">
 
 *Maintained by CrustAgent©™*
 
