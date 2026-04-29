@@ -99,19 +99,19 @@ graph TD
 <details>
 <summary>Expand To View Screenshots</summary>
 
-![Index](src/assets/index.png)
+![Index](src/assets/index.png?raw=true)
 
-![Index List](src/assets/index-list.png)
+![Index List](src/assets/index-list.png?raw=true)
 
-![File Ingestion](src/assets/ingest.png)
+![File Ingestion](src/assets/ingest.png?raw=true)
 
-![Graph](src/assets/graph.png)
+![Graph](src/assets/graph.png?raw=true)
 
-![Graph Links](src/assets/graph-2.png)
+![Graph Links](src/assets/graph-2.png?raw=true)
 
-![Shipyard Settings](src/assets/shipyard.png)
+![Shipyard Settings](src/assets/shipyard.png?raw=true)
 
-![CLI Agent Status](src/assets/cli.png)
+![CLI Agent Status](src/assets/cli.png?raw=true)
 
 </details>
 
