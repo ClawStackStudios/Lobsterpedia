@@ -114,7 +114,8 @@ function parseCrustMarkdown(fileContent: string) {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = parseInt(process.env.PORT || "7575");
+  const HOST = process.env.HOST || "0.0.0.0";
 
   app.use(cors());
   app.use(bodyParser.json({ limit: '50mb' }));
@@ -625,7 +626,7 @@ JSON Format:
         method: "POST",
         headers: {
           "Authorization": `Bearer ${apiKey}`,
-          "HTTP-Referer": (process.env.APP_URL || "http://localhost:3000").replace(/[^\x00-\x7f]/g, ''),
+          "HTTP-Referer": (process.env.APP_URL || "http://localhost:7575").replace(/[^\x00-\x7f]/g, ''),
           "X-Title": "Lobsterpedia",
           "Content-Type": "application/json"
         },
@@ -782,7 +783,7 @@ JSON Format:
 
     try {
       const safeTitle = "Lobsterpedia";
-      const referer = (process.env.APP_URL || "http://localhost:3000").replace(/[^\x00-\x7f]/g, '');
+      const referer = (process.env.APP_URL || "http://localhost:7575").replace(/[^\x00-\x7f]/g, '');
       
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -995,8 +996,8 @@ JSON Format:
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🦞 Lobsterpedia Server scuttling on http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`🦞 Lobsterpedia Server scuttling on http://${HOST}:${PORT}`);
   });
 }
 

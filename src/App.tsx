@@ -396,16 +396,31 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
           </motion.button>
         )}
 
+        {/* Sidebar Overlay for Mobile */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[45] lg:hidden"
+            />
+          )}
+        </AnimatePresence>
+
         {/* Sidebar */}
         <motion.aside 
           initial={false}
           animate={{ 
-            width: isSidebarOpen ? 288 : 0,
+            width: isSidebarOpen ? (window.innerWidth < 1024 ? 280 : 288) : 0,
             opacity: isSidebarOpen ? 1 : 0,
-            x: isSidebarOpen ? 0 : -288
+            x: isSidebarOpen ? 0 : (window.innerWidth < 1024 ? -280 : -288)
           }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="border-r border-border-primary bg-card-bg flex flex-col p-6 overflow-hidden flex-shrink-0 relative"
+          className={`border-r border-border-primary bg-card-bg flex flex-col p-6 overflow-hidden flex-shrink-0 z-[46] 
+            ${isSidebarOpen ? 'fixed lg:relative h-full' : 'absolute lg:relative h-full'} 
+            lg:z-auto lg:h-auto`}
         >
           <div className="mb-8 overflow-hidden flex flex-col">
             <h2 className="text-[11px] font-black text-text-primary/40 uppercase tracking-[0.2em] mb-6 flex items-center gap-3 flex-shrink-0">
@@ -486,8 +501,8 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
               {currentView === 'article' && activePolyP && (
                 <div className="h-full flex flex-col lg:flex-row overflow-hidden relative">
                   <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-                    {/* Graph View Toggle */}
-                    <div className="absolute top-4 right-4 z-40">
+                    {/* Graph View Toggle - Hidden on small screens */}
+                    <div className="absolute top-4 right-4 z-40 hidden lg:block">
                       <button
                         onClick={() => setShowGraphSidebar(!showGraphSidebar)}
                         className={`p-2 rounded-full border transition-all ${

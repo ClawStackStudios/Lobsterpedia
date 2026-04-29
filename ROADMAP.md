@@ -41,6 +41,10 @@ Implement an auto-save feature for the IngestZone. Drafts of the source title an
 
 In the IngestZone component, implement an auto-save feature for the 'Source Title' and 'Raw Payload' fields. Drafts should be saved to local storage and restored when the component mounts, with a small indicator showing the save status.
 
+Refactor the link rendering logic within the ArticleView component to a reusable `WikiLink` component. This component should handle displaying the link, managing hover states to show previews, and navigating to other articles using the `onNavigate` function. Highlight the text of the linked page's title in the hover preview tooltip.
+
+In the ArticleView component, identify all broken links within the article content (both markdown links and in frontmatter) and either create placeholder pages for them or attempt to link them to existing, relevant wiki pages. For any identified broken links.
+
 - [ ] In the SearchResults component, add a filter option that allows users to filter search results by document type (e.g., concept, system, entity). This filter should be accessible alongside existing filters for tags and author.
 
 - [x] In the ArticleView component, when a user hovers over a semantic cross-reference link within the article content, highlight all other nodes and links in the GraphView that are connected to the hovered node. Ensure this highlighting is visually distinct and adheres to the existing design system.
