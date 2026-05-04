@@ -10,6 +10,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import 'katex/dist/katex.min.css';
 import { aiService } from '../../services/aiService';
+import { WikiLink } from '../../components/WikiLink';
 
 interface ArticleViewProps {
   article: PolyP;
@@ -22,78 +23,6 @@ interface ArticleViewProps {
   aiProvider: AIProvider;
   openRouterModel: string;
 }
-
-interface WikiLinkProps {
-  id: string;
-  children?: React.ReactNode;
-  pages: Reef;
-  onNavigate: (view: any, id?: string) => void;
-  onHoverNode?: (id: string | null) => void;
-  hoveredLink: string | null;
-  setHoveredLink: (id: string | null) => void;
-}
-
-const WikiLink: React.FC<WikiLinkProps> = ({ id, children, pages, onNavigate, onHoverNode, hoveredLink, setHoveredLink }) => {
-  const targetPage = pages[id];
-  const isHovered = hoveredLink === id;
-
-  if (targetPage) {
-    return (
-      <span 
-        className="relative inline-block group"
-        onMouseEnter={() => {
-          setHoveredLink(id);
-          onHoverNode?.(id);
-        }}
-        onMouseLeave={() => {
-          setHoveredLink(null);
-          onHoverNode?.(null);
-        }}
-      >
-        <button 
-          onClick={() => onNavigate('article', id)} 
-          className={`font-semibold transition-all px-1 rounded flex items-center gap-1 ${isHovered ? 'bg-lobster text-white shadow-sm' : 'text-lobster hover:bg-lobster/10'}`}
-          style={{ cursor: 'pointer' }}
-        >
-          {children || targetPage.title}
-          <ArrowRight size={10} className={`text-current transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
-        </button>
-        
-        <AnimatePresence>
-          {isHovered && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-4 bg-card-bg border border-border-primary shadow-2xl rounded-xl z-[100] text-left pointer-events-none origin-bottom"
-            >
-              <h4 className="font-extrabold text-sm text-lobster mb-1 underline decoration-2 underline-offset-4">{targetPage.title}</h4>
-              <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-bg-primary text-text-primary/70 mb-2 border border-border-primary/50">
-                {targetPage.type}
-              </span>
-              <p className="text-xs text-text-primary/70 line-clamp-3 leading-relaxed">
-                {targetPage.content.replace(/[#*`]/g, '').substring(0, 150)}...
-              </p>
-              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-card-bg border-b border-r border-border-primary transform rotate-45"></div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </span>
-    );
-  }
-
-  return (
-    <button 
-      onClick={() => onNavigate('ingest', id)}
-      className="text-red-500 font-bold border-b border-dashed border-red-500/30 hover:bg-red-500/10 px-1 rounded inline-flex items-center gap-1 group"
-      title="This page does not exist yet. Click to create it."
-    >
-      <AlertCircle size={12} className="text-red-500" />
-      {children || id}
-      <Plus size={10} className="text-red-500 opacity-60" />
-    </button>
-  );
-};
 
 export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues, onRefreshIssues, onNavigate, onHoverNode, externalHoveredId, aiProvider, openRouterModel }) => {
   const [copied, setCopied] = useState(false);

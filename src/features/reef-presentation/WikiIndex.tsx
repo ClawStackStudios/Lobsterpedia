@@ -1,10 +1,11 @@
-import React from 'react';
-import { Box, Activity, Network } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Box, Activity, Network, X } from 'lucide-react';
 import { Reef, PolyP } from '../shell-core/types';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { WikiLink } from '../../components/WikiLink';
 
 interface WikiIndexProps {
   pages: Reef;
@@ -14,6 +15,20 @@ interface WikiIndexProps {
 export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
   const concepts = (Object.values(pages) as PolyP[]).filter(p => p.type === 'concept');
   const indexListPage = pages['index-list'];
+
+  const [showVaultNotice, setShowVaultNotice] = useState(false);
+
+  useEffect(() => {
+    const isDismissed = localStorage.getItem('lobsterpedia_vault_notice_dismissed');
+    if (isDismissed !== 'true') {
+      setShowVaultNotice(true);
+    }
+  }, []);
+
+  const dismissVaultNotice = () => {
+    setShowVaultNotice(false);
+    localStorage.setItem('lobsterpedia_vault_notice_dismissed', 'true');
+  };
 
   return (
     <motion.div 
@@ -36,6 +51,42 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
           <Network size={16} /> Explore Semantic Map
         </button>
       </div>
+
+      {/* Obsidian Vault Integration Notice */}
+      <AnimatePresence>
+        {showVaultNotice && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, scale: 1, height: 'auto', marginBottom: 48 }}
+            exit={{ opacity: 0, scale: 0.95, height: 0, marginBottom: 0 }}
+            className="bg-lobster/10 border-2 border-lobster/20 p-8 rounded-2xl relative overflow-hidden group hover:border-lobster/40 transition-all shadow-xl"
+          >
+            <button 
+              onClick={dismissVaultNotice}
+              className="absolute top-4 right-4 p-2 z-10 text-lobster/50 hover:text-lobster hover:bg-lobster/10 rounded-full transition-colors"
+              title="Dismiss notice"
+            >
+              <X size={20} />
+            </button>
+            <div className="absolute -right-8 -top-8 text-lobster opacity-5 rotate-12 group-hover:rotate-6 transition-transform">
+              <Box size={160} />
+            </div>
+            
+            <h2 className="text-lg font-black text-text-primary uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-lobster" /> 
+              EXTERNAL VAULT ECOSYSTEM
+            </h2>
+            
+            <blockquote className="border-l-4 border-lobster pl-6 italic text-text-primary/80 text-lg leading-relaxed mb-6 font-medium">
+              "Lobsterpedia natively supports external <strong>Obsidian Vaults</strong> located within the <code>/wiki</code> directory. You can drop pre-structured Obsidian LLM Wikis directly into the reef to instantly deploy a high-fidelity UI layer on top of your existing LLM Wiki Pattern."
+            </blockquote>
+
+            <p className="text-sm text-text-primary/60 font-medium max-w-2xl leading-relaxed">
+              Maintain your sovereignty. Your Obsidian metadata, internal links, and directory structures are respected and scuttled into the Graph Topology automatically.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {indexListPage && indexListPage.content && (
         <div className="mb-12">
@@ -60,13 +111,13 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
                     const targetId = pages[linkId] ? linkId : (pages[`${linkId}/${linkId}-index`] ? `${linkId}/${linkId}-index` : linkId);
                     
                     return (
-                      <button 
-                        onClick={() => onNavigate('article', targetId)} 
-                        className="text-lobster font-bold hover:underline"
-                        style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit' }}
+                      <WikiLink 
+                        id={targetId} 
+                        pages={pages} 
+                        onNavigate={onNavigate} 
                       >
                         {children}
-                      </button>
+                      </WikiLink>
                     );
                   }
                   return <a href={href} className="text-lobster hover:underline" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;

@@ -37,6 +37,12 @@ Not 2 separate systems. One symbiotic system.
 
 - [x] Develop dynamic detection for yaml frontmatter and develop an element to display it if any is detected in markdown files. Design the element to be consistent visually with the citeation display element.
 
+
+## Architecture Enhancements: More robust application logic.
+Refactor the link rendering logic within the ArticleView component into a reusable `WikiLink` component. This component should encapsulate the logic for displaying links, managing hover states, showing previews, and handling navigation to other articles, abstracting this complexity away.
+
+In the ArticleView component, enhance the markdown rendering to automatically detect and convert internal wiki links (e.g., [[page-id]] or [Page Title](page-id)) into clickable WikiLink components. Use the `onNavigate` function for routing and ensure hover previews are functional.
+
 Implement an auto-save feature for the IngestZone. Drafts of the source title and raw text should be saved to local storage and restored on page load or refresh.
 
 In the IngestZone component, implement an auto-save feature for the 'Source Title' and 'Raw Payload' fields. Drafts should be saved to local storage and restored when the component mounts, with a small indicator showing the save status.
@@ -44,6 +50,8 @@ In the IngestZone component, implement an auto-save feature for the 'Source Titl
 Refactor the link rendering logic within the ArticleView component to a reusable `WikiLink` component. This component should handle displaying the link, managing hover states to show previews, and navigating to other articles using the `onNavigate` function. Highlight the text of the linked page's title in the hover preview tooltip.
 
 In the ArticleView component, identify all broken links within the article content (both markdown links and in frontmatter) and either create placeholder pages for them or attempt to link them to existing, relevant wiki pages. For any identified broken links.
+
+Integrate a system into Lobsterpedia that automatically identifies and links related LLM concepts within wiki entries. For example, if an entry discusses 'transformer architecture,' it should automatically link to related concepts like 'self-attention,' 'BERT,' or 'GPT.' This will create a more interconnected and navigable knowledge base.
 
 - [ ] In the SearchResults component, add a filter option that allows users to filter search results by document type (e.g., concept, system, entity). This filter should be accessible alongside existing filters for tags and author.
 
@@ -79,9 +87,13 @@ Implement user roles and permissions to control access and editing rights for di
 
 [DONE] - Enhance the search functionality with advanced filters, such as by date, author, and tag, to refine search results.
 
+
+## Search Results: Deeper Searches net more meaningful results
 In the SearchResults component, when displaying search results, highlight the specific terms within the article titles and content snippets that matched the user's query. This will make it easier for users to quickly identify why a particular result was returned.
 
 In the SearchResults component, add a filter option for author. This should allow users to select an author from a list of authors present in the current search results and filter the results accordingly.
+
+Implement a robust search and filtering system for Lobsterpedia. Users should be able to search for specific terms, filter by categories (e.g., architecture, training data, evaluation metrics), and sort results by date or relevance. Ensure the search functionality is fast and accurate.
 
 ---
 
@@ -197,5 +209,7 @@ Integrate Tauri into the Vite React application. Configure Tauri to securely acc
 Create a basic Node.js API using Express.js that can receive requests from the React frontend to perform file system operations (read, write, delete markdown files in a specified directory) and interact with an LLM API for content generation or analysis. Define endpoints for common wiki operations like creating a new page, updating an existing one, and triggering an LLM lint pass.
 
 Integrate Git version control into the backend of the application. Ensure that every successful write operation to the wiki directory automatically commits changes to a local Git repository. Implement functionality to view commit history and potentially revert to previous versions through the UI.
+
+Develop features for user contributions to Lobsterpedia. This includes allowing registered users to create new wiki entries, suggest edits to existing ones, and upvote/downvote content. Implement a moderation queue for suggested edits and new entries, with admin privileges to approve or reject contributions.
 
 Maintained by CrustAgent©™

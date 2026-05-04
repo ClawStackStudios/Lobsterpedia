@@ -1,4 +1,5 @@
 import express from "express";
+import "dotenv/config";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -540,10 +541,15 @@ async function startServer() {
   // Maintenance LLM Lint Fixer
   app.post("/api/wiki/fix", async (req, res) => {
     const { issue, openRouterModel } = req.body;
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    let apiKey = process.env.OPENROUTER_API_KEY;
 
-    if (!apiKey) {
-      return res.status(400).json({ error: "OPENROUTER_API_KEY is not configured." });
+    if (!apiKey || apiKey.trim() === "") {
+      return res.status(400).json({ error: "OPENROUTER_API_KEY is not configured on the server reef. Check your platform environment variables." });
+    }
+    
+    apiKey = apiKey.trim();
+    if (apiKey === "undefined" || apiKey === "null") {
+      return res.status(400).json({ error: "OPENROUTER_API_KEY is set to an invalid string value." });
     }
 
     try {
@@ -622,16 +628,22 @@ JSON Format:
 ]
 `;
 
+      const safeTitle = "Lobsterpedia";
+      const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
+      
+      console.log(`[CrustAgent Scuttle] Invoking OpenRouter (Fix) | Referer: ${referer} | Title: ${safeTitle}`);
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${apiKey}`,
-          "HTTP-Referer": (process.env.APP_URL || "http://localhost:7575").replace(/[^\x00-\x7f]/g, ''),
-          "X-Title": "Lobsterpedia",
-          "Content-Type": "application/json"
+          "HTTP-Referer": referer,
+          "X-Title": safeTitle,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
         body: JSON.stringify({
-          model: openRouterModel || "google/gemini-2.5-pro",
+          model: openRouterModel || "openai/gpt-oss-120b:free",
           messages: [{ role: "user", content: prompt }]
         })
       });
@@ -769,12 +781,17 @@ JSON Format:
   // OpenRouter Proxy Endpoint (Security Layer: Key is never sent to browser)
   app.post("/api/ai/openrouter", async (req, res) => {
     const { prompt, model } = req.body;
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    let apiKey = process.env.OPENROUTER_API_KEY;
 
-    if (!apiKey) {
+    if (!apiKey || apiKey.trim() === "") {
       return res.status(400).json({ 
-        error: "OPENROUTER_API_KEY is not configured on the server reef. Please scuttle over to the platform settings to provide it." 
+        error: "OPENROUTER_API_KEY is not configured on the server reef. Please check your environment variables." 
       });
+    }
+
+    apiKey = apiKey.trim();
+    if (apiKey === "undefined" || apiKey === "null") {
+      return res.status(400).json({ error: "OPENROUTER_API_KEY is set to an invalid string value." });
     }
 
     if (!prompt) {
@@ -783,18 +800,21 @@ JSON Format:
 
     try {
       const safeTitle = "Lobsterpedia";
-      const referer = (process.env.APP_URL || "http://localhost:7575").replace(/[^\x00-\x7f]/g, '');
+      const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
       
+      console.log(`[CrustAgent Scuttle] Invoking OpenRouter (Proxy) | Model: ${model || "default"} | Referer: ${referer}`);
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${apiKey}`,
           "HTTP-Referer": referer,
           "X-Title": safeTitle,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
         body: JSON.stringify({
-          model: model || "openai/gpt-oss-120b",
+          model: model || "openai/gpt-oss-120b:free",
           messages: [
             { role: "system", content: "Communicate with rigorous epistemic discipline: prefer measured confidence, deep reasoning and parsimonious explanations, avoiding unnecessary complexity or overextension." },
             { role: "user", content: prompt }
