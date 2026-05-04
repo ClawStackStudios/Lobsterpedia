@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import { Reef, PolyP } from '../shell-core/types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Network, ArrowLeft, X, ExternalLink, Activity, Info } from 'lucide-react';
+import { Network, ArrowLeft, X, ExternalLink, Activity, Info, Search, Filter } from 'lucide-react';
 
 interface SystemicGraphProps {
   reef: Reef;
@@ -76,6 +76,27 @@ export const SystemicGraph: React.FC<SystemicGraphProps> = ({ reef, onNavigate, 
       setSelectedNodeId(null);
     });
 
+    // Background Technical Grid
+    const grid = g.append('g').attr('class', 'grid-layer');
+    const gridStep = 50;
+    const gridBound = 5000;
+    
+    for (let x = -gridBound; x < gridBound; x += gridStep) {
+      grid.append('line')
+        .attr('x1', x).attr('y1', -gridBound)
+        .attr('x2', x).attr('y2', gridBound)
+        .attr('stroke', theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)')
+        .attr('stroke-width', 1);
+    }
+    
+    for (let y = -gridBound; y < gridBound; y += gridStep) {
+      grid.append('line')
+        .attr('x1', -gridBound).attr('y1', y)
+        .attr('x2', gridBound).attr('y2', y)
+        .attr('stroke', theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)')
+        .attr('stroke-width', 1);
+    }
+
     const reefArray = Object.values(reef) as PolyP[];
     const nodes: Node[] = reefArray.map(p => ({ 
       id: p.id, 
@@ -135,19 +156,18 @@ export const SystemicGraph: React.FC<SystemicGraphProps> = ({ reef, onNavigate, 
       .attr('fill', d => CATEGORY_COLORS[d.type] || '#9ca3af')
       .attr('stroke', theme === 'dark' ? '#0F0F10' : '#FFFFFF')
       .attr('stroke-width', 3)
-      .attr('class', 'transition-all duration-300 shadow-lg');
+      .attr('class', 'node-circle transition-all duration-500');
 
     const text = node.append('text')
-      .text(d => d.title)
-      .attr('dx', d => Math.max(16, (d.sig * 30) + 8))
+      .text(d => `[${d.type.substring(0, 3).toUpperCase()}] ${d.title.toUpperCase()}`)
+      .attr('dx', d => Math.max(16, (d.sig * 30) + 12))
       .attr('dy', 4)
-      .style('font-family', 'Inter, sans-serif')
+      .style('font-family', '"JetBrains Mono", monospace')
       .style('font-size', '10px')
       .style('font-weight', '700')
+      .style('letter-spacing', '0.05em')
       .style('fill', theme === 'dark' ? '#9CA3AF' : '#4B5563')
       .style('pointer-events', 'none')
-      .style('text-transform', 'uppercase')
-      .style('letter-spacing', '0.05em')
       .style('opacity', 0)
       .attr('class', 'node-label transition-all duration-300');
 
@@ -182,12 +202,13 @@ export const SystemicGraph: React.FC<SystemicGraphProps> = ({ reef, onNavigate, 
       node.style('opacity', (n: any) => neighbors.has(n.id) ? 1 : 0.15);
       
       node.selectAll('circle')
-          .style('fill', (n: any) => n.id === selectedNodeId ? '#00FFFF' : (CATEGORY_COLORS[n.type] || '#9ca3af'))
-          .style('stroke', (n: any) => n.id === selectedNodeId ? '#00FFFF' : (theme === 'dark' ? '#0F0F10' : '#FFFFFF'))
-          .style('stroke-width', (n: any) => n.id === selectedNodeId ? 4 : 3);
+          .style('fill', (n: any) => n.id === selectedNodeId ? '#E63946' : (CATEGORY_COLORS[n.type] || '#9ca3af'))
+          .style('stroke', (n: any) => n.id === selectedNodeId ? '#F59E0B' : (theme === 'dark' ? '#0F0F10' : '#FFFFFF'))
+          .style('stroke-width', (n: any) => n.id === selectedNodeId ? 6 : 3)
+          .attr('class', (n: any) => n.id === selectedNodeId ? 'node-circle animate-pulse-slow' : 'node-circle');
       
-      text.style('opacity', (n: any) => n.id === selectedNodeId ? 1 : 0)
-          .style('fill', theme === 'dark' ? '#F8F9FA' : '#1A1A1B')
+      text.style('opacity', (n: any) => n.id === selectedNodeId ? 1 : (neighbors.has(n.id) ? 0.3 : 0))
+          .style('fill', (n: any) => n.id === selectedNodeId ? '#F59E0B' : (theme === 'dark' ? '#9CA3AF' : '#4B5563'))
           .style('font-weight', (n: any) => n.id === selectedNodeId ? '900' : '700');
       
       link.style('stroke', (l: any) => {
@@ -202,31 +223,39 @@ export const SystemicGraph: React.FC<SystemicGraphProps> = ({ reef, onNavigate, 
         const s = l.source.id || l.source;
         const t = l.target.id || l.target;
         return (s === selectedNodeId || t === selectedNodeId) ? 3 : 1.5;
+      }).style('stroke-dasharray', (l: any) => {
+        const s = l.source.id || l.source;
+        const t = l.target.id || l.target;
+        return (s === selectedNodeId || t === selectedNodeId) ? 'none' : '4,4';
       });
     } else if (hoveredNodeId) {
       node.style('opacity', 1);
       node.selectAll('circle')
           .style('fill', (n: any) => CATEGORY_COLORS[n.type] || '#9ca3af')
           .style('stroke', (theme === 'dark' ? '#0F0F10' : '#FFFFFF'))
-          .style('stroke-width', 3);
+          .style('stroke-width', 3)
+          .attr('class', 'node-circle');
       text.style('opacity', (n: any) => n.id === hoveredNodeId ? 1 : 0)
           .style('fill', theme === 'dark' ? '#9CA3AF' : '#4B5563')
           .style('font-weight', '700');
       link.style('stroke', (theme === 'dark' ? '#2D2D2F' : '#E5E7EB'))
           .style('stroke-opacity', 0.6)
-          .style('stroke-width', 1.5);
+          .style('stroke-width', 1.5)
+          .style('stroke-dasharray', 'none');
     } else {
       node.style('opacity', 1);
       node.selectAll('circle')
           .style('fill', (n: any) => CATEGORY_COLORS[n.type] || '#9ca3af')
           .style('stroke', (theme === 'dark' ? '#0F0F10' : '#FFFFFF'))
-          .style('stroke-width', 3);
+          .style('stroke-width', 3)
+          .attr('class', 'node-circle');
       text.style('opacity', 0)
           .style('fill', theme === 'dark' ? '#9CA3AF' : '#4B5563')
           .style('font-weight', '700');
       link.style('stroke', (theme === 'dark' ? '#2D2D2F' : '#E5E7EB'))
           .style('stroke-opacity', 0.6)
-          .style('stroke-width', 1.5);
+          .style('stroke-width', 1.5)
+          .style('stroke-dasharray', 'none');
     }
   }, [selectedNodeId, hoveredNodeId]);
 
