@@ -4,31 +4,39 @@ Project: Lobsterpedia©™
 Maintainer: CrustAgent©™
 ---
 
-# Lobsterpedia©™: Technical Heart
+# 🦞 Lobsterpedia©™: Technical Heart
 
-This directory contains the presentation logic and orchestrations for the Lobsterize UI.
+This directory contains the presentation logic, state orchestrations, and visualization engines for the **Lobsterpedia Habitat**.
 
-## 🏗️ Feature-First Micro-Architecture
-The system is partitioned into discrete feature domains:
-- `shell-core`: Shared types, constants, and global invariants.
+## 🏗️ Technical Topology
+
+The codebase is partitioned into discrete feature domains to prevent monolithic drift:
+- `shell-core`: Shared types, constants, and global system invariants.
 - `reef-presentation`: Adaptive UI components (Motion, D3, Tailwind 4).
-- `molt-engine`: API state management and data handshakes.
+- `molt-engine`: API state management and asynchronous data handshakes.
 
 ## 🦞 CrustCode©™ Patterns
-- **Lobsterized UI**: High-contrast, typography-focused interfaces with "Lobster-red" accents (`#FF6432`).
-- **Interactive Topology**: D3-powered graph visualizations for real-time relational mapping.
-- **Protocol Partitions**: Strict adherence to the "Manual Mode" state for disabling automated side-effects.
-- **Container Boundary**: Operational environment parity enforced via Docker. Exposes port 7575 and expects `/wiki` volume mapping. Hardened with Smart CORS and Helmet headers.
-- **Recursive Navigation**: Folder-aware tree navigation with native HTML5 Drag & Drop integration.
 
-## 🧬 Data Flow
-1. **Ingestion**: Raw DNA processed in `IngestZone`.
-2. **Synthesis**: LLM request triggered via `apiService`.
-3. **Persistence**: Markdown document scuttled to `/wiki` via `molt-engine`.
-4. **Rescan**: `loadReef` triggers across the directory tree and graph topology.
+- **Scientific Observation Aesthetic**: High-fidelity, monospaced interfaces (JetBrains Mono) with **Lobster Red** accents (`#E63946`) and **Bone White** focused states.
+- **Immersive Topology**: Dedicated D3 physics simulation with density-optimized clustering and bioluminescent pulse effects.
+- **Protocol Partitions**: Strict enforcement of the `isManualMode` state to isolate automated side-effects from human workflows.
+- **Atomic File Operations**: Renaming and moving operations use safe, non-destructive FS primitives to ensure no orphaned PolyPs.
+- **Feature-Sliced Navigation**: Recursive, folder-aware directory trees with native drag & drop support.
 
-## 🛡️ Epistemic Frame
-- **Constraint**: Communicate with rigorous epistemic discipline: prefer measured confidence, deep reasoning, and parsimonious explanations.
+## 🧬 Data Flow (The Scuttle Cycle)
 
-Maintained by CrustAgent©™
+1. **Ingestion**: Raw DNA (Text, PDF, Docx) is normalized in `IngestZone`.
+2. **Synthesis**: LLM request triggered via `apiService` (OpenRouter Handshake).
+3. **Persistence**: Synthesized markdown is scuttled to the `/wiki` volume.
+4. **Rescan**: Global reef state is refreshed, updating the directory tree and graph topology.
+
+## 🛡️ Epistemic Framing
+Every code modification must be verified against the project's invariants. We prefer **rigorous type-safety** and **declarative logic** over imperative hacks. If the logic is opaque, it is not CrustCode©™.
+
+## 🛠️ Internal Skills Reference
+- [**crust-code**](../.crustagent/skills/crust-code/) - The law of the shell.
+- [**scuttle-scripts**](../.crustagent/scuttle-scripts/) - The tools of the molt.
+
+---
+**Maintained by CrustAgent©™**
 [Status: FULLY_SCUTTLED]

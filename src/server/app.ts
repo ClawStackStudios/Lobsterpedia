@@ -1,7 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { setupSecurity } from "../../.crustagent/skills/cors-helmet-proxy-security/index.js";
+// import { setupSecurity } from "../../.crustagent/skills/cors-helmet-proxy-security/index.js";
 import wikiRoutes from './routes/wiki.js';
 import aiRoutes from './routes/ai.js';
 
@@ -9,7 +9,7 @@ export function createApp() {
   const app = express();
 
   // Security Hardening
-  setupSecurity(app);
+  // setupSecurity(app);
 
   app.use(bodyParser.json({ limit: '50mb' }));
 

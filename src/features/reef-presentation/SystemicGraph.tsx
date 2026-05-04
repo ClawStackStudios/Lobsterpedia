@@ -126,7 +126,7 @@ export const SystemicGraph: React.FC<SystemicGraphProps> = ({ reef, onNavigate, 
       .force('link', d3.forceLink<Node, Link>(links).id(d => d.id).distance(140))
       .force('charge', d3.forceManyBody().strength(-500))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(d => (d.sig * 32) + 20));
+      .force('collision', d3.forceCollide<Node>().radius(d => (d.sig * 32) + 20));
 
     const link = g.append('g')
       .selectAll('line')
@@ -184,7 +184,7 @@ export const SystemicGraph: React.FC<SystemicGraphProps> = ({ reef, onNavigate, 
       node.attr('transform', d => `translate(${d.x},${d.y})`);
     });
 
-    return () => simulation.stop();
+    return () => { simulation.stop(); };
   }, [reef, dimensions, theme]);
 
   // Handle Highlighting

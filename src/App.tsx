@@ -480,7 +480,7 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                     <button onClick={() => moltNavigate('graph')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'graph' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
                        <Network size={16} /> Graph Topology
                     </button>
-                    <button onClick={() => moltNavigate('systemic-graph')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'systemic-graph' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
+                    <button onClick={() => moltNavigate('systemic-graph')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all text-text-primary/70 hover:bg-border-primary/50`}>
                        <Share2 size={16} /> Immersive Mode
                     </button>
                    <button onClick={() => moltNavigate('git')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'git' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>

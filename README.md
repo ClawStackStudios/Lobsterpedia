@@ -22,7 +22,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![FileSystem](https://img.shields.io/badge/Storage-Persistent_File_System-blue?style=for-the-badge)](#)
+[![OpenRouter](https://img.shields.io/badge/AI-OpenRouter-red?style=for-the-badge)](https://openrouter.ai/)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-yellow.svg?style=for-the-badge)](LICENSE)
 [![Phase](https://img.shields.io/badge/Phase-BETA-lobster?style=for-the-badge)](#)
 
@@ -38,10 +38,10 @@
 - [Screenshots](#-screenshots)
 - [Getting Started](#-getting-started)
   - [Prerequisites](#prerequisites)
-  - [Scuttling (Quick Start)](#-scuttling-quick-start)
-  - [Expanded Setup Instructions](#-expanded-setup-instructions)
-- [Obsidian & LLM Wiki Integration](#️-obsidian--llm-wiki-integration)
+  - [Running with npm](#-running-with-npm)
+  - [Running with Docker](#-running-with-docker)
 - [The Reef System](#-the-reef-system)
+- [API Reference](#-api-reference)
 - [Project Structure](#-project-structure)
 - [Available Scripts](#-available-scripts)
 - [Related Documentation](#-related-documentation)
@@ -56,13 +56,12 @@
 
 **Lobsterpedia©™** is an agent-maintained, LLM-powered wiki system designed to build and maintain a persistent knowledge reef from raw DNA (plain text, PDFs, and Word documents). It follows the **ClawStack©™** methodology, ensuring that every piece of information is incrementally synthesized, linked, and visualized for maximum observability.
 
-**Core Features:**
-- 🧬 **Incremental Synthesis** — Automatically scuttles raw input into structured wiki concepts via the Molt Engine.
+- 🧬 **Incremental Synthesis** — Automatically scuttles raw input into structured wiki concepts via the **Molt Engine©™**.
 - 🗺️ **Topology Visualizer** — Interactive D3.js semantic relationship mapping to visualize the reef's structure.
-- 🏗️ **Shipyard (Maintenance)** — System-wide linting, auto-linking, and self-healing protocols for wiki integrity.
+- 🏗️ **Shipyard Maintenance** — System-wide linting, auto-linking, and self-healing protocols for wiki integrity.
 - 📂 **Directory Sovereignty** — Native file system integration with drag & drop reorganization and renaming.
 - 🕹️ **Manual Protocol** — Master toggle to disable LLM automation for strict, un-augmented human control.
-- 🧪 **Operations CLI** — Real-time telemetry feed and command logs (The Molt Logs).
+- 🧪 **Operations CLI** — Real-time telemetry feed and command logs (**The Molt Logs©™**).
 - 🌓 **Theme Adaptive** — Elegant light/dark mode support built for the deep ocean.
 
 ---
@@ -71,15 +70,15 @@
 
 ```mermaid
 graph TD
-    subgraph Frontend ["🌐 Browser"]
+    subgraph Client ["🌐 Browser"]
         UI["React / Tailwind UI\nVite + TSX"]
         Features["src/features/\nwiki | shell-core | reef-presentation"]
         Graph["D3.js Topology\nReef Mapping"]
         CLI["Molt Terminal\nTelemetry UI"]
     end
 
-    subgraph Engine ["🖥️ Node.js Engine"]
-        API["Express Routes\n/api/wiki | /api/ingest | /api/lint"]
+    subgraph Engine ["🖥️ The Habitat Engine (Node.js)"]
+        API["Express Routes\n/api/wiki | /api/ai"]
         LLM["OpenRouter Integration\nSynthesis & Extraction"]
         FS["Persistent File System\n/wiki directory"]
     end
@@ -99,19 +98,13 @@ graph TD
 <details>
 <summary>Expand To View Screenshots</summary>
 
-![Index](src/assets/index.png?raw=true)
-
-![Index List](src/assets/index-list.png?raw=true)
-
-![File Ingestion](src/assets/ingest.png?raw=true)
-
-![Graph](src/assets/graph.png?raw=true)
-
-![Graph Links](src/assets/graph-2.png?raw=true)
-
-![Shipyard Settings](src/assets/shipyard.png?raw=true)
-
-![CLI Agent Status](src/assets/cli.png?raw=true)
+| Feature | Visual Representation |
+|---|---|
+| **Habitat Index** | ![Index](src/assets/index.png?raw=true) |
+| **Topology Map** | ![Graph](src/assets/graph.png?raw=true) |
+| **Ingestion Pipeline** | ![File Ingestion](src/assets/ingest.png?raw=true) |
+| **Shipyard Controls** | ![Shipyard Settings](src/assets/shipyard.png?raw=true) |
+| **Molt Logs** | ![CLI Agent Status](src/assets/cli.png?raw=true) |
 
 </details>
 
@@ -124,68 +117,65 @@ graph TD
 - **Node.js** v20+
 - **npm** v10+
 - **Docker & Docker Compose** *(for sovereign containerized deployment)*
-- **OpenRouter API Key** *(for synthesis logic)*
+- **OpenRouter API Key** *(required for synthesis logic)*
 
 ---
 
-### 🦞 Scuttling (Quick Start)
-
-**Simplest path to hatch the reef:**
-
-```bash
-# 1. Clone the repository
-git clone <repo> && cd Lobsterpedia
-
-# 2. Install dependencies
-npm install
-
-# 3. Hatch the development reef
-npm run dev
-
-# 4. Open the viewport
-open http://localhost:7575
-```
-
----
-
-### 🛠️ Expanded Setup Instructions
+### 🐚 Running with npm
 
 <details>
-<summary>View full npm & Docker setup guides</summary>
+<summary>Expand npm instructions</summary>
 
-#### Running with npm
+**Install dependencies first:**
+```bash
+npm install
+```
 
 **Development Commands (The Coral Nursery):**
 - **Start All**: `npm run scuttle:run-dev` (API + Frontend w/ HMR on `localhost:7575`)
 - **Lint Reef**: `npm run lint` (TypeScript integrity check)
 
+---
+
 **Production Commands (The Great Scuttle):**
 - **Build & Start**: `npm run scuttle:prod-start` (Builds and serves the reef on `0.0.0.0:7575`)
 - **Stop**: `npm run scuttle:stop` (Kills the scuttling process on port 7575)
 
-#### Running with Docker
+</details>
 
-Use the provided `Dockerfile` and `docker-compose.yml` for a sovereign, containerized reef deployment.
+---
 
-**The Compose Scuttle:**
+### 🐳 Running with Docker
+
+<details>
+<summary>Expand Docker instructions</summary>
+
+**Environment Variables Reference:**
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `NODE_ENV` | `production` | Runtime mode (production or development) |
+| `PORT` | `7575` | Container internal port |
+| `OPENROUTER_API_KEY` | `""` | Key for LLM synthesis (Required) |
+| `APP_URL` | `""` | Public URL for OpenRouter referer |
+| `DATA_DIR` | `/app/wiki` | Where knowledge files are stored (bind mount) |
+
+**The Compose Scuttle ⚓**
 ```bash
-# 1. Provide your OpenRouter Key in .env (optional)
+# 1. Provide your OpenRouter Key in .env
 echo "OPENROUTER_API_KEY=your_key_here" > .env
 
 # 2. Scuttle with Compose
-docker-compose up -d --build
-
-# 3. View the reef
-# UI accessible at http://localhost:7575
+docker compose up -d --build
 ```
 
-**Manual Docker Run:**
+**Manual Docker Run 🛠️**
 ```bash
 # Build the image
 docker build -t lobsterpedia .
 
 # Run the container (Map port 7575 and bind the wiki volume)
-docker run -p 7575:7575 -v $(pwd)/wiki:/app/wiki lobsterpedia
+docker run -p 7575:7575 -e OPENROUTER_API_KEY=sk-xxx -v $(pwd)/wiki:/app/wiki lobsterpedia
 ```
 
 > [!IMPORTANT]
@@ -201,11 +191,6 @@ docker run -p 7575:7575 -v $(pwd)/wiki:/app/wiki lobsterpedia
 Lobsterpedia is designed to coexist with your existing knowledge workflows, specifically supporting external **Obsidian Vaults** as a secondary UI and management layer.
 
 > **The Sovereign Bridge**: Lobsterpedia treats any `/wiki` directory precisely as an Obsidian Vault. You can drop pre-structured **LLM Wikis** (following the LLM Wiki Pattern) directly into the reef to provide an instant, high-fidelity UI layer for synthesis, visualization, and agentic maintenance.
-
-By anchoring your data in the `/wiki` directory, you gain the power of:
-- **Agentic Polishing**: Use the Molt Engine to refine notes taken in Obsidian.
-- **Topological Insight**: Visualize your vault's semantic structure via the D3 reef map.
-- **Micro-Service UI**: A dedicated, lightweight interface optimized for agent-human collaboration.
 
 ---
 
@@ -225,9 +210,36 @@ Lobsterpedia relies on a **Persistent Knowledge Directory** instead of a traditi
 
 ---
 
+## 🔌 API Reference
+
+> All endpoints except `/api/wiki/health` require a properly configured Habitat.
+
+<details>
+<summary>View full API endpoint table</summary>
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/wiki/health` | System health and stable status check |
+| `GET` | `/api/wiki/settings` | Retrieve Habitat scan intervals and auto-ingest flags |
+| `POST` | `/api/wiki/settings` | Persist Habitat configuration changes |
+| `GET` | `/api/wiki/files` | Walk the reef and return a full topological map |
+| `GET` | `/api/wiki/file/*` | Retrieve the specific content and metadata of a PolyP |
+| `POST` | `/api/wiki/mkdir` | Create a new directory within the sovereign reef |
+| `POST` | `/api/wiki/move` | Atomic rename/move operation for files and folders |
+| `POST` | `/api/wiki/save` | Update an existing PolyP with new metadata or content |
+| `POST` | `/api/wiki/synthesize` | Commit LLM-synthesized data as a new wiki concept |
+| `DELETE` | `/api/wiki/delete/*` | Purge a specific PolyP from the reef |
+| `POST` | `/api/wiki/parse` | Extract raw text from PDF, DOCX, or RTF pearls |
+| `POST` | `/api/ai/openrouter` | Handshake with the LLM via OpenRouter |
+| `POST` | `/api/ai/fix` | Trigger an agentic maintenance protocol to fix wiki issues |
+
+</details>
+
+---
+
 ## 📂 Project Structure
 
-```
+```text
 Lobsterpedia/
 ├── wiki/                       # The Sovereign Data Reef (Markdown files)
 ├── src/
@@ -240,22 +252,23 @@ Lobsterpedia/
 │   ├── data/                   # Static patterns and reef constants
 │   ├── main.tsx                # Entry point
 │   └── index.css               # Global Tailwind styles
-├── server.ts                   # The Habitat Engine (Express Entry Point)
-├── vite.config.ts              # Bundler configuration
-└── package.json                # External dependencies & scuttle scripts
+├── server.ts                   # Express Entry Point (The Habitat Engine)
+├── Dockerfile                  # Container Blueprint
+├── docker-compose.yml          # Production Stack
+└── package.json                # Dependencies & Scuttle Scripts
 ```
 
 ---
 
 ## 🛠️ Available Scripts
 
-| Script | Port | Description |
-|---|---|---|
-| `npm run scuttle:run-dev` | 7575 | 🦞 Hatch the development environment (API + UI) |
-| `npm run scuttle:prod-start` | 7575 | Scuttle into production (Build + Serve) |
-| `npm run build` | — | Harden the shell (Builds production bundle) |
-| `npm run lint` | — | Scan the exoskeleton (TypeScript type-check) |
-| `npm run scuttle:stop` | — | Cease all scuttling on port 7575 |
+| Script | Description |
+|---|---|
+| `npm run scuttle:run-dev` | 🦞 Start Frontend + Backend concurrently (dev mode) |
+| `npm run scuttle:prod-start` | Build + start production server (:7575) |
+| `npm run build` | Harden the exoskeleton (Production build) |
+| `npm run lint` | Scan the exoskeleton (TypeScript integrity check) |
+| `npm run scuttle:stop` | Cease all scuttling on port 7575 |
 
 ---
 
@@ -264,33 +277,23 @@ Lobsterpedia/
 | Document | Purpose |
 |---|---|
 | [**CRUSTAGENT.md**](./CRUSTAGENT.md) | Project understanding, memory, and stability locks |
-| [**BLUEPRINT.md**](./BLUEPRINT.md) | ASCII construction-style blueprints of the codebase |
+| [**ARCHITECTURE.md**](./ARCHITECTURE.md) | ASCII construction-style blueprints of the codebase |
 | [**ROADMAP.md**](./ROADMAP.md) | Current and future development direction |
 | [**CONTRIBUTING.md**](./CONTRIBUTING.md) | How to scuttle alongside us |
 | [**SECURITY.md**](./SECURITY.md) | Security practices and ClawKeys©™ protocols |
 
 ---
 
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide. We scuttle together.
-
-## 🛡️ Security
-
-See [SECURITY.md](./SECURITY.md) for vulnerability reporting and protective reef practices.
-
----
-
-```
+```text
        _..._
      .'     '.      HATCH THE REEF.
     /  _   _  \     SCUTTLE DATA.
     | (q) (p) |     PUNCH THE CLOUD.
     (_   Y   _)
      '.__W__.'
+     _.'   '._
+    (         )
+     '._ _ .-'
+        'u'
+     Maintained by CrustAgent©™
 ```
-<div align="center">
-
-*Maintained by CrustAgent©™*
-
-</div>
