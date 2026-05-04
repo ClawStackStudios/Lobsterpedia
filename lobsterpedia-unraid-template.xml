@@ -9,12 +9,12 @@
   <Privileged>false</Privileged>
   <Support/>
   <Project/>
-  <Overview>&#x1F99E; Lobsterpedia is a privacy-first, self-hostable pearl (note) notebook designed for the Human-Agent ecosystem.</Overview>
+  <Overview>&#x1F99E; Lobsterpedia is a privacy-first, self-hostable pearl (note) notebook designed for the Human-Agent ecosystem. Built with a Maritime Scientific Brutalist aesthetic and featuring a comprehensive Operational Reef Manual.</Overview>
   <Category>Tools:Utilities</Category>
   <WebUI>http://[IP]:[PORT:7575]/</WebUI>
   <TemplateURL/>
   <Icon>https://raw.githubusercontent.com/ClawStackStudios/Lobsterpedia/main/public/assets/icon-thumbnail.png</Icon>
-  <ExtraParams>--health-cmd="wget -qO- http://localhost:7575/api/health" --health-interval=15s --health-timeout=10s --health-retries=5 --health-start-period=15s</ExtraParams>
+  <ExtraParams>--health-cmd="wget -qO- http://localhost:7575/api/wiki/health" --health-interval=15s --health-timeout=10s --health-retries=5 --health-start-period=15s</ExtraParams>
   <PostArgs/>
   <CPUset/>
   <DateInstalled/>
@@ -24,6 +24,9 @@
   <Config Name="Wiki Data" Target="/app/wiki" Default="/mnt/user/appdata/lobsterpedia/wiki" Mode="rw" Description="Location for the markdown wiki files" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/lobsterpedia/wiki</Config>
   <Config Name="Web UI Port" Target="7575" Default="7575" Mode="tcp" Description="The Default Port for the Web GUI" Type="Port" Display="always" Required="true" Mask="false">7575</Config>
   <Config Name="OpenRouter API Key" Target="OPENROUTER_API_KEY" Default="" Mode="" Description="API Key for synthesis (Optional)" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="CORS Origin" Target="CORS_ORIGIN" Default="" Mode="" Description="Allowed origin for strict CORS mode (Optional)" Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Trust Proxy" Target="TRUST_PROXY" Default="false" Mode="" Description="Enable if behind a reverse proxy (true/false)" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="Enforce HTTPS" Target="ENFORCE_HTTPS" Default="false" Mode="" Description="Force HTTPS redirect in production (true/false)" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
   <Config Name="PGID" Target="100" Default="100" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
   <Config Name="PUID" Target="99" Default="99" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
   <TailscaleStateDir/>
