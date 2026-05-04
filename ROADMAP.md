@@ -58,6 +58,12 @@
     - [ ] Setup Tauri integration for native desktop performance.
     - [ ] Native FS access via Rust backend.
 
+## Phase 7: Public Reef & Documentation (COMPLETE)
+- [x] High-fidelity Landing Page (Maritime Scientific Brutalism)
+- [x] Integrated Operational Manual Shell (Markdown-to-HTML)
+- [x] GitHub Pages Compatible Deployment Topology
+- [x] Core System Documentation (Habitat, Synthesis, Shipyard, Topology)
+
 ---
 
 ## 🔬 Long-Range Research (LOCKED)

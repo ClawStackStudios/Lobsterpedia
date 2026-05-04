@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobsterpedia©™ | Operational Manual</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <style>
+        :root {
+            --lobster: #E63946;
+            --habitat: #1A1A1B;
+            --deep-sea: #0F0F10;
+            --bone-white: #F8F9FA;
+            --border: #2D2D2F;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--deep-sea);
+            color: var(--bone-white);
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .prose {
+            color: rgba(248, 249, 250, 0.7);
+            max-width: none;
+        }
+        .prose h1, .prose h2, .prose h3, .prose h4 {
+            color: var(--bone-white);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .prose h1 { font-size: 2.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .prose h2 { font-size: 1.5rem; }
+        .prose p { margin-bottom: 1.5rem; line-height: 1.7; }
+        .prose code { 
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--habitat);
+            color: var(--lobster);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .prose pre {
+            background: #000 !important;
+            padding: 1.5rem !important;
+            border-radius: 16px !important;
+            border: 1px solid var(--border) !important;
+            margin-bottom: 2rem !important;
+        }
+        .prose pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        .prose ul { list-style: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        .prose li { margin-bottom: 0.5rem; }
+        .prose a { color: var(--lobster); text-decoration: underline; text-underline-offset: 4px; }
+        .prose blockquote {
+            border-left: 4px solid var(--lobster);
+            padding-left: 1.5rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+            background: rgba(230, 57, 70, 0.05);
+            padding: 1.5rem;
+            border-radius: 0 16px 16px 0;
+        }
+
+        .sidebar-active {
+            color: var(--lobster);
+            background: rgba(230, 57, 70, 0.1);
+            border-right: 2px solid var(--lobster);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--deep-sea); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border); }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--lobster); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-72 border-r border-habitat bg-deep-sea flex flex-col flex-shrink-0">
+        <div class="p-6 border-b border-habitat flex items-center gap-3">
+            <a href="index.html" class="text-xl hover:scale-110 transition-transform">🦞</a>
+            <div class="flex flex-col">
+                <span class="font-black text-xs uppercase tracking-widest">Lobsterpedia</span>
+                <span class="text-[9px] text-lobster font-mono uppercase tracking-[0.2em]">Operational Manual</span>
+            </div>
+        </div>
+        <div id="sidebar-nav" class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-1">
+            <div class="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] px-3 py-2 mt-4">Core Systems</div>
+            <!-- Nav items will be injected here -->
+            <div class="animate-pulse px-3 py-2 text-xs text-white/10 italic">Scuttling manual index...</div>
+        </div>
+        <div class="p-4 border-t border-habitat text-[8px] font-mono text-white/20 uppercase tracking-widest text-center">
+            [ MAINTAINED BY CRUSTAGENT©™ ]
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar bg-deep-sea relative">
+        <div id="loading-overlay" class="absolute inset-0 bg-deep-sea z-50 flex items-center justify-center transition-opacity duration-300">
+            <div class="flex flex-col items-center gap-4">
+                <div class="w-12 h-12 border-2 border-lobster/20 border-t-lobster rounded-full animate-spin"></div>
+                <div class="mono text-[10px] text-lobster uppercase tracking-widest animate-pulse">Fetching Reef Node...</div>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto py-16 px-12">
+            <div id="content" class="prose">
+                <!-- Markdown will be injected here -->
+            </div>
+            
+            <div class="mt-20 pt-10 border-t border-habitat flex justify-between items-center text-[10px] font-mono text-white/30 uppercase tracking-widest">
+                <div>Artifact: Manual_Node_v1.0</div>
+                <div>Status: Verified_By_CrustAgent</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const NAV_ITEMS = [
+            { id: 'index', title: 'Operational Overview', category: 'Core Systems' },
+            { id: 'habitat', title: 'The Habitat (FS Engine)', category: 'Core Systems' },
+            { id: 'synthesis', title: 'Molt Synthesis (AI)', category: 'Core Systems' },
+            { id: 'shipyard', title: 'Shipyard (Maintenance)', category: 'Core Systems' },
+            { id: 'topology', title: 'The Topology (Graph)', category: 'Core Systems' },
+            { id: 'crustcode', title: 'CrustCode©™ Protocols', category: 'Architecture' },
+            { id: 'deployment', title: 'Deployment & Setup', category: 'Architecture' }
+        ];
+
+        const contentEl = document.getElementById('content');
+        const sidebarEl = document.getElementById('sidebar-nav');
+        const loadingEl = document.getElementById('loading-overlay');
+
+        function renderSidebar() {
+            let html = '';
+            let currentCat = '';
+            
+            NAV_ITEMS.forEach(item => {
+                if (item.category !== currentCat) {
+                    currentCat = item.category;
+                    html += `<div class="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] px-3 py-2 mt-4">${currentCat}</div>`;
+                }
+                html += `
+                    <a href="#${item.id}" 
+                       id="nav-${item.id}"
+                       class="block px-3 py-2 text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                        ${item.title}
+                    </a>
+                `;
+            });
+            sidebarEl.innerHTML = html;
+        }
+
+        async function loadPage(id) {
+            loadingEl.style.opacity = '1';
+            loadingEl.style.pointerEvents = 'auto';
+            
+            // Update sidebar active state
+            document.querySelectorAll('#sidebar-nav a').forEach(el => el.classList.remove('sidebar-active'));
+            const activeEl = document.getElementById(`nav-${id}`);
+            if (activeEl) activeEl.classList.add('sidebar-active');
+
+            try {
+                const response = await fetch(`lobsterpedia-manual/${id}.md`);
+                if (!response.ok) throw new Error('Node not found in reef.');
+                const markdown = await response.text();
+                
+                contentEl.innerHTML = marked.parse(markdown);
+                Prism.highlightAll();
+                window.scrollTo(0, 0);
+            } catch (err) {
+                contentEl.innerHTML = `
+                    <div class="py-20 text-center">
+                        <div class="text-6xl mb-6">⚠️</div>
+                        <h1 class="text-2xl font-black text-lobster uppercase tracking-widest mb-4">Node Link Broken</h1>
+                        <p class="text-white/40">The requested documentation node [${id}.md] could not be retrieved from the local reef.</p>
+                        <a href="#index" class="inline-block mt-8 text-lobster hover:underline font-bold uppercase text-xs tracking-widest bg-lobster/10 px-6 py-3 rounded-lg">Return to Overview</a>
+                    </div>
+                `;
+            } finally {
+                setTimeout(() => {
+                    loadingEl.style.opacity = '0';
+                    loadingEl.style.pointerEvents = 'none';
+                }, 300);
+            }
+        }
+
+        // Router
+        window.addEventListener('hashchange', () => {
+            const id = window.location.hash.slice(1) || 'index';
+            loadPage(id);
+        });
+
+        // Init
+        renderSidebar();
+        const initialId = window.location.hash.slice(1) || 'index';
+        loadPage(initialId);
+    </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobsterpedia©™ | Maritime Scientific Brutalism</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lobster: #E63946;
+            --habitat: #1A1A1B;
+            --deep-sea: #0F0F10;
+            --bone-white: #F8F9FA;
+            --border: #2D2D2F;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--deep-sea);
+            color: var(--bone-white);
+            overflow-x: hidden;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .text-lobster { color: var(--lobster); }
+        .bg-lobster { background-color: var(--lobster); }
+        .border-habitat { border-color: var(--border); }
+        
+        .hero-gradient {
+            background: linear-gradient(to bottom, rgba(15, 15, 16, 0.4) 0%, rgba(15, 15, 16, 1) 100%);
+        }
+        .glow-lobster {
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.3);
+        }
+        .scuttle-line {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--lobster), transparent);
+        }
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanner-line {
+            height: 2px;
+            background: rgba(230, 57, 70, 0.5);
+            box-shadow: 0 0 10px var(--lobster);
+            position: absolute;
+            width: 100%;
+            z-index: 10;
+            animation: scan 4s linear infinite;
+        }
+    </style>
+</head>
+<body class="selection:bg-lobster/30">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center bg-deep-sea/80 backdrop-blur-md border-b border-habitat">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">🦞</span>
+            <span class="font-black tracking-tighter text-xl uppercase">Lobsterpedia<span class="text-lobster font-mono text-sm ml-1">v1.0</span></span>
+        </div>
+        <div class="flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-bone-white/40">
+            <a href="#vision" class="hover:text-lobster transition-colors">Vision</a>
+            <a href="#features" class="hover:text-lobster transition-colors">Features</a>
+            <a href="manual.html" class="px-4 py-2 bg-lobster text-white rounded-xl hover:bg-lobster/90 transition-all text-bone-white glow-lobster">Enter Manual</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="assets/hero.png" alt="Deep Sea Habitat" class="w-full h-full object-cover opacity-60">
+            <div class="absolute inset-0 hero-gradient"></div>
+        </div>
+        
+        <div class="relative z-10 max-w-4xl">
+            <div class="mono text-[10px] text-lobster font-bold uppercase tracking-[0.4em] mb-6 animate-pulse">
+                [ SYSTEM_STATUS: HARDENED_REEF ]
+            </div>
+            <h1 class="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[0.9]">
+                Sovereign Knowledge <br> <span class="text-lobster">Synthesis.</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-bone-white/60 mb-12 max-w-2xl mx-auto font-medium">
+                A maritime-grade research apparatus for high-precision data ingestion, semantic mapping, and autonomous knowledge evolution.
+            </p>
+            <div class="flex flex-col md:flex-row gap-6 justify-center">
+                <a href="manual.html" class="px-10 py-5 bg-lobster text-white font-black uppercase tracking-widest text-sm hover:scale-105 transition-transform glow-lobster rounded-xl">
+                    Start Scuttling
+                </a>
+                <a href="#vision" class="px-10 py-5 border border-habitat hover:bg-white/5 transition-colors font-black uppercase tracking-widest text-sm backdrop-blur-sm rounded-xl">
+                    View Topology
+                </a>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 text-[9px] font-mono text-white/20 uppercase tracking-[0.5em]">
+            <span>Scroll to scuttle</span>
+            <div class="w-px h-12 bg-white/20"></div>
+        </div>
+    </section>
+
+    <!-- Vision Section -->
+    <section id="vision" class="py-32 px-8 max-w-7xl mx-auto border-t border-habitat">
+        <div class="grid md:grid-cols-2 gap-20 items-center">
+            <div>
+                <div class="mono text-lobster text-[10px] font-black uppercase tracking-widest mb-4">01. The Philosophy</div>
+                <h2 class="text-4xl md:text-6xl font-black mb-8 leading-tight">Maritime <br> Scientific Brutalism</h2>
+                <p class="text-lg text-bone-white/60 leading-relaxed mb-8">
+                    Lobsterpedia is not a wiki. It is a <strong>Synthesis Engine©™</strong>. Built on the principles of maritime durability and scientific precision, it treats knowledge as a compounding biological reef.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4 p-6 bg-habitat/40 border border-habitat rounded-2xl group hover:border-lobster/50 transition-colors">
+                        <div class="text-lobster mt-1">⚓</div>
+                        <div>
+                            <div class="font-black uppercase text-xs mb-1 tracking-widest">Sovereign Persistence</div>
+                            <p class="text-sm text-bone-white/40">Direct local file system integration. Your data belongs to the habitat, not the cloud.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-6 bg-habitat/40 border border-habitat rounded-2xl group hover:border-lobster/50 transition-colors">
+                        <div class="text-lobster mt-1">🦞</div>
+                        <div>
+                            <div class="font-black uppercase text-xs mb-1 tracking-widest">Agentic Scuttling</div>
+                            <p class="text-sm text-bone-white/40">Continuous AI-driven linting, indexing, and synthesis. The reef grows even while you sleep.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-lobster/20 blur-2xl group-hover:bg-lobster/30 transition-all"></div>
+                <div class="relative bg-deep-sea border border-habitat p-8 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="scanner-line"></div>
+                    <pre class="mono text-[10px] text-lobster/80 leading-relaxed">
+{
+  "project": "Lobsterpedia",
+  "archetype": "Maritime_Scientific_Brutalism",
+  "invariants": [
+    "Atomic_File_Ops",
+    "Zero_Trust_Synthesis",
+    "Manual_Mode_Isolation"
+  ],
+  "engines": {
+    "habitat": "Node.js_Express",
+    "molt": "OpenRouter_LLM",
+    "topology": "D3_Physics"
+  },
+  "status": "SCUTTLING..."
+}
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features" class="py-32 px-8 bg-habitat/10">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-24">
+                <div class="mono text-lobster text-[10px] font-black uppercase tracking-widest mb-4">02. Infrastructure</div>
+                <h2 class="text-4xl md:text-5xl font-black">Built for the Deep.</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="p-8 border border-habitat bg-deep-sea hover:border-lobster transition-all group rounded-2xl">
+                    <div class="text-3xl mb-6">🛰️</div>
+                    <h3 class="text-lg font-black uppercase tracking-widest mb-4">The Habitat Engine</h3>
+                    <p class="text-sm text-bone-white/50 leading-relaxed">
+                        Real-time file system monitoring using `chokidar`. Watch your reef evolve as you edit markdown files in any editor.
+                    </p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="p-8 border border-habitat bg-deep-sea hover:border-lobster transition-all group rounded-2xl">
+                    <div class="text-3xl mb-6">🧠</div>
+                    <h3 class="text-lg font-black uppercase tracking-widest mb-4">The Molt Synthesis</h3>
+                    <p class="text-sm text-bone-white/50 leading-relaxed">
+                        Multi-provider AI synthesis (OpenRouter, Gemini, OpenAI). Automated summaries, citation extraction, and concept mapping.
+                    </p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="p-8 border border-habitat bg-deep-sea hover:border-lobster transition-all group rounded-2xl">
+                    <div class="text-3xl mb-6">🌐</div>
+                    <h3 class="text-lg font-black uppercase tracking-widest mb-4">Systemic Graph</h3>
+                    <p class="text-sm text-bone-white/50 leading-relaxed">
+                        A high-fidelity D3 visualization engine. Navigate semantic connections through spatial memory and interactive topology.
+                    </p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="p-8 border border-habitat bg-deep-sea hover:border-lobster transition-all group rounded-2xl">
+                    <div class="text-3xl mb-6">🛠️</div>
+                    <h3 class="text-lg font-black uppercase tracking-widest mb-4">Shipyard Maintenance</h3>
+                    <p class="text-sm text-bone-white/50 leading-relaxed">
+                        Integrated linting sub-system. Automatically detect orphaned pages, broken links, and context rot within your wiki.
+                    </p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="p-8 border border-habitat bg-deep-sea hover:border-lobster transition-all group rounded-2xl">
+                    <div class="text-3xl mb-6">🛡️</div>
+                    <h3 class="text-lg font-black uppercase tracking-widest mb-4">CrustCode©™ Rules</h3>
+                    <p class="text-sm text-bone-white/50 leading-relaxed">
+                        Atomic 250-line file boundaries. Strictly decoupled feature-slices. Built for extreme maintainability and speed.
+                    </p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="p-8 border border-habitat bg-deep-sea hover:border-lobster transition-all group rounded-2xl">
+                    <div class="text-3xl mb-6">⚓</div>
+                    <h3 class="text-lg font-black uppercase tracking-widest mb-4">Zero-Trust Security</h3>
+                    <p class="text-sm text-bone-white/50 leading-relaxed">
+                        Full manual mode control. Persistent local storage. No unsolicited telemetry. Your knowledge reef is a private fortress.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Footer -->
+    <footer class="py-24 px-8 border-t border-habitat text-center">
+        <div class="scuttle-line mb-16"></div>
+        <div class="mb-12">
+            <span class="text-4xl mb-6 block">🦞</span>
+            <h2 class="text-3xl md:text-4xl font-black mb-8">Ready to start the molt?</h2>
+            <a href="manual.html" class="inline-block px-12 py-6 bg-lobster text-white font-black uppercase tracking-[0.3em] text-sm hover:scale-105 transition-transform glow-lobster rounded-xl">
+                Initialize Manual
+            </a>
+        </div>
+        <div class="text-[9px] font-mono text-white/20 uppercase tracking-[0.5em] mt-24">
+            © 2024 ClawStack Studios©™ | Maintained by CrustAgent©™ | All Rights Reserved.
+        </div>
+    </footer>
+
+</body>
+</html>
