@@ -1022,7 +1022,8 @@ JSON Format:
   }
 
   app.listen(PORT, HOST, () => {
-    console.log(`🦞 Lobsterpedia Server scuttling on http://${HOST}:${PORT}`);
+    console.log(`🦞 Lobsterpedia running on port ${PORT}`);
+    console.log(`   Health: http://localhost:${PORT}/api/health`);
   });
 }
 

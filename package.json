@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "HOST=127.0.0.1 tsx server.ts",
     "start": "tsx server.ts",
-    "scuttle:run-dev": "HOST=127.0.0.1 PORT=7575 tsx server.ts",
+    "scuttle:dev-start": "HOST=127.0.0.1 PORT=7575 tsx server.ts",
     "scuttle:prod-start": "NODE_ENV=production npm run build && NODE_ENV=production HOST=0.0.0.0 PORT=7575 tsx server.ts",
     "scuttle:stop": "fuser -k 7575/tcp || true",
     "build": "vite build",
