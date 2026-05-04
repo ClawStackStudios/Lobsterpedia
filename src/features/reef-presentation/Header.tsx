@@ -131,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
           onClick={() => { onNavigate('index'); setIsMenuOpen(false); }}
           className="w-8 h-8 md:w-10 md:h-10 bg-lobster/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-lobster/30 transition-all overflow-hidden"
         >
-          <img src="/assets/logo.png" alt="Lobsterpedia Logo" className="w-full h-full object-contain p-1.5" />
+          <img src="/assets/logo.png" alt="Lobsterpedia Logo" className="w-full h-full object-contain logo-mask" />
         </button>
         <div className="flex items-baseline gap-2">
           {renderBrand()}

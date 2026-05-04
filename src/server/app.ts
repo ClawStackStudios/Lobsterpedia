@@ -1,7 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-// import { setupSecurity } from "../../.crustagent/skills/cors-helmet-proxy-security/index.js";
+import { setupSecurity } from "../../.crustagent/skills/cors-helmet-proxy-security/index.js";
 import wikiRoutes from './routes/wiki.js';
 import aiRoutes from './routes/ai.js';
 
@@ -9,16 +9,21 @@ export function createApp() {
   const app = express();
 
   // Security Hardening
-  // setupSecurity(app);
+  setupSecurity(app);
 
   app.use(bodyParser.json({ limit: '50mb' }));
 
   // Logging Middleware
+  // Meaningful Logging Middleware (KISS)
   app.use((req, res, next) => {
-    if (req.url.startsWith('/api')) {
-      const bodyKeys = Object.keys(req.body || {}).filter(k => k !== 'content' && k !== 'file').join(', ');
-      console.log(`[CrustAgent] ${req.method} ${req.url} ${bodyKeys ? `| Payload: [${bodyKeys}]` : ''}`);
-    }
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      if (req.url.startsWith('/api')) {
+        const statusColor = res.statusCode >= 400 ? '🔴' : '🟢';
+        console.log(`[Reef Activity] ${statusColor} ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`);
+      }
+    });
     next();
   });
 

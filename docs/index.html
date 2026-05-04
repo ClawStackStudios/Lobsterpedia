@@ -49,6 +49,10 @@
             z-index: 10;
             animation: scan 4s linear infinite;
         }
+        .logo-mask {
+            clip-path: circle(40%);
+            transform: scale(1.25);
+        }
     </style>
 </head>
 <body class="selection:bg-lobster/30">
@@ -56,7 +60,9 @@
     <!-- Navigation -->
     <nav class="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center bg-deep-sea/80 backdrop-blur-md border-b border-habitat">
         <div class="flex items-center gap-3">
-            <img src="assets/logo.png" alt="Lobsterpedia Logo" class="h-8">
+            <div class="h-10 w-10 flex items-center justify-center overflow-hidden">
+                <img src="assets/logo.png" alt="Lobsterpedia Logo" class="w-full h-full object-contain logo-mask">
+            </div>
             <span class="font-black tracking-tighter text-xl uppercase">Lobsterpedia<span class="text-lobster font-mono text-sm ml-1">v1.0</span></span>
         </div>
         <div class="flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-bone-white/40">
@@ -216,7 +222,9 @@
     <footer class="py-24 px-8 border-t border-habitat text-center">
         <div class="scuttle-line mb-16"></div>
         <div class="mb-12">
-            <img src="assets/logo.png" alt="Lobsterpedia Logo" class="h-12 mx-auto mb-6">
+            <div class="h-20 w-20 mx-auto mb-6 flex items-center justify-center overflow-hidden">
+                <img src="assets/logo.png" alt="Lobsterpedia Logo" class="w-full h-full object-contain logo-mask">
+            </div>
             <h2 class="text-3xl md:text-4xl font-black mb-8">Ready to start the molt?</h2>
             <a href="manual.html" class="inline-block px-12 py-6 bg-lobster text-white font-black uppercase tracking-[0.3em] text-sm hover:scale-105 transition-transform glow-lobster rounded-xl">
                 Initialize Manual

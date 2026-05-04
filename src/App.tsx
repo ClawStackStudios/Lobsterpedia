@@ -150,7 +150,7 @@ export default function App() {
       const data = await res.json();
       if (data.reef) setReef(data.reef);
     } catch (err) {
-      console.error("Failed to fetch reef topology.");
+      console.warn("[CrustAgent] Reef topology unreachable.");
     }
   }, []);
 
@@ -160,7 +160,7 @@ export default function App() {
       const data = await res.json();
       if (data.issues) setLintIssues(data.issues);
     } catch (err) {
-      console.error("Failed to fetch lint issues.");
+      console.warn("[CrustAgent] Maintenance lint unreachable.");
     }
   }, []);
 
@@ -180,7 +180,7 @@ export default function App() {
       eventSource = new EventSource('/api/wiki/watch');
       
       eventSource.onopen = () => {
-        console.log("[CrustAgent Watcher] Channel opened.");
+        console.log("[CrustAgent] Watcher channel secured.");
       };
 
       eventSource.onmessage = (event) => {
@@ -208,7 +208,7 @@ export default function App() {
       };
 
       eventSource.onerror = () => {
-        console.warn("[CrustAgent Watcher] Connectivity lost. Retrying in 5s...");
+        console.warn("[CrustAgent] Watcher connection lost. Retrying...");
         if (eventSource) eventSource.close();
         timer = setTimeout(connect, 5000);
       };

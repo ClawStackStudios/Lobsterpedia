@@ -4,6 +4,7 @@ import path from 'path';
 import multer from 'multer';
 import { wikiService } from '../services/wikiService.js';
 import { createRequire } from "module";
+import chokidar from 'chokidar';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -222,6 +223,98 @@ router.post("/parse", upload.single('file'), async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to extract pearl payload." });
   }
+});
+
+router.get("/lint", (req, res) => {
+  try {
+    const files = wikiService.walkDir().filter(f => f.endsWith('.md'));
+    const issues: any[] = [];
+    const allIds = files.map(f => path.relative(wikiService.getWikiPath(), f).replace(/\.md$/, '').replace(/\\/g, '/'));
+    
+    files.forEach(f => {
+      const data = fs.readFileSync(f, 'utf-8');
+      const { metadata, content } = wikiService.parseCrustMarkdown(data);
+      const id = path.relative(wikiService.getWikiPath(), f).replace(/\.md$/, '').replace(/\\/g, '/');
+      
+      // 1. Broken Links
+      const links = metadata.links || [];
+      links.forEach((link: string) => {
+        if (!allIds.includes(link) && link !== 'index' && link !== 'index-list') {
+          issues.push({
+            id: `broken-link-${id}-${link}`,
+            type: 'broken-link',
+            severity: 'warn',
+            sourceId: id,
+            description: `Reference to non-existent PolyP: [[${link}]]`,
+            suggestion: `Verify the link ID or synthesize the missing knowledge node.`
+          });
+        }
+      });
+      
+      // 2. Metadata Rot
+      if (!metadata.title) {
+        issues.push({
+          id: `missing-title-${id}`,
+          type: 'metadata-rot',
+          severity: 'info',
+          sourceId: id,
+          description: `Missing title in frontmatter.`,
+          suggestion: `Add a 'title' field to ensure professional indexing.`
+        });
+      }
+      
+      // 3. Orphans (No incoming links)
+      const isLinked = allIds.some(otherId => {
+        if (otherId === id) return false;
+        const otherData = fs.readFileSync(path.join(wikiService.getWikiPath(), `${otherId}.md`), 'utf-8');
+        const otherParsed = wikiService.parseCrustMarkdown(otherData);
+        return (otherParsed.metadata.links || []).includes(id);
+      });
+      
+      if (!isLinked && id !== 'index' && id !== 'index-list') {
+        issues.push({
+          id: `orphan-${id}`,
+          type: 'orphan',
+          severity: 'info',
+          sourceId: id,
+          description: `Isolated PolyP: No incoming links detected.`,
+          suggestion: `Connect this node to the reef by linking to it from the index or related articles.`
+        });
+      }
+    });
+    
+    res.json({ issues });
+  } catch (err) {
+    res.status(500).json({ error: "Linting engine failed." });
+  }
+});
+
+router.get("/watch", (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const watcher = chokidar.watch(wikiService.getWikiPath(), {
+    ignored: /(^|[\/\\])\../,
+    persistent: true,
+    ignoreInitial: true
+  });
+
+  const sendEvent = (event: string, file: string) => {
+    res.write(`data: ${JSON.stringify({ event, file })}\n\n`);
+  };
+
+  watcher
+    .on('add', path => sendEvent('add', path))
+    .on('change', path => sendEvent('change', path))
+    .on('unlink', path => sendEvent('unlink', path))
+    .on('addDir', path => sendEvent('addDir', path))
+    .on('unlinkDir', path => sendEvent('unlinkDir', path));
+
+  req.on('close', () => {
+    watcher.close();
+  });
 });
 
 export default router;
