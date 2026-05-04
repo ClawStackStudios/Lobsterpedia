@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Lobsterpedia</Name>
+  <Repository>ghcr.io/clawstackstudios/lobsterpedia:main</Repository>
+  <Registry>https://github.com/ClawStackStudios/Lobsterpedia/pkgs/container/lobsterpedia</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <Overview>&#x1F99E; Lobsterpedia is a privacy-first, self-hostable pearl (note) notebook designed for the Human-Agent ecosystem.</Overview>
+  <Category>Tools:Utilities</Category>
+  <WebUI>http://[IP]:[PORT:7575]/</WebUI>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/ClawStackStudios/Lobsterpedia/main/public/assets/icon-thumbnail.png</Icon>
+  <ExtraParams>--health-cmd="wget -qO- http://localhost:7575/api/health" --health-interval=15s --health-timeout=10s --health-retries=5 --health-start-period=15s</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Wiki Data" Target="/app/wiki" Default="/mnt/user/appdata/lobsterpedia/wiki" Mode="rw" Description="Location for the markdown wiki files" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/lobsterpedia/wiki</Config>
+  <Config Name="Web UI Port" Target="7575" Default="7575" Mode="tcp" Description="The Default Port for the Web GUI" Type="Port" Display="always" Required="true" Mask="false">7575</Config>
+  <Config Name="OpenRouter API Key" Target="OPENROUTER_API_KEY" Default="" Mode="" Description="API Key for synthesis (Optional)" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="PGID" Target="100" Default="100" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="PUID" Target="99" Default="99" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+  <TailscaleStateDir/>
+</Container>

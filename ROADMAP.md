@@ -53,6 +53,14 @@ In `src/features/reef-presentation/GraphView.tsx`, utilize the `hoveredNodeId` p
 
 In the ArticleView component, identify all broken links within the article content (both markdown links and in frontmatter) and either create placeholder pages for them or attempt to link them to existing, relevant wiki pages. For any identified broken links.
 
+
+## Git Tracking Features: Better more clear git tracking
+In the `Header.tsx` component, add a small, dynamic badge that reflects the current Git status (e.g., 'Synced', 'Uncommitted Changes', 'Out of Sync'). This badge should update whenever the Git status changes.
+
+In `src/features/reef-presentation/GitHistory.tsx`, improve the visual indicators for staged and unstaged files. Use distinct colors and icons to clearly differentiate between added, modified, deleted, and untracked files.
+
+In `src/features/reef-presentation/GitHistory.tsx`, add individual stage buttons next to each unstaged file in the 'Unstaged Changes' section. This allows users to stage specific files for commit.
+
 Integrate a system into Lobsterpedia that automatically identifies and links related LLM concepts within wiki entries. For example, if an entry discusses 'transformer architecture,' it should automatically link to related concepts like 'self-attention,' 'BERT,' or 'GPT.' This will create a more interconnected and navigable knowledge base.
 
 - [ ] In the SearchResults component, add a filter option that allows users to filter search results by document type (e.g., concept, system, entity). This filter should be accessible alongside existing filters for tags and author.
