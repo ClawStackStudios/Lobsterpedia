@@ -47,7 +47,9 @@ Implement an auto-save feature for the IngestZone. Drafts of the source title an
 
 In the IngestZone component, implement an auto-save feature for the 'Source Title' and 'Raw Payload' fields. Drafts should be saved to local storage and restored when the component mounts, with a small indicator showing the save status.
 
-Refactor the link rendering logic within the ArticleView component to a reusable `WikiLink` component. This component should handle displaying the link, managing hover states to show previews, and navigating to other articles using the `onNavigate` function. Highlight the text of the linked page's title in the hover preview tooltip.
+In `src/features/reef-presentation/GraphView.tsx`, utilize the `hoveredNodeId` prop passed down from `App.tsx`. When a node is hovered (detected via `onHoverNode` callback), apply a distinct visual style (e.g., a thicker, brighter border and slightly increased size) to the hovered node and its direct neighbors. Ensure this highlighting is visually distinct and adheres to the existing design system.
+
+- [X] Refactor the link rendering logic within the ArticleView component to a reusable `WikiLink` component. This component should handle displaying the link, managing hover states to show previews, and navigating to other articles using the `onNavigate` function. Highlight the text of the linked page's title in the hover preview tooltip.
 
 In the ArticleView component, identify all broken links within the article content (both markdown links and in frontmatter) and either create placeholder pages for them or attempt to link them to existing, relevant wiki pages. For any identified broken links.
 

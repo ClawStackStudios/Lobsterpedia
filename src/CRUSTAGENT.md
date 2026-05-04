@@ -18,6 +18,7 @@ The system is partitioned into discrete feature domains:
 - **Lobsterized UI**: High-contrast, typography-focused interfaces with "Lobster-red" accents (`#FF6432`).
 - **Interactive Topology**: D3-powered graph visualizations for real-time relational mapping.
 - **Protocol Partitions**: Strict adherence to the "Manual Mode" state for disabling automated side-effects.
+- **Container Boundary**: Operational environment parity enforced via Docker. Exposes port 7575 and expects `/wiki` volume mapping.
 - **Recursive Navigation**: Folder-aware tree navigation with native HTML5 Drag & Drop integration.
 
 ## 🧬 Data Flow

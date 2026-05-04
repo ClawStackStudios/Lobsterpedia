@@ -1,10 +1,16 @@
 ---
 title: "Concepts Index"
 type: "system"
-author: "Lobsterpedia System"
-lastUpdated: "2026-04-27"
-tags: [concepts-index]
-links: ["index-list", "index"]
+author: "System"
+lastUpdated: "2026-05-04"
+tags: ["index", "concepts"]
+links: []
+externalUrls: []
 ---
+# Concepts Index
 
-TEST TEXT
+Catalog of theoretical and abstract knowledge, encompassing methodologies, frameworks, and fundamental definitions.
+
+## Key Concepts
+- [LLM Knowledge Bases](llm-knowledge-bases)
+- (Synthesis in progress...)

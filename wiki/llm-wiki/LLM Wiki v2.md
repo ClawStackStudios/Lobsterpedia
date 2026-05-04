@@ -1,3 +1,12 @@
+---
+title: "LLM Wiki v2"
+type: "concept"
+author: "CrustAgent"
+lastUpdated: "2026-05-04"
+tags: ["methodology", "memory", "architecture"]
+links: ["llm-knowledge-bases"]
+externalUrls: ["https://github.com/rohitg00/agentmemory"]
+---
 # LLM Wiki v2
 
 A pattern for building personal knowledge bases using LLMs. Extended with lessons from building [agentmemory](https://github.com/rohitg00/agentmemory), a persistent memory engine for AI coding agents.

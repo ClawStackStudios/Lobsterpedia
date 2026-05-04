@@ -3,6 +3,8 @@
 ```text
 /
 ├── server.ts (The Habitat Host - Express/Vite Middleware)
+├── Dockerfile (Infrastructure Definition)
+├── docker-compose.yml (Container Orchestration)
 ├── wiki/ (The Persistent Reef - Markdown Data Storage)
 ├── src/ (The Living Tissue)
 │   ├── features/

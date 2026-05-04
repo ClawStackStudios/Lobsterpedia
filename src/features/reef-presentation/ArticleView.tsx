@@ -883,46 +883,18 @@ Summarize your findings with epistemic rigor.`;
             <RefreshCw size={14}/> Semantic Cross-References
           </h3>
           <div className="flex flex-wrap gap-3">
-            {article.links.map(linkId => {
-              const linkedPage = pages[linkId];
-              const isHovered = hoveredLink === linkId;
-              
-              if (!linkedPage) {
-                return (
-                  <button 
-                    key={linkId}
-                    onClick={() => onNavigate('ingest', linkId)}
-                    className="bg-red-500/10 border border-red-500/20 border-dashed px-4 py-2 rounded text-sm font-semibold text-red-500 hover:bg-red-500/20 cursor-pointer transition-all flex items-center gap-2 group"
-                    title={`The pearl '${linkId}' is missing from the reef. Click to synthesize.`}
-                  >
-                    <Plus size={14} className="group-hover:rotate-90 transition-transform" />
-                    <span>{linkId}.md (Draft)</span>
-                  </button>
-                );
-              }
-
-              return (
-                <button 
-                  key={linkId}
-                  onClick={() => onNavigate('article', linkId)}
-                  onMouseEnter={() => {
-                    setHoveredLink(linkId);
-                    onHoverNode?.(linkId);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredLink(null);
-                    onHoverNode?.(null);
-                  }}
-                  className={`border px-4 py-2 rounded text-sm font-semibold cursor-pointer transition-all shadow-sm ${
-                    isHovered 
-                      ? 'bg-lobster border-lobster text-white shadow-md transform scale-105' 
-                      : 'bg-card-bg border-border-primary text-text-primary/70 hover:border-lobster'
-                  }`}
-                >
-                  {linkedPage.id}.md
-                </button>
-              );
-            })}
+            {article.links.map(linkId => (
+              <WikiLink 
+                key={linkId}
+                id={linkId}
+                pages={pages}
+                onNavigate={onNavigate}
+                onHoverNode={onHoverNode}
+                hoveredLink={hoveredLink}
+                setHoveredLink={setHoveredLink}
+                variant="button"
+              />
+            ))}
           </div>
         </div>
       )}

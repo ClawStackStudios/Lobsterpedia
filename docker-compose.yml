@@ -1,0 +1,17 @@
+services:
+  lobsterpedia:
+    build: .
+    container_name: lobsterpedia-reef
+    ports:
+      - "7575:7575"
+    volumes:
+      - ./wiki:/app/wiki
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=7575
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    restart: unless-stopped
+
+volumes:
+  wiki_data:

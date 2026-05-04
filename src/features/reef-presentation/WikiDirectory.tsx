@@ -13,17 +13,31 @@ interface WikiDirectoryProps {
 }
 
 const FileTreeNode = ({ node, level, currentView, activePolyPId, moltNavigate, onMove, onDelete, onRename, collapseTrigger }: any) => {
-  const [isOpen, setIsOpen] = React.useState(true);
+  const isFile = node.isFile;
+  const storageKey = `lobsterpedia_folder_expanded_${node.path}`;
+  
+  const [isOpen, setIsOpen] = React.useState(() => {
+    if (isFile) return false;
+    const persisted = localStorage.getItem(storageKey);
+    return persisted === null ? true : persisted === 'true';
+  });
+
   const [showMenu, setShowMenu] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(false);
   const [editName, setEditName] = React.useState(node.name);
-  const isFile = node.isFile;
 
   React.useEffect(() => {
-    if (collapseTrigger > 0) {
+    if (collapseTrigger > 0 && !isFile) {
       setIsOpen(false);
+      localStorage.setItem(storageKey, 'false');
     }
-  }, [collapseTrigger]);
+  }, [collapseTrigger, isFile, storageKey]);
+
+  const toggleOpen = () => {
+    const nextState = !isOpen;
+    setIsOpen(nextState);
+    localStorage.setItem(storageKey, String(nextState));
+  };
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('text/plain', JSON.stringify({ 
@@ -150,7 +164,7 @@ const FileTreeNode = ({ node, level, currentView, activePolyPId, moltNavigate, o
           </div>
         ) : (
           <button 
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={toggleOpen}
             style={{ paddingLeft: `${level * 12 + 12}px` }}
             className="w-full flex items-center gap-2 py-1.5 text-sm rounded-md transition-all text-left text-text-primary/70 hover:bg-border-primary/50 font-medium"
           >
@@ -245,7 +259,17 @@ export const WikiDirectory = ({ reef, reefFiles, currentView, activePolyPId, mol
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldPath, newPath })
       });
-      if (res.ok) onRefresh();
+      if (res.ok) {
+        // Migrate expanded state
+        const oldKey = `lobsterpedia_folder_expanded_${oldPath}`;
+        const newKey = `lobsterpedia_folder_expanded_${newPath}`;
+        const state = localStorage.getItem(oldKey);
+        if (state !== null) {
+          localStorage.setItem(newKey, state);
+          localStorage.removeItem(oldKey);
+        }
+        onRefresh();
+      }
     } catch (err) {
       console.error("Failed to move node:", err);
     }
@@ -268,7 +292,17 @@ export const WikiDirectory = ({ reef, reefFiles, currentView, activePolyPId, mol
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldPath, newPath })
       });
-      if (res.ok) onRefresh();
+      if (res.ok) {
+        // Migrate expanded state
+        const oldKey = `lobsterpedia_folder_expanded_${oldPath}`;
+        const newKey = `lobsterpedia_folder_expanded_${newPath}`;
+        const state = localStorage.getItem(oldKey);
+        if (state !== null) {
+          localStorage.setItem(newKey, state);
+          localStorage.removeItem(oldKey);
+        }
+        onRefresh();
+      }
     } catch (err) {
       console.error("Failed to rename node:", err);
     }

@@ -11,9 +11,19 @@ export interface WikiLinkProps {
   onHoverNode?: (id: string | null) => void;
   hoveredLink?: string | null;
   setHoveredLink?: (id: string | null) => void;
+  variant?: 'inline' | 'button';
 }
 
-export const WikiLink: React.FC<WikiLinkProps> = ({ id, children, pages, onNavigate, onHoverNode, hoveredLink, setHoveredLink }) => {
+export const WikiLink: React.FC<WikiLinkProps> = ({ 
+  id, 
+  children, 
+  pages, 
+  onNavigate, 
+  onHoverNode, 
+  hoveredLink, 
+  setHoveredLink,
+  variant = 'inline'
+}) => {
   const [localHovered, setLocalHovered] = useState(false);
   const targetPage = pages[id];
   const isHovered = hoveredLink !== undefined ? hoveredLink === id : localHovered;
@@ -30,6 +40,16 @@ export const WikiLink: React.FC<WikiLinkProps> = ({ id, children, pages, onNavig
     onHoverNode?.(null);
   };
 
+  const buttonClass = variant === 'button' 
+    ? `border px-4 py-2 rounded text-sm font-semibold cursor-pointer transition-all shadow-sm flex items-center gap-2 ${
+        isHovered 
+          ? 'bg-lobster border-lobster text-white shadow-md transform scale-105' 
+          : 'bg-card-bg border-border-primary text-text-primary/70 hover:border-lobster'
+      }`
+    : `font-semibold transition-all px-1 rounded flex items-center gap-1 ${
+        isHovered ? 'bg-lobster text-white shadow-sm' : 'text-lobster hover:bg-lobster/10'
+      }`;
+
   if (targetPage) {
     return (
       <span 
@@ -39,11 +59,11 @@ export const WikiLink: React.FC<WikiLinkProps> = ({ id, children, pages, onNavig
       >
         <button 
           onClick={() => onNavigate('article', id)} 
-          className={`font-semibold transition-all px-1 rounded flex items-center gap-1 ${isHovered ? 'bg-lobster text-white shadow-sm' : 'text-lobster hover:bg-lobster/10'}`}
+          className={buttonClass}
           style={{ cursor: 'pointer' }}
         >
-          {children || targetPage.title}
-          <ArrowRight size={10} className={`text-current transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
+          {children || (variant === 'button' ? `${id}.md` : targetPage.title)}
+          <ArrowRight size={variant === 'button' ? 14 : 10} className={`text-current transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
         </button>
         
         <AnimatePresence>

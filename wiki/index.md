@@ -12,9 +12,10 @@ links: ["index-list", "llm-knowledge-bases"]
 Welcome to the synthesized knowledge base. This index manages the thematic structure and high-level connections of the wiki.
 
 ## Core Concepts
-- [LLM Knowledge Bases](llm-knowledge-bases)
-- [LLM Wiki](LLM Wiki)
-- [LLM Wiki v2](LLM Wiki v2)
+- [LLM Knowledge Bases](llm-wiki/llm-knowledge-bases)
+- [LLM Wiki Pattern](llm-wiki/LLM Wiki)
+- [LLM Wiki v2: Advanced Memory](llm-wiki/LLM Wiki v2)
+- [General LLM Cognition](llm-wiki/general-llm-cognition)
 
 ## System Files
 - [Article List (UI Manifest)](index-list)

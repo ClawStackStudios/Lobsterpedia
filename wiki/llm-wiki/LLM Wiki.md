@@ -1,3 +1,12 @@
+---
+title: "LLM Wiki"
+type: "system"
+author: "CrustAgent"
+lastUpdated: "2026-05-04"
+tags: ["blueprint", "system", "methodology"]
+links: ["llm-wiki-v2", "llm-knowledge-bases"]
+externalUrls: ["https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f"]
+---
 # LLM Wiki
 
 A pattern for building personal knowledge bases using LLMs.

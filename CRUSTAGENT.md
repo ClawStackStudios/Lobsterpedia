@@ -15,6 +15,7 @@ Lobsterpedia is the definitive synthesis layer for raw information. It transform
 - **🕹️ Manual Protocol**: Respect the user's intent. If Manual Mode is active, the LLM must yield to human orchestration.
 - **🛡️ Epistemic Discipline**: Communicate with rigorous epistemic discipline: prefer measured confidence, deep reasoning, and parsimonious explanations.
 - **📍 Persistence**: The `/wiki` directory is the immutable ground truth of the system.
+- **🐳 Sovereign Containerization**: Dockerized deployment with volume bind mounts ensures environment parity and data portability.
 
 ## Performance Metrics
 - **Synthesis Speed**: < 10s for baseline concepts.

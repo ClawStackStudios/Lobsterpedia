@@ -124,6 +124,7 @@ graph TD
 - **Node.js** v20+
 - **npm** v10+
 - **Docker & Docker Compose** *(for sovereign containerized deployment)*
+- **OpenRouter API Key** *(for synthesis logic)*
 
 ---
 
@@ -142,7 +143,7 @@ npm install
 npm run dev
 
 # 4. Open the viewport
-open http://localhost:3000
+open http://localhost:7575
 ```
 
 ---
@@ -155,23 +156,36 @@ open http://localhost:3000
 #### Running with npm
 
 **Development Commands (The Coral Nursery):**
-- **Start All**: `npm run dev` (API + Frontend w/ HMR on `localhost:3000`)
+- **Start All**: `npm run scuttle:run-dev` (API + Frontend w/ HMR on `localhost:7575`)
 - **Lint Reef**: `npm run lint` (TypeScript integrity check)
 
 **Production Commands (The Great Scuttle):**
-- **Build Bundle**: `npm run build`
-- **Start Production**: `npm start` (Serves the reef on `0.0.0.0:3000`)
+- **Build & Start**: `npm run scuttle:prod-start` (Builds and serves the reef on `0.0.0.0:7575`)
+- **Stop**: `npm run scuttle:stop` (Kills the scuttling process on port 7575)
 
 #### Running with Docker
 
-Use the provided `Dockerfile` to build your own sovereign node in the global reef.
+Use the provided `Dockerfile` and `docker-compose.yml` for a sovereign, containerized reef deployment.
 
+**The Compose Scuttle:**
+```bash
+# 1. Provide your OpenRouter Key in .env (optional)
+echo "OPENROUTER_API_KEY=your_key_here" > .env
+
+# 2. Scuttle with Compose
+docker-compose up -d --build
+
+# 3. View the reef
+# UI accessible at http://localhost:7575
+```
+
+**Manual Docker Run:**
 ```bash
 # Build the image
 docker build -t lobsterpedia .
 
-# Run the container (Map port 3000 and bind the wiki volume)
-docker run -p 3000:3000 -v $(pwd)/wiki:/app/wiki lobsterpedia
+# Run the container (Map port 7575 and bind the wiki volume)
+docker run -p 7575:7575 -v $(pwd)/wiki:/app/wiki lobsterpedia
 ```
 
 > [!IMPORTANT]
@@ -237,11 +251,11 @@ Lobsterpedia/
 
 | Script | Port | Description |
 |---|---|---|
-| `npm run dev` | 3000 | 🦞 Hatch the development environment (API + UI) |
-| `npm start` | 3000 | Scuttle into production (Runs `tsx server.ts`) |
+| `npm run scuttle:run-dev` | 7575 | 🦞 Hatch the development environment (API + UI) |
+| `npm run scuttle:prod-start` | 7575 | Scuttle into production (Build + Serve) |
 | `npm run build` | — | Harden the shell (Builds production bundle) |
 | `npm run lint` | — | Scan the exoskeleton (TypeScript type-check) |
-| `npm run clean` | — | Purge the `dist/` directory |
+| `npm run scuttle:stop` | — | Cease all scuttling on port 7575 |
 
 ---
 

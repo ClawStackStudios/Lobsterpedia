@@ -121,9 +121,12 @@ async function startServer() {
   app.use(cors());
   app.use(bodyParser.json({ limit: '50mb' }));
 
-  // --- Logging Middleware ---
+  // --- Meaningful Logging Middleware ---
   app.use((req, res, next) => {
-    console.log(`[CrustAgent Scuttle] ${req.method} ${req.url}`);
+    if (req.url.startsWith('/api')) {
+      const bodyKeys = Object.keys(req.body || {}).filter(k => k !== 'content' && k !== 'file').join(', ');
+      console.log(`[CrustAgent] ${req.method} ${req.url} ${bodyKeys ? `| Payload: [${bodyKeys}]` : ''}`);
+    }
     next();
   });
 
