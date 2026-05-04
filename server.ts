@@ -9,6 +9,7 @@ import fs from "fs";
 import chokidar from "chokidar";
 import { simpleGit } from "simple-git";
 import multer from "multer";
+import { setupSecurity } from "./.crustagent/skills/cors-helmet-proxy-security/index.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse");
@@ -118,7 +119,8 @@ async function startServer() {
   const PORT = parseInt(process.env.PORT || "7575");
   const HOST = process.env.HOST || "0.0.0.0";
 
-  app.use(cors());
+  setupSecurity(app);
+
   app.use(bodyParser.json({ limit: '50mb' }));
 
   // --- Meaningful Logging Middleware ---
