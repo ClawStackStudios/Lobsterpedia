@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import { Reef, PolyP } from '../shell-core/types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Network, Code, Activity, Copy, CheckCircle2 } from 'lucide-react';
+import { Network, Code, Activity, Copy, CheckCircle2, Maximize2, Minimize2, ArrowLeft } from 'lucide-react';
 
 interface GraphViewProps {
   reef: Reef;
@@ -30,6 +30,7 @@ export const GraphView: React.FC<GraphViewProps> = ({ reef, onNavigate, theme, h
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [localHoveredId, setLocalHoveredId] = useState<string | null>(null);
   const [tooltipData, setTooltipData] = useState<{ x: number, y: number, id: string } | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   // D3 selections for updates without simulation resets
   const nodeRef = useRef<d3.Selection<any, Node, any, any> | null>(null);
@@ -111,10 +112,10 @@ export const GraphView: React.FC<GraphViewProps> = ({ reef, onNavigate, theme, h
     zoomRef.current = zoom;
 
     const simulation = d3.forceSimulation<Node>(nodes)
-      .force('link', d3.forceLink<Node, Link>(links).id(d => d.id).distance(140))
-      .force('charge', d3.forceManyBody().strength(-600))
+      .force('link', d3.forceLink<Node, Link>(links).id(d => d.id).distance(80))
+      .force('charge', d3.forceManyBody().strength(-300))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(60));
+      .force('collision', d3.forceCollide().radius(40));
 
     const link = g.append('g')
       .selectAll('line')
@@ -329,26 +330,49 @@ export const GraphView: React.FC<GraphViewProps> = ({ reef, onNavigate, theme, h
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="h-full flex flex-col p-8 bg-bg-primary overflow-hidden"
+      className={`h-full flex flex-col ${isFullScreen ? 'p-0' : 'p-8'} bg-bg-primary overflow-hidden transition-all duration-500`}
     >
-      <div className="mb-8 border-b border-border-primary pb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-extrabold text-text-primary tracking-tight flex items-center gap-3">
-            <Network className="text-lobster" size={32}/> reef_topology.md
-          </h1>
-          <p className="text-text-primary/50 font-medium mt-1">Dual-representation: Spatial for humans, textual for agents.</p>
-        </div>
-      </div>
-      
-      <div className="flex-1 flex flex-col lg:flex-row gap-8 overflow-hidden">
-        {/* Spatial Discovery */}
-        <div className="flex-[2] flex flex-col min-h-[400px]">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-black text-text-primary/40 uppercase tracking-widest flex items-center gap-2">
-              <Activity size={14} className="text-lobster" /> Human Cognition Layer
-            </h3>
+      {!isFullScreen && (
+        <div className="mb-8 border-b border-border-primary pb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-extrabold text-text-primary tracking-tight flex items-center gap-3">
+              <Network className="text-lobster" size={32}/> reef_topology.md
+            </h1>
+            <p className="text-text-primary/50 font-medium mt-1">Dual-representation: Spatial for humans, textual for agents.</p>
           </div>
-          <div ref={containerRef} className="flex-1 bg-card-bg rounded-2xl border border-border-primary relative shadow-inner overflow-hidden">
+        </div>
+      )}
+      
+      <div className={`flex-1 flex ${isFullScreen ? 'flex-col' : 'flex-col lg:flex-row'} gap-8 overflow-hidden`}>
+        {/* Spatial Discovery */}
+        <div className={`${isFullScreen ? 'flex-1' : 'flex-[2]'} flex flex-col min-h-[400px]`}>
+          <div className="flex items-center justify-between mb-4 px-2">
+            {!isFullScreen ? (
+              <h3 className="text-xs font-black text-text-primary/40 uppercase tracking-widest flex items-center gap-2">
+                <Activity size={14} className="text-lobster" /> Human Cognition Layer
+              </h3>
+            ) : (
+              <button 
+                onClick={() => setIsFullScreen(false)}
+                className="flex items-center gap-2 text-text-primary/60 hover:text-lobster transition-colors group"
+              >
+                <div className="p-2 bg-card-bg rounded-lg border border-border-primary group-hover:border-lobster/30 transition-all">
+                  <ArrowLeft size={16} />
+                </div>
+                <span className="text-xs font-black uppercase tracking-widest">Back to Habitat</span>
+              </button>
+            )}
+            
+            <button 
+              onClick={() => setIsFullScreen(!isFullScreen)}
+              className="flex items-center gap-2 p-2 hover:bg-card-bg rounded-lg border border-transparent hover:border-border-primary transition-all text-text-primary/40 hover:text-lobster group"
+              title={isFullScreen ? "Exit Full Screen" : "Enter Full Screen"}
+            >
+              {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+              <span className="text-[10px] font-bold uppercase hidden sm:inline">{isFullScreen ? 'Minimize' : 'Full Screen'}</span>
+            </button>
+          </div>
+          <div ref={containerRef} className={`flex-1 bg-card-bg ${isFullScreen ? 'rounded-none' : 'rounded-2xl'} border ${isFullScreen ? 'border-none' : 'border-border-primary'} relative shadow-inner overflow-hidden transition-all duration-500`}>
              <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing outline-none" />
              
              {/* Hover Preview Tooltip */}
@@ -399,39 +423,41 @@ export const GraphView: React.FC<GraphViewProps> = ({ reef, onNavigate, theme, h
         </div>
 
         {/* Semantic Encoding */}
-        <div className="flex-1 min-w-[320px] flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-black text-text-primary/40 uppercase tracking-widest flex items-center gap-2">
-              <Code size={14} className="text-blue-500" /> LLM Context Encoding
-            </h3>
-            <button 
-              onClick={handleCopyEncoding}
-              className="p-1.5 hover:bg-bg-primary rounded transition-colors text-text-primary/40 hover:text-lobster flex items-center gap-2"
-            >
-              {copied ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
-              <span className="text-[10px] font-bold uppercase">{copied ? 'In Clipboard' : 'Copy'}</span>
-            </button>
+        {!isFullScreen && (
+          <div className="flex-1 min-w-[320px] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-black text-text-primary/40 uppercase tracking-widest flex items-center gap-2">
+                <Code size={14} className="text-blue-500" /> LLM Context Encoding
+              </h3>
+              <button 
+                onClick={handleCopyEncoding}
+                className="p-1.5 hover:bg-bg-primary rounded transition-colors text-text-primary/40 hover:text-lobster flex items-center gap-2"
+              >
+                {copied ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
+                <span className="text-[10px] font-bold uppercase">{copied ? 'In Clipboard' : 'Copy'}</span>
+              </button>
+            </div>
+            <div className="flex-1 bg-habitat-dark rounded-2xl p-6 shadow-xl border border-border-primary text-left flex flex-col">
+               <div className="mb-4">
+                  <p className="text-[10px] text-gray-400 leading-relaxed font-medium uppercase tracking-wider mb-2 border-b border-white/10 pb-2">
+                     Topology Synthesis
+                  </p>
+                  <p className="text-[9px] text-gray-500 italic">
+                     Mirroring Google's "Talk Like a Graph" research, this textual representation allows LLMs to reason about global wiki structures via edge-list injection.
+                  </p>
+               </div>
+               <div className="flex-1 bg-black/40 rounded-xl p-4 overflow-y-auto custom-scrollbar border border-white/5 font-mono text-[10px] text-[#00ffc3]/80 leading-relaxed whitespace-pre-wrap">
+                  {encodingText}
+               </div>
+               <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg border border-white/10">
+                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Context State: Synced</span>
+                  </div>
+               </div>
+            </div>
           </div>
-          <div className="flex-1 bg-habitat-dark rounded-2xl p-6 shadow-xl border border-border-primary text-left flex flex-col">
-             <div className="mb-4">
-                <p className="text-[10px] text-gray-400 leading-relaxed font-medium uppercase tracking-wider mb-2 border-b border-white/10 pb-2">
-                   Topology Synthesis
-                </p>
-                <p className="text-[9px] text-gray-500 italic">
-                   Mirroring Google's "Talk Like a Graph" research, this textual representation allows LLMs to reason about global wiki structures via edge-list injection.
-                </p>
-             </div>
-             <div className="flex-1 bg-black/40 rounded-xl p-4 overflow-y-auto custom-scrollbar border border-white/5 font-mono text-[10px] text-[#00ffc3]/80 leading-relaxed whitespace-pre-wrap">
-                {encodingText}
-             </div>
-             <div className="mt-4 pt-4 border-t border-white/10">
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg border border-white/10">
-                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Context State: Synced</span>
-                </div>
-             </div>
-          </div>
-        </div>
+        )}
       </div>
     </motion.div>
   );

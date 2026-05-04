@@ -14,13 +14,14 @@ import { LogTerminal } from './features/reef-presentation/LogTerminal';
 import { GraphView } from './features/reef-presentation/GraphView';
 import { GitHistory } from './features/reef-presentation/GitHistory';
 import { SearchResults } from './features/reef-presentation/SearchResults';
+import { SystemicGraph } from './features/reef-presentation/SystemicGraph';
 import { MaintenanceZone } from './features/reef-presentation/MaintenanceZone';
 import { WikiDirectory } from './features/reef-presentation/WikiDirectory';
 import { Reef, HabitatLog, PolyP, AIProvider } from './features/shell-core/types';
 import { Search, List, Share2, Terminal, Network, GitBranch, FileText, Cpu, Menu, PanelLeftClose, PanelLeftOpen, Folder, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
 import { aiService } from './services/aiService';
 
-export type ViewSect = 'index' | 'article' | 'ingest' | 'logs' | 'graph' | 'git' | 'search' | 'maintenance';
+export type ViewSect = 'index' | 'article' | 'ingest' | 'logs' | 'graph' | 'git' | 'search' | 'maintenance' | 'systemic-graph';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewSect>('index');
@@ -379,239 +380,254 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
   const reefFiles = Object.keys(reef).filter(id => id !== 'index' && id !== 'index-list');
 
   return (
-    <div className="h-screen flex flex-col bg-bg-primary overflow-hidden">
-      <Header onNavigate={moltNavigate as any} onSearch={handleSearch} onToggleTheme={toggleTheme} isDark={theme === 'dark'} />
-      
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Sidebar Toggle Button (Visible when sidebar is closed) */}
-        {!isSidebarOpen && (
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={() => setIsSidebarOpen(true)}
-            className="absolute left-4 top-4 z-40 p-2 btn-dynamic-main rounded-md ring-2 ring-white/20"
-            title="Open Directory"
-          >
-            <PanelLeftOpen size={20} />
-          </motion.button>
-        )}
-
-        {/* Sidebar Overlay for Mobile */}
-        <AnimatePresence>
-          {isSidebarOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsSidebarOpen(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[45] lg:hidden"
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Sidebar */}
-        <motion.aside 
-          initial={false}
-          animate={{ 
-            width: isSidebarOpen ? (window.innerWidth < 1024 ? 280 : 288) : 0,
-            opacity: isSidebarOpen ? 1 : 0,
-            x: isSidebarOpen ? 0 : (window.innerWidth < 1024 ? -280 : -288)
-          }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className={`border-r border-border-primary bg-card-bg flex flex-col p-6 overflow-hidden flex-shrink-0 z-[46] 
-            ${isSidebarOpen ? 'fixed lg:relative h-full' : 'absolute lg:relative h-full'} 
-            lg:z-auto lg:h-auto`}
+    <AnimatePresence mode="wait">
+      {currentView === 'systemic-graph' ? (
+        <SystemicGraph key="systemic-graph" reef={reef} onNavigate={moltNavigate} theme={theme} />
+      ) : (
+        <motion.div 
+          key="standard-layout"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="h-screen flex flex-col bg-bg-primary overflow-hidden"
         >
-          <div className="mb-8 overflow-hidden flex flex-col">
-            <h2 className="text-[11px] font-black text-text-primary/40 uppercase tracking-[0.2em] mb-6 flex items-center gap-3 flex-shrink-0">
-              <button 
-                onClick={() => setIsSidebarOpen(false)}
-                className="p-1 hover:bg-border-primary/50 rounded transition-colors text-text-primary"
-                title="Collapse Sidebar"
+          <Header onNavigate={moltNavigate as any} onSearch={handleSearch} onToggleTheme={toggleTheme} isDark={theme === 'dark'} />
+          
+          <div className="flex flex-1 overflow-hidden relative">
+            {/* Sidebar Toggle Button (Visible when sidebar is closed) */}
+            {!isSidebarOpen && (
+              <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                onClick={() => setIsSidebarOpen(true)}
+                className="absolute left-4 top-4 z-40 p-2 btn-dynamic-main rounded-md ring-2 ring-white/20"
+                title="Open Directory"
               >
-                <Menu size={16} />
-              </button>
-              <span className="flex-1">Wiki Directory</span>
-              <span className="bg-bg-primary text-text-primary/50 border border-border-primary px-2 py-0.5 rounded font-mono">{reefFiles.length + 2} Files</span>
-            </h2>
-            
-            <div className="flex-1 overflow-hidden flex flex-col mb-6">
-              <div className="space-y-1 mb-4 flex-shrink-0">
-                <button 
-                  onClick={() => moltNavigate('index')}
-                  className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'index' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}
-                >
-                  <List size={16} className="opacity-60" /> index-list.md
-                </button>
+                <PanelLeftOpen size={20} />
+              </motion.button>
+            )}
 
-                <button 
-                  onClick={() => moltNavigate('article', 'index')}
-                  className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${activePolyPId === 'index' && currentView === 'article' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}
-                >
-                  <FileText size={16} className="opacity-60" /> index.md
-                </button>
-              </div>
-              
-              <div className="flex-1 overflow-hidden">
-                <WikiDirectory 
-                  reef={reef} 
-                  reefFiles={reefFiles} 
-                  currentView={currentView} 
-                  activePolyPId={activePolyPId} 
-                  moltNavigate={moltNavigate} 
-                  onRefresh={loadReef}
+            {/* Sidebar Overlay for Mobile */}
+            <AnimatePresence>
+              {isSidebarOpen && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[45] lg:hidden"
                 />
-              </div>
-            </div>
-
-            <nav className="space-y-3 pb-6 border-b border-border-primary">
-               <h2 className="text-[11px] font-black text-text-primary/40 uppercase tracking-[0.2em] mb-4">Core Shell Tools</h2>
-               <button onClick={() => moltNavigate('graph')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'graph' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
-                  <Network size={16} /> Graph Topology
-               </button>
-               <button onClick={() => moltNavigate('git')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'git' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
-                  <GitBranch size={16} /> Git Timeline
-               </button>
-            </nav>
-          </div>
-
-          <div className="mt-auto pt-6 border-t border-border-primary">
-            <div className="bg-bg-primary rounded-xl p-4 border border-border-primary shadow-inner">
-              <div className="text-[10px] font-black text-text-primary/40 uppercase tracking-widest mb-3">Sync Health</div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-text-primary/70">/wiki directory</span>
-                <span className="text-[10px] font-black text-green-500 uppercase tracking-tighter animate-pulse flex items-center gap-1">
-                   <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Synced
-                </span>
-              </div>
-              <div className="w-full bg-border-primary h-1.5 rounded-full overflow-hidden">
-                <div className="bg-green-500 h-full w-[96%] transition-all duration-1000" />
-              </div>
-            </div>
-          </div>
-        </motion.aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-hidden flex flex-col bg-bg-primary">
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <AnimatePresence mode="wait">
-              {currentView === 'index' && (
-                <WikiIndex key="index" pages={reef} onNavigate={moltNavigate} />
-              )}
-              {currentView === 'article' && activePolyP && (
-                <div className="h-full flex flex-col lg:flex-row overflow-hidden relative">
-                  <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-                    {/* Graph View Toggle - Hidden on small screens */}
-                    <div className="absolute top-4 right-4 z-40 hidden lg:block">
-                      <button
-                        onClick={() => setShowGraphSidebar(!showGraphSidebar)}
-                        className={`p-2 rounded-full border transition-all ${
-                          showGraphSidebar 
-                            ? 'bg-lobster text-white border-lobster shadow-lg' 
-                            : 'bg-card-bg text-text-primary/40 border-border-primary hover:border-lobster hover:text-lobster'
-                        }`}
-                        title={showGraphSidebar ? "Hide Topology" : "Show Topology"}
-                      >
-                        <Network size={18} />
-                      </button>
-                    </div>
-
-                    <ArticleView 
-                      key={`article-${activePolyPId}`} 
-                      article={activePolyP} 
-                      pages={reef} 
-                      issues={lintIssues}
-                      onRefreshIssues={loadLintIssues}
-                      onNavigate={moltNavigate} 
-                      aiProvider={aiProvider} 
-                      openRouterModel={openRouterModel}
-                      onHoverNode={setHoveredNodeId}
-                      externalHoveredId={hoveredNodeId}
-                    />
-                  </div>
-                  
-                  {showGraphSidebar && (
-                    <>
-                      {/* Resize Handle */}
-                      <div 
-                        onMouseDown={startResizing}
-                        className={`hidden lg:block w-1.5 h-full cursor-col-resize transition-colors z-30 relative group ${isResizing ? 'bg-lobster' : 'hover:bg-lobster/50 bg-border-primary'}`}
-                      >
-                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none">
-                            <GripVertical size={16} className="text-lobster" />
-                         </div>
-                      </div>
-
-                      <div 
-                        className="hidden lg:block border-l border-border-primary bg-card-bg relative overflow-hidden group select-none"
-                        style={{ width: `${graphSidebarWidth}px` }}
-                      >
-                        <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="bg-bg-primary/80 backdrop-blur border border-border-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-text-primary">
-                             <Network size={12} className="text-lobster" /> topology_preview.pyp
-                          </div>
-                        </div>
-                        <GraphView reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-              {currentView === 'ingest' && (
-                <IngestZone key="ingest" onIngest={pinchIngest} suggestedTitle={suggestedIngestTitle} />
-              )}
-              {currentView === 'graph' && (
-                <GraphView key="graph" reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
-              )}
-              {currentView === 'git' && (
-                <GitHistory key="git" theme={theme} />
-              )}
-              {currentView === 'search' && (
-                <SearchResults key="search" query={searchQuery} reef={reef} onNavigate={moltNavigate} />
-              )}
-              {currentView === 'maintenance' && (
-                <MaintenanceZone 
-                  key="maintenance" 
-                  issues={lintIssues}
-                  onRefresh={loadLintIssues}
-                  onNavigate={moltNavigate} 
-                  aiProvider={aiProvider} 
-                  openRouterModel={openRouterModel} 
-                  isManualMode={isManualMode}
-                  onToggleManualMode={() => setIsManualMode(!isManualMode)}
-                />
-              )}
-              {currentView === 'logs' && (
-                <div className="h-full">
-                   <LogTerminal logs={habitatLogs} />
-                </div>
               )}
             </AnimatePresence>
+
+            {/* Sidebar */}
+            <motion.aside 
+              initial={false}
+              animate={{ 
+                width: isSidebarOpen ? (window.innerWidth < 1024 ? 280 : 288) : 0,
+                opacity: isSidebarOpen ? 1 : 0,
+                x: isSidebarOpen ? 0 : (window.innerWidth < 1024 ? -280 : -288)
+              }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={`border-r border-border-primary bg-card-bg flex flex-col p-6 overflow-hidden flex-shrink-0 z-[46] 
+                ${isSidebarOpen ? 'fixed lg:relative h-full' : 'absolute lg:relative h-full'} 
+                lg:z-auto lg:h-auto`}
+            >
+              <div className="mb-8 overflow-hidden flex flex-col">
+                <h2 className="text-[11px] font-black text-text-primary/40 uppercase tracking-[0.2em] mb-6 flex items-center gap-3 flex-shrink-0">
+                  <button 
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1 hover:bg-border-primary/50 rounded transition-colors text-text-primary"
+                    title="Collapse Sidebar"
+                  >
+                    <Menu size={16} />
+                  </button>
+                  <span className="flex-1">Wiki Directory</span>
+                  <span className="bg-bg-primary text-text-primary/50 border border-border-primary px-2 py-0.5 rounded font-mono">{reefFiles.length + 2} Files</span>
+                </h2>
+                
+                <div className="flex-1 overflow-hidden flex flex-col mb-6">
+                  <div className="space-y-1 mb-4 flex-shrink-0">
+                    <button 
+                      onClick={() => moltNavigate('index')}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'index' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}
+                    >
+                      <List size={16} className="opacity-60" /> index-list.md
+                    </button>
+
+                    <button 
+                      onClick={() => moltNavigate('article', 'index')}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${activePolyPId === 'index' && currentView === 'article' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}
+                    >
+                      <FileText size={16} className="opacity-60" /> index.md
+                    </button>
+                  </div>
+                  
+                  <div className="flex-1 overflow-hidden">
+                    <WikiDirectory 
+                      reef={reef} 
+                      reefFiles={reefFiles} 
+                      currentView={currentView} 
+                      activePolyPId={activePolyPId} 
+                      moltNavigate={moltNavigate} 
+                      onRefresh={loadReef}
+                    />
+                  </div>
+                </div>
+
+                <nav className="space-y-3 pb-6 border-b border-border-primary">
+                   <h2 className="text-[11px] font-black text-text-primary/40 uppercase tracking-[0.2em] mb-4">Core Shell Tools</h2>
+                    <button onClick={() => moltNavigate('graph')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'graph' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
+                       <Network size={16} /> Graph Topology
+                    </button>
+                    <button onClick={() => moltNavigate('systemic-graph')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'systemic-graph' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
+                       <Share2 size={16} /> Immersive Mode
+                    </button>
+                   <button onClick={() => moltNavigate('git')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'git' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
+                      <GitBranch size={16} /> Git Timeline
+                   </button>
+                </nav>
+              </div>
+
+              <div className="mt-auto pt-6 border-t border-border-primary">
+                <div className="bg-bg-primary rounded-xl p-4 border border-border-primary shadow-inner">
+                  <div className="text-[10px] font-black text-text-primary/40 uppercase tracking-widest mb-3">Sync Health</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-text-primary/70">/wiki directory</span>
+                    <span className="text-[10px] font-black text-green-500 uppercase tracking-tighter animate-pulse flex items-center gap-1">
+                       <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Synced
+                    </span>
+                  </div>
+                  <div className="w-full bg-border-primary h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-green-500 h-full w-[96%] transition-all duration-1000" />
+                  </div>
+                </div>
+              </div>
+            </motion.aside>
+
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-hidden flex flex-col bg-bg-primary">
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <AnimatePresence mode="wait">
+                  {currentView === 'index' && (
+                    <WikiIndex key="index" pages={reef} onNavigate={moltNavigate} />
+                  )}
+                  {currentView === 'article' && activePolyP && (
+                    <div className="h-full flex flex-col lg:flex-row overflow-hidden relative">
+                      <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+                        {/* Graph View Toggle - Hidden on small screens */}
+                        <div className="absolute top-4 right-4 z-40 hidden lg:block">
+                          <button
+                            onClick={() => setShowGraphSidebar(!showGraphSidebar)}
+                            className={`p-2 rounded-full border transition-all ${
+                              showGraphSidebar 
+                                ? 'bg-lobster text-white border-lobster shadow-lg' 
+                                : 'bg-card-bg text-text-primary/40 border-border-primary hover:border-lobster hover:text-lobster'
+                            }`}
+                            title={showGraphSidebar ? "Hide Topology" : "Show Topology"}
+                          >
+                            <Network size={18} />
+                          </button>
+                        </div>
+
+                        <ArticleView 
+                          key={`article-${activePolyPId}`} 
+                          article={activePolyP} 
+                          pages={reef} 
+                          issues={lintIssues}
+                          onRefreshIssues={loadLintIssues}
+                          onNavigate={moltNavigate} 
+                          aiProvider={aiProvider} 
+                          openRouterModel={openRouterModel}
+                          onHoverNode={setHoveredNodeId}
+                          externalHoveredId={hoveredNodeId}
+                        />
+                      </div>
+                      
+                      {showGraphSidebar && (
+                        <>
+                          {/* Resize Handle */}
+                          <div 
+                            onMouseDown={startResizing}
+                            className={`hidden lg:block w-1.5 h-full cursor-col-resize transition-colors z-30 relative group ${isResizing ? 'bg-lobster' : 'hover:bg-lobster/50 bg-border-primary'}`}
+                          >
+                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none">
+                                <GripVertical size={16} className="text-lobster" />
+                             </div>
+                          </div>
+
+                          <div 
+                            className="hidden lg:block border-l border-border-primary bg-card-bg relative overflow-hidden group select-none"
+                            style={{ width: `${graphSidebarWidth}px` }}
+                          >
+                            <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="bg-bg-primary/80 backdrop-blur border border-border-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-text-primary">
+                                 <Network size={12} className="text-lobster" /> topology_preview.pyp
+                              </div>
+                            </div>
+                            <GraphView reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {currentView === 'ingest' && (
+                    <IngestZone key="ingest" onIngest={pinchIngest} suggestedTitle={suggestedIngestTitle} />
+                  )}
+                  {currentView === 'graph' && (
+                    <GraphView key="graph" reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
+                  )}
+                  {currentView === 'git' && (
+                    <GitHistory key="git" theme={theme} />
+                  )}
+                  {currentView === 'search' && (
+                    <SearchResults key="search" query={searchQuery} reef={reef} onNavigate={moltNavigate} />
+                  )}
+                  {currentView === 'maintenance' && (
+                    <MaintenanceZone 
+                      key="maintenance" 
+                      issues={lintIssues}
+                      onRefresh={loadLintIssues}
+                      onNavigate={moltNavigate} 
+                      aiProvider={aiProvider} 
+                      openRouterModel={openRouterModel} 
+                      isManualMode={isManualMode}
+                      onToggleManualMode={() => setIsManualMode(!isManualMode)}
+                    />
+                  )}
+                  {currentView === 'logs' && (
+                    <div className="h-full">
+                       <LogTerminal logs={habitatLogs} />
+                    </div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </main>
           </div>
-        </main>
-      </div>
 
-      {/* Toast Notification */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-20 right-8 z-[100] px-6 py-3 rounded-xl shadow-2xl border border-lobster/20 bg-habitat-dark text-white flex items-center gap-3"
-          >
-            <div className="w-2 h-2 rounded-full bg-lobster animate-pulse" />
-            <span className="text-xs font-black uppercase tracking-widest">{toast.message}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* Toast Notification */}
+          <AnimatePresence>
+            {toast && (
+              <motion.div
+                initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                className="fixed bottom-20 right-8 z-[100] px-6 py-3 rounded-xl shadow-2xl border border-lobster/20 bg-habitat-dark text-white flex items-center gap-3"
+              >
+                <div className="w-2 h-2 rounded-full bg-lobster animate-pulse" />
+                <span className="text-xs font-black uppercase tracking-widest">{toast.message}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-      {/* Footer */}
-      <Footer 
-        currentModel={openRouterModel} 
-        onModelChange={setOpenRouterModel} 
-        onNavigate={moltNavigate} 
-      />
-    </div>
+          {/* Footer */}
+          <Footer 
+            currentModel={openRouterModel} 
+            onModelChange={setOpenRouterModel} 
+            onNavigate={moltNavigate} 
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
