@@ -57,18 +57,28 @@ export const helmetConfig = (options: any = {}) => {
 };
 
 export const setupSecurity = (app: Express, options: any = {}) => {
-  const mode = (process.env.NODE_ENV === 'production' ? 'strict' : 'development') as 'development' | 'strict';
+  const nodeEnv = process.env.NODE_ENV || 'development';
   const origin = process.env.CORS_ORIGIN;
   const trustProxy = process.env.TRUST_PROXY === 'true';
   const enforceHttps = process.env.ENFORCE_HTTPS === 'true';
+
+  // 🛰️ Auto-detect Mode
+  let mode: 'development' | 'lan' | 'strict' = 'development';
+  if (nodeEnv === 'production') {
+    mode = origin ? 'strict' : 'lan';
+  }
 
   // 🔗 Trusted Proxy
   if (trustProxy) {
     app.set('trust proxy', 1);
   }
 
-  // 🛡️ Helmet
-  app.use(helmet(helmetConfig(options.helmet || {})));
+  // 🛡️ Helmet (Disable HSTS for LAN/Dev unless forced)
+  const helmetOptions = {
+    ...options.helmet,
+    enableHSTS: enforceHttps && nodeEnv === 'production'
+  };
+  app.use(helmet(helmetConfig(helmetOptions)));
 
   // 🔒 CORS
   app.use(cors(options.cors || corsConfig(mode, origin)));
@@ -76,7 +86,8 @@ export const setupSecurity = (app: Express, options: any = {}) => {
   // 🔒 HTTPS Enforcement
   if (enforceHttps) {
     app.use((req, res, next) => {
-      if (req.headers['x-forwarded-proto'] !== 'https' && process.env.NODE_ENV === 'production') {
+      const isHttps = req.headers['x-forwarded-proto'] === 'https' || req.secure;
+      if (!isHttps && nodeEnv === 'production') {
         return res.redirect(`https://${req.get('host')}${req.url}`);
       }
       next();
