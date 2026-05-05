@@ -17,3 +17,5 @@ Chronological record of wiki evolution, synthesis events, and system updates.
 ## [2026-05-04] scan | Background auto-scan started
 
 ## [2026-05-04] scan | Background auto-scan started
+
+## [2026-05-05] mkdir | test-api-dir

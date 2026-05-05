@@ -86,8 +86,20 @@ router.post("/fix", async (req, res) => {
     const actions = JSON.parse(jsonMatch[1]);
     for (const act of actions) {
        if (!act.fileId) continue;
-       const fPath = path.join(wikiPath, `${act.fileId}.md`);
+       const fPath = path.resolve(path.join(wikiPath, `${act.fileId}.md`));
+       
+       // 🛡️ Path Traversal Security Check: Ensure fPath is strictly within wikiPath
+       if (!fPath.startsWith(path.resolve(wikiPath))) {
+         console.warn(`[CrustAgent] AI attempted to escape habitat boundary: ${act.fileId}`);
+         continue; 
+       }
+
        if (act.action === "update" || act.action === "create") {
+          // Ensure directory exists
+          const dir = path.dirname(fPath);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
           fs.writeFileSync(fPath, act.content);
        }
     }

@@ -1,7 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { setupSecurity } from "../../.crustagent/skills/cors-helmet-proxy-security/index.js";
+import { setupSecurity, globalRateLimiter, aiRateLimiter } from "../../.crustagent/skills/cors-helmet-proxy-security/index.js";
 import wikiRoutes from './routes/wiki.js';
 import aiRoutes from './routes/ai.js';
 
@@ -10,6 +10,9 @@ export function createApp() {
 
   // Security Hardening
   setupSecurity(app);
+
+  // 🛡️ Apply Global Rate Limiting
+  app.use('/api/', globalRateLimiter);
 
   app.use(bodyParser.json({ limit: '50mb' }));
 
@@ -29,7 +32,9 @@ export function createApp() {
 
   // Register Routes
   app.use('/api/wiki', wikiRoutes);
-  app.use('/api/ai', aiRoutes);
+  
+  // Apply Stricter AI Rate Limiting
+  app.use('/api/ai', aiRateLimiter, aiRoutes);
 
   return app;
 }

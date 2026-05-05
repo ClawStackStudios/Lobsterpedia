@@ -35,7 +35,15 @@ router.post("/settings", (req, res) => {
 router.post("/mkdir", (req, res) => {
   const { path: dirPath } = req.body;
   if (!dirPath) return res.status(400).json({ error: "Missing path." });
-  const safePath = path.join(wikiService.getWikiPath(), dirPath.replace(/\.\./g, ''));
+  
+  const wikiPath = path.resolve(wikiService.getWikiPath());
+  const safePath = path.resolve(path.join(wikiPath, dirPath));
+  
+  // 🛡️ Strict Boundary Check
+  if (!safePath.startsWith(wikiPath)) {
+    return res.status(403).json({ error: "Path traversal detected." });
+  }
+
   try {
     if (!fs.existsSync(safePath)) {
       fs.mkdirSync(safePath, { recursive: true });
@@ -50,8 +58,16 @@ router.post("/mkdir", (req, res) => {
 router.post("/move", (req, res) => {
   const { oldPath, newPath } = req.body;
   if (!oldPath || !newPath) return res.status(400).json({ error: "Missing paths." });
-  const safeOld = path.join(wikiService.getWikiPath(), oldPath.replace(/\.\./g, ''));
-  const safeNew = path.join(wikiService.getWikiPath(), newPath.replace(/\.\./g, ''));
+  
+  const wikiPath = path.resolve(wikiService.getWikiPath());
+  const safeOld = path.resolve(path.join(wikiPath, oldPath));
+  const safeNew = path.resolve(path.join(wikiPath, newPath));
+
+  // 🛡️ Strict Boundary Check
+  if (!safeOld.startsWith(wikiPath) || !safeNew.startsWith(wikiPath)) {
+    return res.status(403).json({ error: "Path traversal detected." });
+  }
+
   try {
     if (fs.existsSync(safeOld)) {
       wikiService.ensureDir(safeNew);

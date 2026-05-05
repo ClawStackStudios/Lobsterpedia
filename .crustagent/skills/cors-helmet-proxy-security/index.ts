@@ -1,6 +1,7 @@
 import helmet from 'helmet';
 import cors from 'cors';
 import { Express } from 'express';
+import rateLimit from 'express-rate-limit';
 
 export const corsConfig = (mode: 'development' | 'lan' | 'strict', origin?: string) => {
   const privateIPRanges = [
@@ -8,7 +9,8 @@ export const corsConfig = (mode: 'development' | 'lan' | 'strict', origin?: stri
     /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
     /^https?:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
     /^https?:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
-    /^https?:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+(:\d+)?$/
+    /^https?:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+(:\d+)?$/,
+    /^https?:\/\/100\.(6[4-9]|[7-9]\d|1[0-1]\d|12[0-7])\.\d+\.\d+(:\d+)?$/ // Tailscale Range (100.64.0.0/10)
   ];
 
   return {
@@ -35,26 +37,52 @@ export const corsConfig = (mode: 'development' | 'lan' | 'strict', origin?: stri
 };
 
 export const helmetConfig = (options: any = {}) => {
+  const directives = {
+    ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+    'default-src': ["'self'"],
+    'img-src': ["'self'", "data:", "https:"],
+    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com"],
+    'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
+    'font-src': ["'self'", "https://fonts.gstatic.com"],
+    'connect-src': ["'self'", "wss:", "ws:", "https://openrouter.ai"],
+    'upgrade-insecure-requests': null, // 🛡️ Hard disable for LAN/Non-SSL habitats
+    ...(options.customDirectives || {})
+  };
+
+  // Remove upgrade-insecure-requests if it's null
+  if (directives['upgrade-insecure-requests'] === null) {
+    delete (directives as any)['upgrade-insecure-requests'];
+  }
+
   return {
     contentSecurityPolicy: options.enableCSP !== false ? {
-      directives: {
-        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        'default-src': ["'self'"],
-        'img-src': ["'self'", "data:", "https:"],
-        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com"],
-        'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-        'font-src': ["'self'", "https://fonts.gstatic.com"],
-        'connect-src': ["'self'", "wss:", "ws:", "https://openrouter.ai"],
-        ...(options.customDirectives || {})
-      }
+      directives
     } : false,
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: false,
     crossOriginOpenerPolicy: false,
     originAgentCluster: false,
-    hsts: options.enableHSTS !== false
+    hsts: options.enableHSTS === true // 🛡️ Only enable if explicitly true
   };
 };
+
+// 🛡️ General Rate Limiter (Protects against DoS / Brute Force)
+export const globalRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Limit each IP to 1000 requests per windowMs
+  message: { error: "Too many requests from this IP, please try again after 15 minutes" },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// 🛡️ AI / Expensive Route Rate Limiter
+export const aiRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // Limit each IP to 50 AI requests per windowMs
+  message: { error: "AI Synthesis quota exceeded. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 export const setupSecurity = (app: Express, options: any = {}) => {
   const nodeEnv = process.env.NODE_ENV || 'development';
