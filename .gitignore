@@ -13,3 +13,6 @@ docker-compose.override.yml
 
 # CrustAgent
 .crustagent/
+
+# Claude
+.claude/
