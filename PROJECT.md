@@ -2,7 +2,7 @@
 ## [Current Version: V1.1.0-REFIX]
 
 ### 🌊 Project Overview
-Lobsterpedia is a high-performance, agentic knowledge management system. It prioritizes semantic interconnectedness (via Topology) and system integrity (via the Shipyard).
+Lobsterpedia is a high-performance, agentic knowledge management system where the **`wiki/` directory is Sacred**. It follows a **UI-as-a-Thin-Layer** philosophy: the directory is the source of truth, fully managed by the user (either directly or via user-proxied LLM actions). The application serves as a topological lens and maintenance tool, ensuring that no file is created or modified without explicit intent.
 
 ### 🛠️ Active Modules
 1.  **Reef Presentation**: 

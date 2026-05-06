@@ -54,15 +54,14 @@
 
 ## 📌 About
 
-**Lobsterpedia©™** is an agent-maintained, LLM-powered wiki system designed to build and maintain a persistent knowledge reef from raw DNA (plain text, PDFs, and Word documents). It follows the **ClawStack©™** methodology, ensuring that every piece of information is incrementally synthesized, linked, and visualized for maximum observability.
+**Lobsterpedia©™** is a sovereign knowledge reef UI. It is built on the philosophy that the **`wiki/` directory is Sacred**: a fully manually managed repository of wisdom that exists independently of the application. Lobsterpedia provides the high-fidelity UI layer and the **Agentic Maintenance** tools needed to visualize, link, and grow this reef.
 
-- 🧬 **Incremental Synthesis** — Automatically scuttles raw input into structured wiki concepts via the **Molt Engine©™**.
-- 🗺️ **Topology Visualizer** — Interactive D3.js semantic relationship mapping to visualize the reef's structure.
-- 🏗️ **Shipyard Maintenance** — System-wide linting, auto-linking, and self-healing protocols for wiki integrity.
-- 📂 **Directory Sovereignty** — Native file system integration with drag & drop reorganization and renaming.
-- 🕹️ **Manual Protocol** — Master toggle to disable LLM automation for strict, un-augmented human control.
-- 🧪 **Operations CLI** — Real-time telemetry feed and command logs (**The Molt Logs©™**).
-- 🌓 **Theme Adaptive** — Elegant light/dark mode support built for the deep ocean.
+- 🧬 **Agentic Ingestion** — Use the **Molt Engine©™** to scuttle raw data into your wiki, acting as your personal knowledge assistant.
+- 🗺️ **Topology Visualizer** — Interactive D3.js semantic mapping that reveals the latent structure of your manually managed reef.
+- 🏗️ **Shipyard Maintenance** — Identify and resolve link rot or metadata drift via user-triggered agentic maintenance protocols.
+- 📂 **Directory Sovereignty** — Native file system integration where every change is reflected in plain Markdown.
+- 🛡️ **Sacred Boundary** — The application *never* creates "magic" background files. Every entry is the result of explicit human or user-proxied intent.
+- 🌒 **Theme Adaptive** — Elegant light/dark mode support built for the deep ocean.
 
 ---
 
@@ -196,17 +195,17 @@ Lobsterpedia is designed to coexist with your existing knowledge workflows, spec
 
 ## 🔑 The Reef System
 
-Lobsterpedia relies on a **Persistent Knowledge Directory** instead of a traditional database, ensuring your data remains human-readable (Markdown) even without the application.
+Lobsterpedia operates on a **Persistent Knowledge Directory** instead of a database. This ensures your data remains human-readable (Markdown) and portable across any tool (Obsidian, VS Code, etc.).
 
 | Component | Description |
 |---|---|
-| **Raw DNA** | The `/wiki/log` and `/wiki/log.md` files serving as the input stream. |
-| **Synthesized Concepts** | Structured entries in `/wiki/concepts`, `/wiki/entities`, etc. |
-| **The Shipyard** | Background processes that maintain valid links and structural integrity. |
-| **Molt Engine** | The LLM logic that transforms raw text into the target wiki hierarchy. |
+| **Sacred Reef** | The `/wiki` directory—your absolute source of truth. |
+| **Agent Ingestion** | The process where you *ask* the LLM to transform raw DNA into a new concept. |
+| **Shipyard Logs** | A record of actions taken by you or your Agent Proxy, stored in `/wiki/log.md`. |
+| **UI Mirror** | The application itself—a lens for viewing and a tool for manual maintenance. |
 
-> [!CAUTION]
-> The `/wiki` directory is your **Truth**. Direct manual edits are supported, but ensure the Shipyard is allowed to scuttle and re-index for full topological awareness.
+> [!IMPORTANT]
+> The `/wiki` directory is your **Truth**. Lobsterpedia is the **UI Layer**. No file enters the reef unless you or your LLM assistant explicitly puts it there.
 
 ---
 
