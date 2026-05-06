@@ -49,11 +49,6 @@ export const helmetConfig = (options: any = {}) => {
     ...(options.customDirectives || {})
   };
 
-  // Remove upgrade-insecure-requests if it's null
-  if (directives['upgrade-insecure-requests'] === null) {
-    delete (directives as any)['upgrade-insecure-requests'];
-  }
-
   return {
     contentSecurityPolicy: options.enableCSP !== false ? {
       directives
@@ -62,7 +57,11 @@ export const helmetConfig = (options: any = {}) => {
     crossOriginResourcePolicy: false,
     crossOriginOpenerPolicy: false,
     originAgentCluster: false,
-    hsts: options.enableHSTS === true // 🛡️ Only enable if explicitly true
+    hsts: options.enableHSTS === true ? true : {
+      maxAge: 0,
+      includeSubDomains: false,
+      preload: false
+    } // 🛡️ Explicitly flush HSTS if disabled to clear browser memory
   };
 };
 
@@ -90,6 +89,12 @@ export const setupSecurity = (app: Express, options: any = {}) => {
   const trustProxy = process.env.TRUST_PROXY === 'true';
   const enforceHttps = process.env.ENFORCE_HTTPS === 'true';
 
+  // 🛡️ Helmet Options Calculation
+  const helmetOptions = {
+    ...options.helmet,
+    enableHSTS: enforceHttps && nodeEnv === 'production'
+  };
+
   // 🛰️ Auto-detect Mode
   let mode: 'development' | 'lan' | 'strict' = 'development';
   if (nodeEnv === 'production') {
@@ -101,11 +106,14 @@ export const setupSecurity = (app: Express, options: any = {}) => {
     app.set('trust proxy', 1);
   }
 
+  // 🛡️ Visibility Logging (Senior SWE Practice)
+  console.log(`[Reef Security] Habitat Posture:`);
+  console.log(`   Mode: ${mode.toUpperCase()}`);
+  console.log(`   HTTPS Enforcement: ${enforceHttps ? '🔒 ACTIVE' : '🔓 DISABLED'}`);
+  console.log(`   HSTS Flush: ${helmetOptions.enableHSTS ? '🛡️ ACTIVE' : '🧹 FLUSHING (max-age=0)'}`);
+  console.log(`   Trust Proxy: ${trustProxy ? '🤝 ENABLED' : '🚫 DISABLED'}`);
+
   // 🛡️ Helmet (Disable HSTS for LAN/Dev unless forced)
-  const helmetOptions = {
-    ...options.helmet,
-    enableHSTS: enforceHttps && nodeEnv === 'production'
-  };
   app.use(helmet(helmetConfig(helmetOptions)));
 
   // 🔒 CORS
