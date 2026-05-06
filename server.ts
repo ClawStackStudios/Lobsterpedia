@@ -65,7 +65,10 @@ async function startServer() {
     Object.values(interfaces).forEach(iface => {
       iface?.forEach(details => {
         if (details.family === 'IPv4') {
-          addresses.push(details.address);
+          // Only show all IPs if bound to 0.0.0.0, otherwise only show the specific host
+          if (HOST === '0.0.0.0' || details.address === HOST) {
+            addresses.push(details.address);
+          }
         }
       });
     });
