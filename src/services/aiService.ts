@@ -27,6 +27,11 @@ class AIService {
       throw new Error(data.error || "OpenRouter scuttle failed at the proxy layer.");
     }
     
+    // OpenRouter returns standard OpenAI schema: { choices: [{ message: { content: "..." } }] }
+    if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+      return data.choices[0].message.content || "";
+    }
+    
     return data.text || "";
   }
 }

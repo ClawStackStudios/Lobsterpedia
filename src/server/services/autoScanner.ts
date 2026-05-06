@@ -29,7 +29,6 @@ export class AutoScanner {
 
   public async performScan() {
     console.log("[CrustAgent Auto-Scan] Initiating filesystem scan...");
-    wikiService.appendLog('scan', 'Background auto-scan started');
     
     if (!this.settings.autoIngest) return;
 
@@ -41,6 +40,7 @@ export class AutoScanner {
     }
 
     let updated = false;
+    let newFilesCount = 0;
     for (const f of files) {
       if (f.endsWith('.md') || f.includes('.git')) continue;
       const relativePath = path.relative(wikiService.getWikiPath(), f).replace(/\\/g, '/');
@@ -50,10 +50,12 @@ export class AutoScanner {
       wikiService.appendLog('detect', relativePath);
       scanned.push(relativePath);
       updated = true;
+      newFilesCount++;
     }
 
     if (updated) {
       fs.writeFileSync(regPath, JSON.stringify(scanned));
+      wikiService.appendLog('scan', `Background auto-scan detected ${newFilesCount} new files.`);
     }
   }
 

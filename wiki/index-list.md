@@ -2,7 +2,7 @@
 title: "Article Catalog"
 type: "system"
 author: "System"
-lastUpdated: "2026-04-28"
+lastUpdated: "2026-05-06"
 tags: []
 links: ["llm-knowledge-bases", "general-llm-cognition"]
 externalUrls: []
@@ -10,6 +10,8 @@ externalUrls: []
 Root directory of the synthesized knowledge base.
 
 ### Concepts
+- **[Malicious](/test-security-dir/malicious-file)** (concept): Malicious content...
+- **[Malicious](/malicious-file)** (concept): Malicious content...
 - **[LLM Knowledge Bases](llm-wiki/llm-knowledge-bases)** (concept): Patterns for building personal knowledge bases using LLMs.
 - **[General LLM Cognition](llm-wiki/general-llm-cognition)** (concept): Higher-order reasoning patterns in modern model architectures.
 

@@ -184,8 +184,9 @@ export const GitHistory: React.FC<{ theme?: 'light' | 'dark' }> = ({ theme }) =>
         })
       });
       const data = await res.json();
-      if (data.text) {
-        setCommitMessage(data.text.trim());
+      const content = data.choices && data.choices.length > 0 ? data.choices[0].message.content : data.text;
+      if (content) {
+        setCommitMessage(content.trim());
       }
     } catch (err) {
       console.error("Failed to generate commit message", err);

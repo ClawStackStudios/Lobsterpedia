@@ -66,11 +66,17 @@ router.post("/fix", async (req, res) => {
     const allFiles = wikiService.walkDir().map(f => path.relative(wikiPath, f).replace(/\\/g, '/'));
     const prompt = `You are the backend automated maintenance agent for Lobsterpedia. Fix the following issue in the wiki reef.\n\nIssue: ${issue.description}\nContext: ${contextStr}\n\nRespond with ONLY a JSON array of actions: [{"action": "update", "fileId": "...", "content": "..."}]`;
 
+    const safeTitle = "Lobsterpedia";
+    const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
+        "HTTP-Referer": referer,
+        "X-Title": safeTitle,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
       },
       body: JSON.stringify({
         model: openRouterModel || "openai/gpt-oss-120b:free",

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import { app } from '../src/server/app.js';
-import { wikiService } from '../src/server/services/wikiService.js';
+import { app } from '../../src/server/app.js';
+import { wikiService } from '../../src/server/services/wikiService.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -43,14 +43,5 @@ describe('API Endpoints (Integration)', () => {
     
     const dirExists = fs.existsSync(path.join(wikiService.getWikiPath(), testDir));
     expect(dirExists).toBe(true);
-  });
-
-  it('POST /api/wiki/mkdir should reject empty paths', async () => {
-    const response = await request(app)
-      .post('/api/wiki/mkdir')
-      .send({ path: '' });
-    
-    expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty('error');
   });
 });

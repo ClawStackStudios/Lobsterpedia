@@ -91,8 +91,9 @@ export const IngestZone: React.FC<IngestZoneProps> = ({ onIngest, suggestedTitle
         })
       });
       const data = await res.json();
-      if (data.text) {
-        const tags = data.text.split(',').map((t: string) => t.trim().toLowerCase().replace(/[^a-z0-9\-]/g, '')).filter(Boolean);
+      const content = data.choices && data.choices.length > 0 ? data.choices[0].message.content : data.text;
+      if (content) {
+        const tags = content.split(',').map((t: string) => t.trim().toLowerCase().replace(/[^a-z0-9\-]/g, '')).filter(Boolean);
         // Deduplicate with existing
         setSuggestedTags(prev => Array.from(new Set([...prev, ...tags])));
       }
