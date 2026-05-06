@@ -33,32 +33,13 @@ export class WikiService {
       fs.mkdirSync(this.wikiPath, { recursive: true });
     }
 
-    // Ensure initial seed if empty
-    if (fs.readdirSync(this.wikiPath).length === 0) {
-      const seedReef: Record<string, any> = {
-        'index': {
-          title: 'Wiki Index', type: 'system', author: 'System', lastUpdated: '2026-04-19', tags: [], links: ['llm-knowledge-bases'], content: 'Root directory of the synthesized knowledge base.'
-        },
-        'llm-knowledge-bases': {
-          title: 'LLM Knowledge Bases', type: 'concept', author: 'System', lastUpdated: '2026-04-19', tags: ['architecture', 'synthesis'], links: ['rag-limitations'], content: `Most people's experience with LLMs and documents looks like RAG: you upload files, the LLM retrieves chunks, and generates an answer. The LLM is rediscovering knowledge from scratch on every question.\n\n# The Core Difference\nThe wiki is a persistent, compounding artifact. Cross-references are already there. Contradictions have been flagged. The synthesis reflects everything read up to this point.\n\n## Architecture Layers\n1. **Raw Sources**: Immutable documents (PDFs, transcripts).\n2. **The Wiki**: LLM-generated markdown files. The synthesized truth.\n3. **The Schema**: Instructions for the LLM on how to maintain the wiki.`
-        },
-        'rag-limitations': {
-          title: 'Limitations of RAG', type: 'concept', author: 'System', lastUpdated: '2026-04-18', tags: ['architecture'], links: ['llm-knowledge-bases'], content: `Retrieval-Augmented Generation (RAG) suffers from a lack of synthesis. It retrieves fragments but does not build a compounding mental model of the domain over time.`
-        }
-      };
-
-      for (const [id, data] of Object.entries(seedReef)) {
-        this.savePage(id, {
-          ...data,
-          tags: data.tags || [],
-          links: data.links || [],
-          externalUrls: []
-        }, data.content);
-      }
-    }
-
-    // Ensure default categories exist
-    const defaultCategories = ['concepts', 'entities', 'events', 'insights', 'meetings', 'patterns', 'projects', 'references'];
+    // Ensure default categories exist (The Skeletal Structure)
+    const defaultCategories = [
+      'concepts', 'entities', 'events', 'insights', 
+      'meetings', 'patterns', 'projects', 'references', 
+      'llm-wiki'
+    ];
+    
     defaultCategories.forEach(cat => {
       const catPath = path.join(this.wikiPath, cat);
       if (!fs.existsSync(catPath)) {
@@ -71,6 +52,52 @@ export class WikiService {
         }
       }
     });
+
+    // Ensure initial seed if empty (The Genetic Pearl)
+    // We check if the root has any markdown files (excluding log.md)
+    const files = fs.readdirSync(this.wikiPath);
+    const hasContent = files.some(f => f.endsWith('.md') && f !== 'log.md');
+    
+    if (!hasContent) {
+      const seedReef: Record<string, any> = {
+        'index': {
+          title: 'The Sacred Reef', 
+          type: 'system', 
+          author: 'System', 
+          lastUpdated: '2026-05-06', 
+          tags: ['root', 'index'], 
+          links: ['llm-wiki/LLM Wiki'], 
+          content: '# Welcome to Lobsterpedia©™\n\nThis is your **Sacred Knowledge Reef**. It is a manually managed, agent-augmented repository of wisdom.\n\n## 🦞 Navigation\n- [[llm-wiki/LLM Wiki|The LLM Wiki]] — Our core philosophy on Agentic Knowledge.\n- [[index-list|The Full Catalog]] — A topological view of all concepts.'
+        },
+        'llm-wiki/LLM Wiki': {
+          title: 'The LLM Wiki', 
+          type: 'concept', 
+          author: 'System', 
+          lastUpdated: '2026-05-06', 
+          tags: ['philosophy', 'agentic'], 
+          links: ['llm-wiki/rag-limitations'], 
+          content: 'The LLM Wiki is the heart of the agent-augmented workflow. It defines how we treat the knowledge reef not as a retrieval database (RAG), but as a **Compounding Mental Model**.\n\n### The Law of the Reef\nNo ghost files. No background magic. Only deliberate, user-proxied maintenance.'
+        },
+        'llm-wiki/rag-limitations': {
+          title: 'Limitations of RAG', 
+          type: 'concept', 
+          author: 'System', 
+          lastUpdated: '2026-05-06', 
+          tags: ['architecture'], 
+          links: ['llm-wiki/LLM Wiki'], 
+          content: 'Retrieval-Augmented Generation (RAG) suffers from a lack of synthesis. It retrieves fragments but does not build a compounding mental model of the domain over time.'
+        }
+      };
+
+      for (const [id, data] of Object.entries(seedReef)) {
+        this.savePage(id, {
+          ...data,
+          tags: data.tags || [],
+          links: data.links || [],
+          externalUrls: []
+        }, data.content);
+      }
+    }
   }
 
   public walkDir(dir: string = this.wikiPath): string[] {

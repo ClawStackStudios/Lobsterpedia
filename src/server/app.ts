@@ -6,6 +6,7 @@ import { getCorsConfig } from './middleware/cors.js';
 import { apiLimiter, aiLimiter } from './middleware/rateLimiter.js';
 import wikiRoutes from './routes/wiki.js';
 import aiRoutes from './routes/ai.js';
+import gitRoutes from './routes/git.js';
 
 export function createApp() {
   const app = express();
@@ -64,6 +65,7 @@ export function createApp() {
   // ─── Routes ───────────────────────────────────────────────────────────────
   app.use('/api/wiki', wikiRoutes);
   app.use('/api/ai', aiLimiter, aiRoutes);
+  app.use('/api/git', gitRoutes);
 
   return app;
 }

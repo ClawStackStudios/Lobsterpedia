@@ -59,7 +59,7 @@ export const GitHistory: React.FC<{ theme?: 'light' | 'dark' }> = ({ theme }) =>
 
   const checkGitStatus = useCallback(async () => {
     try {
-      const res = await fetch('/api/git/status');
+      const res = await fetch(`/api/git/status?_t=${Date.now()}`);
       const data = await res.json();
       setIsGitInitialized(data.initialized);
       if (data.initialized) {
