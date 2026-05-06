@@ -8,13 +8,11 @@ services:
     # ─── Docker Bind Mount for Wiki ───────
     volumes:
       - ./wiki:/app/wiki
-      # Since we don't have a specific directory for 'wiki-data' in the root normally,
-      # but the user mentioned it, I'll map it to /app/data which might be for logs/settings.
-      - ./data:/app/data
     environment:
       - NODE_ENV=production
       - PORT=7575
       - HOST=0.0.0.0
+      - WIKI_PATH=/app/wiki
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - PUID=1000
       - PGID=1000
@@ -22,7 +20,7 @@ services:
       - ENFORCE_HTTPS=false
       # For detailed configuration, see README.md → Running with Docker section
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:7575/api/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:7575/api/wiki/health"]
       interval: 15s
       timeout: 10s
       retries: 5

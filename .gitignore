@@ -10,6 +10,7 @@ coverage/
 # Docker
 .dockerignore
 docker-compose.override.yml
+docker-compose.dev.yml
 
 # CrustAgent
 .crustagent/
