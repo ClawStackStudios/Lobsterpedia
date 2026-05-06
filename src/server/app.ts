@@ -1,40 +1,69 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import cors from 'cors';
-import { setupSecurity, globalRateLimiter, aiRateLimiter } from "../../.crustagent/skills/cors-helmet-proxy-security/index.js";
+import helmet from 'helmet';
+import bodyParser from 'body-parser';
+import { getCorsConfig } from './middleware/cors.js';
+import { apiLimiter, aiLimiter } from './middleware/rateLimiter.js';
 import wikiRoutes from './routes/wiki.js';
 import aiRoutes from './routes/ai.js';
 
 export function createApp() {
   const app = express();
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  // Security Hardening
-  setupSecurity(app);
+  // ─── Trust Proxy (Cloudflare / Tailscale / Nginx) ─────────────────────────
+  if (process.env.TRUST_PROXY === 'true') {
+    app.set('trust proxy', 1);
+  }
 
-  // 🛡️ Apply Global Rate Limiting
-  app.use('/api/', globalRateLimiter);
+  // ─── Security Middleware (modeled after PinchPad) ─────────────────────────
+  app.use(helmet({
+    // HSTS: Only enforce if explicitly opted-in (never on plain LAN HTTP)
+    strictTransportSecurity: process.env.ENFORCE_HTTPS === 'true' ? undefined : false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc:  ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc:   ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc:    ["'self'", 'https://fonts.gstatic.com', 'data:'],
+        imgSrc:     ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'wss:', 'ws:', 'https://openrouter.ai'],
+        frameAncestors: isProduction ? ["'self'"] : ["'self'", '*'],
+        // Only upgrade to HTTPS if explicitly enforcing it
+        upgradeInsecureRequests: process.env.ENFORCE_HTTPS === 'true' ? [] : null,
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy:   false,
+    originAgentCluster:        false,
+    frameguard: isProduction ? { action: 'sameorigin' } : false,
+  }));
 
+  // ─── CORS ─────────────────────────────────────────────────────────────────
+  app.use(cors(getCorsConfig()));
+
+  // ─── Rate Limiting ────────────────────────────────────────────────────────
+  app.use('/api/', apiLimiter);
+
+  // ─── Body Parser ──────────────────────────────────────────────────────────
   app.use(bodyParser.json({ limit: '50mb' }));
 
-  // Logging Middleware
-  // Meaningful Logging Middleware (KISS)
+  // ─── Logging (KISS — meaningful signals only) ─────────────────────────────
   app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
-      const duration = Date.now() - start;
       if (req.url.startsWith('/api')) {
-        const statusColor = res.statusCode >= 400 ? '🔴' : '🟢';
-        console.log(`[Reef Activity] ${statusColor} ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`);
+        const icon = res.statusCode >= 400 ? '🔴' : '🟢';
+        console.log(`[Reef] ${icon} ${req.method} ${req.url} ${res.statusCode} (${Date.now() - start}ms)`);
       }
     });
     next();
   });
 
-  // Register Routes
+  // ─── Routes ───────────────────────────────────────────────────────────────
   app.use('/api/wiki', wikiRoutes);
-  
-  // Apply Stricter AI Rate Limiting
-  app.use('/api/ai', aiRateLimiter, aiRoutes);
+  app.use('/api/ai', aiLimiter, aiRoutes);
 
   return app;
 }
