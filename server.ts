@@ -6,6 +6,7 @@ import { autoScanner } from "./src/server/services/autoScanner.js";
 import { wikiService } from "./src/server/services/wikiService.js";
 import { createServer as createViteServer } from "vite";
 import fs from "fs";
+import os from "os";
 
 async function startServer() {
   const PORT = parseInt(process.env.PORT || "7575");
@@ -58,10 +59,28 @@ async function startServer() {
   }
 
   app.listen(PORT, HOST, () => {
-    console.log(`\n🦞 Lobsterpedia running on port ${PORT}`);
-    console.log(`   Habitat: ${HOST}:${PORT}`);
-    console.log(`   Reef: ${wikiService.getWikiPath()}`);
-    console.log(`   Health: http://localhost:${PORT}/api/wiki/health\n`);
+    const interfaces = os.networkInterfaces();
+    const addresses: string[] = [];
+    
+    Object.values(interfaces).forEach(iface => {
+      iface?.forEach(details => {
+        if (details.family === 'IPv4') {
+          addresses.push(details.address);
+        }
+      });
+    });
+
+    console.log(`\n🦞 Lobsterpedia Habitat Hatchery`);
+    console.log(`   Status: 🟢 ACTIVE`);
+    console.log(`   Port:   ${PORT}`);
+    console.log(`   Reef:   ${wikiService.getWikiPath()}`);
+    console.log(`\n📡 Available Access Points:`);
+    addresses.forEach(addr => {
+      const label = addr === '127.0.0.1' ? 'Localhost' : 
+                    addr.startsWith('100.') ? 'Tailscale' : 'LAN/Net';
+      console.log(`   -> http://${addr}:${PORT} (${label})`);
+    });
+    console.log(`\n   Health: http://localhost:${PORT}/api/wiki/health\n`);
   });
 }
 

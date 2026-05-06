@@ -3,130 +3,44 @@ import cors from 'cors';
 import { Express } from 'express';
 import rateLimit from 'express-rate-limit';
 
-export const corsConfig = (mode: 'development' | 'lan' | 'strict', origin?: string) => {
-  const privateIPRanges = [
-    /^https?:\/\/localhost(:\d+)?$/,
-    /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
-    /^https?:\/\/192\.168\.\d+\.\d+(:\d+)?$/,
-    /^https?:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/,
-    /^https?:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+(:\d+)?$/,
-    /^https?:\/\/100\.(6[4-9]|[7-9]\d|1[0-1]\d|12[0-7])\.\d+\.\d+(:\d+)?$/ // Tailscale Range (100.64.0.0/10)
-  ];
-
-  return {
-    origin: (requestOrigin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      if (!requestOrigin) return callback(null, true);
-
-      if (mode === 'development' || mode === 'lan') {
-        const isAllowed = privateIPRanges.some(regex => regex.test(requestOrigin));
-        if (isAllowed) return callback(null, true);
-        if (mode === 'development') return callback(null, true); // Allow all in dev
-      }
-
-      if (mode === 'strict' && origin) {
-        const allowedOrigins = origin.split(',').map(o => o.trim());
-        if (allowedOrigins.includes(requestOrigin)) return callback(null, true);
-      }
-
-      callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-  };
-};
-
-export const helmetConfig = (options: any = {}) => {
-  const directives = {
-    ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-    'default-src': ["'self'"],
-    'img-src': ["'self'", "data:", "https:"],
-    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com"],
-    'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-    'font-src': ["'self'", "https://fonts.gstatic.com"],
-    'connect-src': ["'self'", "wss:", "ws:", "https://openrouter.ai"],
-    'upgrade-insecure-requests': null, // 🛡️ Hard disable for LAN/Non-SSL habitats
-    ...(options.customDirectives || {})
-  };
-
-  return {
-    contentSecurityPolicy: options.enableCSP !== false ? {
-      directives
-    } : false,
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: false,
-    crossOriginOpenerPolicy: false,
-    originAgentCluster: false,
-    hsts: options.enableHSTS === true ? true : {
-      maxAge: 0,
-      includeSubDomains: false,
-      preload: false
-    } // 🛡️ Explicitly flush HSTS if disabled to clear browser memory
-  };
-};
-
-// 🛡️ General Rate Limiter (Protects against DoS / Brute Force)
-export const globalRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per windowMs
-  message: { error: "Too many requests from this IP, please try again after 15 minutes" },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
-
-// 🛡️ AI / Expensive Route Rate Limiter
-export const aiRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // Limit each IP to 50 AI requests per windowMs
-  message: { error: "AI Synthesis quota exceeded. Please try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-export const setupSecurity = (app: Express, options: any = {}) => {
+export const setupSecurity = (app: Express) => {
   const nodeEnv = process.env.NODE_ENV || 'development';
-  const origin = process.env.CORS_ORIGIN;
   const trustProxy = process.env.TRUST_PROXY === 'true';
-  const enforceHttps = process.env.ENFORCE_HTTPS === 'true';
 
-  // 🛡️ Helmet Options Calculation
-  const helmetOptions = {
-    ...options.helmet,
-    enableHSTS: enforceHttps && nodeEnv === 'production'
-  };
-
-  // 🛰️ Auto-detect Mode
-  let mode: 'development' | 'lan' | 'strict' = 'development';
-  if (nodeEnv === 'production') {
-    mode = origin ? 'strict' : 'lan';
-  }
-
-  // 🔗 Trusted Proxy
+  // 🔗 Trusted Proxy (Required for Cloudflare/Tailscale)
   if (trustProxy) {
     app.set('trust proxy', 1);
   }
 
-  // 🛡️ Visibility Logging (Senior SWE Practice)
-  console.log(`[Reef Security] Habitat Posture:`);
-  console.log(`   Mode: ${mode.toUpperCase()}`);
-  console.log(`   HTTPS Enforcement: ${enforceHttps ? '🔒 ACTIVE' : '🔓 DISABLED'}`);
-  console.log(`   HSTS Flush: ${helmetOptions.enableHSTS ? '🛡️ ACTIVE' : '🧹 FLUSHING (max-age=0)'}`);
-  console.log(`   Trust Proxy: ${trustProxy ? '🤝 ENABLED' : '🚫 DISABLED'}`);
+  // 🛡️ Minimalist Helmet (No HSTS, No CSP, No Protocol Upgrades)
+  app.use(helmet({
+    contentSecurityPolicy: false,
+    hsts: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+  }));
 
-  // 🛡️ Helmet (Disable HSTS for LAN/Dev unless forced)
-  app.use(helmet(helmetConfig(helmetOptions)));
+  // 🔒 Permissive CORS (LAN Friendly)
+  app.use(cors({
+    origin: true, // Allow all origins for simplicity in LAN habitat
+    credentials: true
+  }));
 
-  // 🔒 CORS
-  app.use(cors(options.cors || corsConfig(mode, origin)));
-
-  // 🔒 HTTPS Enforcement
-  if (enforceHttps) {
-    app.use((req, res, next) => {
-      const isHttps = req.headers['x-forwarded-proto'] === 'https' || req.secure;
-      if (!isHttps && nodeEnv === 'production') {
-        return res.redirect(`https://${req.get('host')}${req.url}`);
-      }
-      next();
-    });
-  }
+  console.log(`[Reef Security] Minimalist LAN Posture Active (HSTS/CSP Disabled)`);
 };
+
+// 🛡️ General Rate Limiter (Protects against DoS)
+export const globalRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// 🛡️ AI Rate Limiter
+export const aiRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
