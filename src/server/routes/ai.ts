@@ -2,8 +2,44 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { wikiService } from '../services/wikiService.js';
+import { dbService } from '../services/dbService.js';
 
 const router = express.Router();
+
+/**
+ * Generates geometric context for the LLM if the database is hatched.
+ * Provides relevance hub data, document metadata, and link topology.
+ */
+function getGeometricContext(pageId?: string) {
+  if (!dbService.isActive) return "";
+
+  let context = "\n[GEOMETRIC REEF CONTEXT]\n";
+  
+  // 1. Hub Knowledge (Global Relevance)
+  const topPearls = dbService.getAllPearls().slice(0, 5);
+  context += "--- Global Hubs (High Relevance) ---\n";
+  topPearls.forEach(p => {
+    context += `- ${p.page_id} (Relevance: ${(p.relevance_score * 100).toFixed(1)}%, Type: ${p.type})\n`;
+  });
+
+  // 2. Specific Page DNA
+  if (pageId) {
+    const pearl = dbService.getPearl(pageId);
+    if (pearl) {
+      context += `\n--- Target Page DNA: ${pageId} ---\n`;
+      context += `- Confidence: ${(pearl.confidence * 100).toFixed(0)}%\n`;
+      context += `- Quality Score: ${(pearl.quality_score * 100).toFixed(0)}%\n`;
+      context += `- Relevance: ${(pearl.relevance_score * 100).toFixed(1)}%\n`;
+      
+      const inbound = dbService.getInboundLinks(pageId);
+      if (inbound.length > 0) {
+        context += `- Inbound Links (Blast Radius): ${inbound.join(', ')}\n`;
+      }
+    }
+  }
+
+  return context + "\n";
+}
 
 router.post("/openrouter", async (req, res) => {
   const { prompt, model } = req.body;
@@ -64,7 +100,23 @@ router.post("/fix", async (req, res) => {
     }
 
     const allFiles = wikiService.walkDir().map(f => path.relative(wikiPath, f).replace(/\\/g, '/'));
-    const prompt = `You are the backend automated maintenance agent for Lobsterpedia. Fix the following issue in the wiki reef.\n\nIssue: ${issue.description}\nContext: ${contextStr}\n\nRespond with ONLY a JSON array of actions: [{"action": "update", "fileId": "...", "content": "..."}]`;
+    
+    // Augment with Geometric Context if database is active
+    const geometricContext = getGeometricContext(issue.sourceId);
+
+    const prompt = `You are the backend maintenance agent for Lobsterpedia, a "Geometric Knowledge Reef."
+Your goal is to maintain the integrity of the knowledge graph while fixing issues.
+
+${geometricContext}
+
+Issue to Fix: ${issue.description}
+Contextual Files Provided: ${contextStr}
+
+INSTRUCTIONS:
+1. Fix the issue strictly following the Lobsterpedia philosophy (no ghost files, high synthesis).
+2. If the target page has a high confidence score or high relevance hub status, proceed with surgical precision.
+3. Maintain all frontmatter fields (title, type, author, lastUpdated, tags, links, confidence).
+4. Respond with ONLY a JSON array of actions: [{"action": "update", "fileId": "...", "content": "..."}]`;
 
     const safeTitle = "Lobsterpedia";
     const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
@@ -101,12 +153,18 @@ router.post("/fix", async (req, res) => {
        }
 
        if (act.action === "update" || act.action === "create") {
-          // Ensure directory exists
-          const dir = path.dirname(fPath);
-          if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-          }
-          fs.writeFileSync(fPath, act.content);
+          // Use wikiService.savePage to ensure the edit is Witnessed by the ledger
+          const { metadata, content } = wikiService.parseCrustMarkdown(act.content);
+          
+          // Ensure we don't lose existing metadata if the LLM hallucinated a blank set
+          const existingRaw = fs.existsSync(fPath) ? fs.readFileSync(fPath, 'utf-8') : "";
+          const existing = existingRaw ? wikiService.parseCrustMarkdown(existingRaw).metadata : {};
+          
+          wikiService.savePage(act.fileId, {
+            ...existing,
+            ...metadata,
+            author: "LLM" // Mark the hand of the agent
+          }, content);
        }
     }
     wikiService.appendLog('fix', issue.id);

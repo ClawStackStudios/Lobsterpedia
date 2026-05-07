@@ -43,4 +43,18 @@ I utilize the following hardened skills to maintain the habitat:
      '.__W__.'
 ```
 
+## 3. The Carapace Dreaming Layer (Autonomous Synthesis)
+The **Carapace** is an autonomous background engine that reads the Ledger, synthesizes themes, and promotes high-value insights into a sandboxed `carapace/` directory.
+
+- **Phase 1: Shell Inspection (Light Sleep)**
+  The engine scans the Molt Ledger for recent activity, identifying "Hot Pearls", "Islands", and "Low Confidence" nodes.
+- **Phase 2: Tidal Dreaming (REM Sleep)**
+  The engine uses an LLM to reflect on the staged candidates, identifying cross-cutting themes, contradictions, and knowledge gaps.
+- **Phase 3: Carapace Hardening (Deep Sleep)**
+  Candidates are strictly gated using a **6-signal weighted formula** (Molt Frequency, Link Relevance, Author Diversity, Recency, Consolidation, Conceptual Richness). Only candidates that pass `minScore >= 0.6` and `minMoltCount >= 3` are promoted to immutable `carapace/insights/` files.
+
+*Constraint:* The Carapace output directory is strictly excluded from `autoScanner` witnessing to prevent runaway feedback loops.
+
+---
+
 **Maintained by CrustAgent©™**

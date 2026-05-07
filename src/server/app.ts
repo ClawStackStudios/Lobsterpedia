@@ -6,7 +6,9 @@ import { getCorsConfig } from './middleware/cors.js';
 import { apiLimiter, aiLimiter } from './middleware/rateLimiter.js';
 import wikiRoutes from './routes/wiki.js';
 import aiRoutes from './routes/ai.js';
-import gitRoutes from './routes/git.js';
+import ledgerRoutes from './routes/ledger.js';
+import carapaceRoutes from './routes/carapace.js';
+import { dreamerService } from './services/dreamerService.js';
 
 export function createApp() {
   const app = express();
@@ -65,7 +67,11 @@ export function createApp() {
   // ─── Routes ───────────────────────────────────────────────────────────────
   app.use('/api/wiki', wikiRoutes);
   app.use('/api/ai', aiLimiter, aiRoutes);
-  app.use('/api/git', gitRoutes);
+  app.use('/api/ledger', ledgerRoutes);
+  app.use('/api/carapace', carapaceRoutes);
+
+  // ─── Start Autonomous Services ────────────────────────────────────────────
+  dreamerService.start();
 
   return app;
 }

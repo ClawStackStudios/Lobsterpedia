@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { dbService } from './dbService.js';
 
 export interface WikiMetadata {
   title: string;
@@ -108,7 +109,7 @@ export class WikiService {
       const filePath = path.join(dir, file);
       const stat = fs.statSync(filePath);
       if (stat && stat.isDirectory()) {
-        if (!filePath.includes('.git') && !filePath.includes('node_modules')) {
+        if (!filePath.includes('.git') && !filePath.includes('node_modules') && !filePath.includes('carapace')) {
           results = results.concat(this.walkDir(filePath));
         }
       } else {
@@ -203,6 +204,35 @@ export class WikiService {
     const filePath = path.join(this.wikiPath, `${safeId}.md`);
     this.ensureDir(filePath);
     fs.writeFileSync(filePath, frontmatter + content);
+
+    // ─── Witness the Molt (DB Layer) ────────────────────────────────────────
+    // If the Sovereign Ledger is active, record this mutation atomically.
+    if (dbService.isActive) {
+      const isNew = !dbService.getPearl(safeId);
+      dbService.upsertPearl({
+        page_id:       safeId,
+        title:         metadata.title || safeId,
+        type:          metadata.type || 'concept',
+        author:        metadata.author || 'System',
+        confidence:    metadata.confidence ?? 1.0,
+        quality_score: 1.0,
+        last_updated:  now,
+        file_path:     filePath,
+        tags:          JSON.stringify(metadata.tags || []),
+      });
+      dbService.syncLinks(
+        safeId,
+        (metadata.links || []).map(l => ({ id: l, type: 'references' }))
+      );
+      dbService.recordMolt({
+        page_id: safeId,
+        action:  isNew ? 'created' : 'updated',
+        summary: `${isNew ? 'Created' : 'Updated'} "${metadata.title || safeId}"`,
+        author:  metadata.author || 'System',
+      });
+      dbService.recalculateRelevanceScores();
+    }
+
     return safeId;
   }
 

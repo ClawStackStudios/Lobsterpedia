@@ -13,15 +13,16 @@ import { Footer } from './features/reef-presentation/Footer';
 import { LogTerminal } from './features/reef-presentation/LogTerminal';
 import { GraphView } from './features/reef-presentation/GraphView';
 import { GitHistory } from './features/reef-presentation/GitHistory';
+import { DreamDiary } from './features/reef-presentation/DreamDiary';
 import { SearchResults } from './features/reef-presentation/SearchResults';
 import { SystemicGraph } from './features/reef-presentation/SystemicGraph';
 import { MaintenanceZone } from './features/reef-presentation/MaintenanceZone';
 import { WikiDirectory } from './features/reef-presentation/WikiDirectory';
 import { Reef, HabitatLog, PolyP, AIProvider } from './features/shell-core/types';
-import { Search, List, Share2, Terminal, Network, GitBranch, FileText, Cpu, Menu, PanelLeftClose, PanelLeftOpen, Folder, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
+import { Search, List, Share2, Terminal, Network, GitBranch, FileText, Cpu, Menu, PanelLeftClose, PanelLeftOpen, Folder, ChevronRight, ChevronDown, GripVertical, Moon } from 'lucide-react';
 import { aiService } from './services/aiService';
 
-export type ViewSect = 'index' | 'article' | 'ingest' | 'logs' | 'graph' | 'git' | 'search' | 'maintenance' | 'systemic-graph';
+export type ViewSect = 'index' | 'article' | 'ingest' | 'logs' | 'graph' | 'git' | 'carapace' | 'search' | 'maintenance' | 'systemic-graph';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewSect>('index');
@@ -484,7 +485,10 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                        <Share2 size={16} /> Immersive Mode
                     </button>
                    <button onClick={() => moltNavigate('git')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'git' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
-                      <GitBranch size={16} /> Git Timeline
+                      <GitBranch size={16} /> Molt Timeline
+                   </button>
+                   <button onClick={() => moltNavigate('carapace')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'carapace' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
+                      <Moon size={16} /> Carapace Dreamer
                    </button>
                 </nav>
               </div>
@@ -579,6 +583,11 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                   )}
                   {currentView === 'git' && (
                     <GitHistory key="git" theme={theme} />
+                  )}
+                  {currentView === 'carapace' && (
+                    <div className="p-8 max-w-5xl mx-auto w-full h-full overflow-y-auto custom-scrollbar">
+                      <DreamDiary />
+                    </div>
                   )}
                   {currentView === 'search' && (
                     <SearchResults key="search" query={searchQuery} reef={reef} onNavigate={moltNavigate} />
