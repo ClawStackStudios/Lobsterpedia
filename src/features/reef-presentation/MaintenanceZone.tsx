@@ -196,30 +196,44 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
               Master System Protocol
            </h2>
            
-           <div className="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/5">
-              <div>
-                <div className="text-sm font-black uppercase tracking-wider mb-1">Manual Mode Enforcement</div>
-                <div className="text-[10px] text-white/40 uppercase font-mono tracking-tighter">
-                   Disable all automated LLM features (Synthesis, Self-Healing, Auto-Linking)
-                </div>
-              </div>
-              <button
-                onClick={onToggleManualMode}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ring-2 ring-white/10 ${isManualMode ? 'bg-lobster shadow-[0_0_15px_rgba(255,100,50,0.5)]' : 'bg-white/10'}`}
+            <div className="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/5 relative">
+               <div>
+                 <div className="text-sm font-black uppercase tracking-wider mb-1 flex items-center gap-2">
+                   Manual Mode Enforcement
+                   {isManualMode && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-lobster"><CheckCircle2 size={14} /></motion.span>}
+                 </div>
+                 <div className="text-[10px] text-white/40 uppercase font-mono tracking-tighter">
+                    Disable all automated LLM features (Synthesis, Self-Healing, Auto-Linking)
+                 </div>
+               </div>
+               <button
+                 disabled={isManualMode} // 🛡️ ENFORCED BLOCKER
+                 onClick={onToggleManualMode}
+                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ring-2 ring-white/10 ${isManualMode ? 'bg-lobster/50 cursor-not-allowed opacity-80' : 'bg-white/10'}`}
+               >
+                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isManualMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                 {isManualMode && (
+                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                     <Wrench size={10} className="text-lobster mix-blend-difference" />
+                   </div>
+                 )}
+               </button>
+            </div>
+            
+            {isManualMode && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-3 bg-lobster/10 border border-lobster/20 rounded-lg flex items-center justify-between"
               >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isManualMode ? 'translate-x-6' : 'translate-x-1'}`} />
-              </button>
-           </div>
-           
-           {isManualMode && (
-             <motion.div 
-               initial={{ opacity: 0, y: 10 }}
-               animate={{ opacity: 1, y: 0 }}
-               className="mt-4 text-[9px] font-black uppercase text-lobster tracking-[0.2em] animate-pulse"
-             >
-                // PROTOCOL: MANUAL_ONLY_ENFORCED
-             </motion.div>
-           )}
+                 <div className="text-[9px] font-black uppercase text-lobster tracking-[0.2em] animate-pulse">
+                    // PROTOCOL: MANUAL_ONLY_ENFORCED
+                 </div>
+                 <div className="text-[8px] font-medium text-white/30 uppercase tracking-widest italic">
+                    Contact Maintenance to unlock
+                 </div>
+              </motion.div>
+            )}
         </div>
 
         {/* Settings Panel */}

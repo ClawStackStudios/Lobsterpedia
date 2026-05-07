@@ -117,7 +117,8 @@ export default function App() {
   const [graphSidebarWidth, setGraphSidebarWidth] = useState(450);
   const [isResizing, setIsResizing] = useState(false);
   const [isManualMode, setIsManualMode] = useState(() => {
-    return localStorage.getItem('lobsterpedia_manual_mode') === 'true';
+    const saved = localStorage.getItem('lobsterpedia_manual_mode');
+    return saved === null ? true : saved === 'true';
   });
 
   useEffect(() => {
