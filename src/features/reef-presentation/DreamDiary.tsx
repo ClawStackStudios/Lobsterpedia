@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Moon, Sun, Zap, Brain, RefreshCw, ChevronDown, ChevronUp, Activity } from 'lucide-react';
+import { Moon, RefreshCw, Zap, Brain, BookOpen, Settings, AlertTriangle, FileText } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,35 +33,87 @@ interface DreamReflection {
   created_at: string;
 }
 
-interface SweepResult {
-  sweepId: string;
-  candidates: number;
-  reflections: number;
-  promotions: number;
-  duration: number;
+interface DreamPromotion {
+  id: number;
+  sweep_id: string;
+  source_ids: string;
+  insight_path: string;
+  score: number;
+  promoted_at: string;
 }
 
-// ─── Signal Type Styling ──────────────────────────────────────────────────────
+interface DiaryEntry {
+  date: string;
+  body: string;
+}
 
-const SIGNAL_STYLE: Record<string, { color: string; icon: string; label: string }> = {
-  hot_pearl:       { color: 'bg-red-500',    icon: '🔥', label: 'Hot Pearl' },
-  ghost_link:      { color: 'bg-purple-500', icon: '👻', label: 'Ghost Link' },
-  island:          { color: 'bg-yellow-500', icon: '🏝️', label: 'Island' },
-  stale:           { color: 'bg-gray-500',   icon: '🧊', label: 'Stale' },
-  low_confidence:  { color: 'bg-orange-500', icon: '⚠️', label: 'Low Confidence' },
-};
+interface WikiPagePreview {
+  title: string;
+  path: string;
+  content: string;
+  updatedAt: string;
+  totalLines: number;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function parseDiaryEntries(raw: string): DiaryEntry[] {
+  if (!raw) return [];
+  
+  // Split the markdown on HRs or date headers. 
+  // We limit the number of blocks to avoid memory issues with massive files.
+  const blocks = raw.split(/\n---\n|\n# /).filter(b => b.trim().length > 0);
+  
+  // Only process the last 100 blocks to find the latest 50 valid entries
+  const recentBlocks = blocks.slice(-100);
+  const entries: DiaryEntry[] = [];
+  
+  for (const block of recentBlocks) {
+    const lines = block.split('\n');
+    let dateStr = "Unknown Date";
+    const bodyLines = [];
+    
+    // Check if the first line is a date
+    const firstLine = lines[0].trim();
+    if (firstLine.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}/) || firstLine.startsWith('**') || firstLine.startsWith('##')) {
+      dateStr = firstLine.replace(/#/g, '').replace(/\*/g, '').trim();
+      bodyLines.push(...lines.slice(1));
+    } else {
+      bodyLines.push(...lines);
+    }
+    
+    // Safety: truncate extremely long entries
+    let body = bodyLines.join('\n').trim();
+    if (body.length > 5000) {
+      body = body.substring(0, 5000) + "\n\n... [Entry Truncated for Performance] ...";
+    }
+    
+    entries.push({ date: dateStr, body });
+  }
+  
+  return entries.reverse().slice(0, 50); // Newest first, limit to 50
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const DreamDiary: React.FC = () => {
-  const [status, setStatus]             = useState<DreamStatus | null>(null);
-  const [candidates, setCandidates]     = useState<DreamCandidate[]>([]);
-  const [reflections, setReflections]   = useState<DreamReflection[]>([]);
-  const [journal, setJournal]           = useState<string>('');
-  const [isDreaming, setIsDreaming]     = useState(false);
-  const [lastResult, setLastResult]     = useState<SweepResult | null>(null);
-  const [activeTab, setActiveTab]       = useState<'status' | 'candidates' | 'journal' | 'reflections'>('status');
-  const [expandedCandidate, setExpanded] = useState<number | null>(null);
+  // State
+  const [status, setStatus] = useState<DreamStatus | null>(null);
+  const [candidates, setCandidates] = useState<DreamCandidate[]>([]);
+  const [reflections, setReflections] = useState<DreamReflection[]>([]);
+  const [promotions, setPromotions] = useState<DreamPromotion[]>([]);
+  const [journalEntries, setJournalEntries] = useState<DiaryEntry[]>([]);
+  
+  const [isDreaming, setIsDreaming] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  // Tabs
+  const [activeTab, setActiveTab] = useState<'scene' | 'diary' | 'advanced'>('scene');
+  const [diarySubTab, setDiarySubTab] = useState<'dreams' | 'insights' | 'palace'>('dreams');
+  
+  // Preview
+  const [previewPage, setPreviewPage] = useState<WikiPagePreview | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   // ─── Data Fetching ──────────────────────────────────────────────────────────
 
@@ -75,20 +127,21 @@ export const DreamDiary: React.FC = () => {
   const fetchCandidates = useCallback(async () => {
     try {
       const res = await fetch('/api/carapace/candidates');
-      if (res.ok) {
-        const data = await res.json();
-        setCandidates(data.candidates || []);
-      }
+      if (res.ok) setCandidates((await res.json()).candidates || []);
     } catch { /* silent */ }
   }, []);
 
   const fetchReflections = useCallback(async () => {
     try {
       const res = await fetch('/api/carapace/reflections');
-      if (res.ok) {
-        const data = await res.json();
-        setReflections(data.reflections || []);
-      }
+      if (res.ok) setReflections((await res.json()).reflections || []);
+    } catch { /* silent */ }
+  }, []);
+
+  const fetchPromotions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/carapace/insights');
+      if (res.ok) setPromotions((await res.json()).promotions || []);
     } catch { /* silent */ }
   }, []);
 
@@ -96,8 +149,8 @@ export const DreamDiary: React.FC = () => {
     try {
       const res = await fetch('/api/carapace/journal');
       if (res.ok) {
-        const data = await res.json();
-        setJournal(data.content || '');
+        const raw = (await res.json()).content || '';
+        setJournalEntries(parseDiaryEntries(raw));
       }
     } catch { /* silent */ }
   }, []);
@@ -106,216 +159,332 @@ export const DreamDiary: React.FC = () => {
     fetchStatus();
     fetchCandidates();
     fetchReflections();
+    fetchPromotions();
     fetchJournal();
-  }, [fetchStatus, fetchCandidates, fetchReflections, fetchJournal]);
+  }, [fetchStatus, fetchCandidates, fetchReflections, fetchPromotions, fetchJournal]);
 
-  // ─── Dream Trigger ──────────────────────────────────────────────────────────
+  // ─── Actions ────────────────────────────────────────────────────────────────
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const triggerDream = async () => {
     setIsDreaming(true);
     try {
       const res = await fetch('/api/carapace/dream', { method: 'POST' });
       if (res.ok) {
-        const result: SweepResult = await res.json();
-        setLastResult(result);
-        // Refresh all data after dream
-        await Promise.all([fetchStatus(), fetchCandidates(), fetchReflections(), fetchJournal()]);
+        showToast('Dream sweep completed.');
+        await Promise.all([fetchStatus(), fetchCandidates(), fetchReflections(), fetchPromotions(), fetchJournal()]);
+      } else {
+        showToast('Dream sweep failed.');
       }
-    } catch { /* silent */ }
+    } catch {
+      showToast('Error triggering dream.');
+    }
     setIsDreaming(false);
   };
 
-  // ─── Render ─────────────────────────────────────────────────────────────────
+  const triggerAction = async (endpoint: string) => {
+    try {
+      const res = await fetch(`/api/carapace/action/${endpoint}`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        showToast(data.message);
+      }
+    } catch {
+      showToast(`Error triggering ${endpoint}`);
+    }
+  };
+
+  const openWikiPreview = async (path: string) => {
+    setIsPreviewLoading(true);
+    setPreviewPage(null);
+    try {
+      const res = await fetch(`/api/carapace/page?path=${encodeURIComponent(path)}`);
+      if (res.ok) {
+        setPreviewPage(await res.json());
+      } else {
+        showToast('Failed to load wiki page');
+      }
+    } catch {
+      showToast('Error loading wiki page');
+    }
+    setIsPreviewLoading(false);
+  };
+
+  // ─── Renders ────────────────────────────────────────────────────────────────
 
   if (!status) {
     return (
-      <div className="flex items-center justify-center p-8 text-gray-400">
-        <RefreshCw className="animate-spin mr-2" size={16} /> Loading Carapace...
+      <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
+        <RefreshCw className="animate-spin" size={24} />
+        <span>Loading Carapace Mind...</span>
       </div>
     );
   }
 
   if (!status.hatched) {
     return (
-      <div className="p-6 text-center">
-        <Moon size={48} className="mx-auto mb-4 text-gray-500" />
-        <h3 className="text-lg font-semibold text-gray-300 mb-2">Carapace Not Hatched</h3>
-        <p className="text-gray-500 text-sm">
-          Set <code className="bg-gray-800 px-2 py-0.5 rounded text-lobster">HATCH_CARAPACE=true</code> and{' '}
-          <code className="bg-gray-800 px-2 py-0.5 rounded text-lobster">HATCH_DATABASE=true</code> to activate.
-        </p>
+      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+        <Moon size={48} className="mb-4 text-gray-600" />
+        <h3 className="text-xl font-bold text-gray-300 mb-2">Carapace Dormant</h3>
+        <p className="text-sm">Set HATCH_CARAPACE=true and HATCH_DATABASE=true to activate the subconscious.</p>
       </div>
     );
   }
 
-  const tabs = [
-    { key: 'status' as const,     label: 'Status',      icon: Activity },
-    { key: 'candidates' as const, label: 'Candidates',  icon: Zap },
-    { key: 'reflections' as const,label: 'Reflections', icon: Brain },
-    { key: 'journal' as const,    label: 'Journal',     icon: Moon },
-  ];
-
-  return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Moon size={20} className="text-indigo-400" />
-          <h2 className="text-lg font-bold text-gray-200">Carapace Dreamer</h2>
-          {status.running && (
-            <span className="text-xs px-2 py-0.5 bg-indigo-600/30 text-indigo-300 rounded-full animate-pulse">
-              Dreaming...
-            </span>
-          )}
-        </div>
-        <button
-          onClick={triggerDream}
-          disabled={isDreaming || status.running}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-lg text-sm font-medium transition-colors"
-        >
-          {isDreaming ? <RefreshCw className="animate-spin" size={14} /> : <Moon size={14} />}
-          {isDreaming ? 'Dreaming...' : 'Dream Now'}
-        </button>
+  const renderScene = () => (
+    <div className={`dreams h-full ${!status.running ? 'dreams--idle' : ''}`}>
+      {/* Background Ambience */}
+      <div className="dreams__glow"></div>
+      
+      {/* Floating Lobster - Large & SVG */}
+      <div className="dreams__lobster dreams__lobster--large">
+        <img 
+          src="/assets/sleeping-lobster.svg" 
+          alt="Sleeping Lobster" 
+          className="w-full h-full drop-shadow-[0_20px_50px_rgba(230,57,70,0.3)] transition-all duration-1000" 
+        />
       </div>
 
-      {/* Last Result Flash */}
-      <AnimatePresence>
-        {lastResult && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="p-3 bg-indigo-900/30 border border-indigo-700/50 rounded-lg text-sm"
-          >
-            <span className="text-indigo-300">
-              💤 Sweep <code className="text-indigo-200">{lastResult.sweepId}</code>:{' '}
-              {lastResult.candidates} candidates, {lastResult.reflections} reflections, {lastResult.promotions} promotions ({lastResult.duration}ms)
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <span className="dreams__z" style={{ animationDelay: '0s' }}>z</span>
+      <span className="dreams__z" style={{ animationDelay: '1.3s', fontSize: '1.5rem', top: '30%', left: '60%' }}>z</span>
+      <span className="dreams__z" style={{ animationDelay: '2.6s', fontSize: '2rem', top: '20%', left: '65%' }}>Z</span>
 
-      {/* Tab Bar */}
-      <div className="flex gap-1 bg-gray-800/50 p-1 rounded-lg">
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm transition-colors ${
-              activeTab === tab.key
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-400 hover:text-gray-200'
-            }`}
-          >
-            <tab.icon size={14} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'status' && (
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Last Sweep" value={status.lastSweepId || 'Never'} />
-          <StatCard label="Last Time" value={status.lastSweepTime ? new Date(status.lastSweepTime).toLocaleString() : 'Never'} />
-          <StatCard label="Pearls" value={status.stats?.pearl_count?.toString() || '0'} />
-          <StatCard label="Dreams" value={status.stats?.dream_count?.toString() || '0'} />
-          <StatCard label="Molts" value={status.stats?.molt_count?.toString() || '0'} />
-          <StatCard label="Links" value={status.stats?.link_count?.toString() || '0'} />
-        </div>
+      {status.running && (
+        <>
+          <div className="dreams__bubble">
+            <span className="dreams__bubble-text">Synthesizing the reef narrative...</span>
+          </div>
+          <div className="dreams__bubble-dot" style={{ top: 'calc(50% - 240px)', left: 'calc(50% - 180px)', width: '12px', height: '12px', animationDelay: '0.2s' }}></div>
+        </>
       )}
 
-      {activeTab === 'candidates' && (
-        <div className="space-y-2">
-          {candidates.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-4">No candidates yet. Trigger a dream sweep.</p>
-          ) : (
-            candidates.map(c => {
-              const style = SIGNAL_STYLE[c.signal_type] || SIGNAL_STYLE.hot_pearl;
-              const isExpanded = expandedCandidate === c.id;
-              let meta: Record<string, any> = {};
-              try { meta = JSON.parse(c.metadata); } catch {}
+      {/* Status Bar */}
+      <div className="dreams__status bg-black/40 backdrop-blur-md p-4 rounded-tr-2xl border-t border-r border-white/10">
+        <span className="dreams__status-label text-white/40">Mind State</span>
+        <div className="dreams__status-detail flex items-center gap-3">
+          <div className={`w-2.5 h-2.5 rounded-full ${status.running ? 'bg-lobster animate-pulse shadow-[0_0_10px_#E63946]' : 'bg-white/20'}`}></div>
+          <span className="text-white font-black uppercase tracking-widest text-[10px]">
+            {status.running ? 'ACTIVE DREAMING' : 'IDLE (GATHERING SIGNAL)'}
+          </span>
+        </div>
+        <p className="text-[10px] text-white/40 mt-1 font-mono uppercase">
+          {promotions.length} Promoted · Next Sweep {status.lastSweepTime ? 'Scheduled' : 'Dormant'}
+        </p>
+      </div>
 
-              return (
-                <motion.div
-                  key={c.id}
-                  layout
-                  className="bg-gray-800/50 rounded-lg p-3 cursor-pointer hover:bg-gray-800/80 transition-colors"
-                  onClick={() => setExpanded(isExpanded ? null : c.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${style.color}`} />
-                      <span className="text-sm text-gray-200 font-mono">{c.page_id}</span>
-                      <span className="text-xs px-1.5 py-0.5 bg-gray-700 text-gray-300 rounded">
-                        {style.icon} {style.label}
-                      </span>
+      {/* Phases */}
+      <div className="dreams__phases bg-black/40 backdrop-blur-md p-4 rounded-tl-2xl border-t border-l border-white/10">
+        <div className={`dreams__phase ${!status.running ? 'dreams__phase--off' : ''}`}>
+          <div className={`dreams__phase-dot ${status.running ? 'dreams__phase-dot--on' : ''}`}></div>
+          <span className="dreams__phase-name">Light</span>
+        </div>
+        <div className={`dreams__phase ${!status.running ? 'dreams__phase--off' : ''}`}>
+          <div className={`dreams__phase-dot ${status.running ? 'dreams__phase-dot--on' : ''}`}></div>
+          <span className="dreams__phase-name">REM</span>
+        </div>
+        <div className={`dreams__phase ${!status.running ? 'dreams__phase--off' : ''}`}>
+          <div className={`dreams__phase-dot ${status.running ? 'dreams__phase-dot--on' : ''}`}></div>
+          <span className="dreams__phase-name">Deep</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDiary = () => (
+    <div className="flex flex-col h-full gap-4">
+      {/* Diary Sub-Tabs */}
+      <div className="flex gap-1 p-1 bg-bg-primary border border-border-primary rounded-lg w-fit">
+        <button onClick={() => setDiarySubTab('dreams')} className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded transition-all ${diarySubTab === 'dreams' ? 'bg-lobster text-white shadow-sm' : 'text-text-primary/50 hover:text-text-primary'}`}>Dreams (Log)</button>
+        <button onClick={() => setDiarySubTab('insights')} className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded transition-all ${diarySubTab === 'insights' ? 'bg-lobster text-white shadow-sm' : 'text-text-primary/50 hover:text-text-primary'}`}>Insights (Promoted)</button>
+        <button onClick={() => setDiarySubTab('palace')} className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded transition-all ${diarySubTab === 'palace' ? 'bg-lobster text-white shadow-sm' : 'text-text-primary/50 hover:text-text-primary'}`}>Palace (Wiki)</button>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
+        {diarySubTab === 'dreams' && (
+          <div className="space-y-4">
+            {journalEntries.length === 0 ? (
+              <p className="text-text-primary/30 italic text-center py-12">No dreams recorded in the log.</p>
+            ) : (
+              journalEntries.map((entry, idx) => (
+                <div key={idx} className="bg-bg-primary border border-border-primary rounded-xl p-5 hover:border-lobster/30 transition-all group">
+                  <span className="text-[10px] font-black text-lobster uppercase tracking-widest mb-3 block border-b border-border-primary pb-2">{entry.date}</span>
+                  <pre className="text-text-primary/80 text-sm leading-relaxed whitespace-pre-wrap font-sans">{entry.body}</pre>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {diarySubTab === 'insights' && (
+          <div className="space-y-3">
+            {promotions.length === 0 ? <p className="text-text-primary/30 italic text-center py-12">No insights promoted yet.</p> :
+              promotions.map(p => (
+                <div key={p.id} className="bg-bg-primary border border-border-primary p-4 rounded-xl flex justify-between items-center hover:border-lobster/50 transition-all group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 rounded-lg bg-lobster/10 flex items-center justify-center">
+                      <Brain className="text-lobster" size={18} />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-indigo-400 font-mono">{c.score.toFixed(3)}</span>
-                      {isExpanded ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+                    <div>
+                      <span className="text-text-primary font-bold block">{p.insight_path}</span>
+                      <span className="text-[9px] font-mono text-text-primary/40 uppercase tracking-tighter">Promoted {new Date(p.promoted_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <AnimatePresence>
-                    {isExpanded && meta.components && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="mt-2 pt-2 border-t border-gray-700/50 text-xs text-gray-400 grid grid-cols-3 gap-1"
-                      >
-                        {Object.entries(meta.components).map(([key, val]) => (
-                          <div key={key}>
-                            <span className="text-gray-500">{key}:</span>{' '}
-                            <span className="text-gray-300">{(val as number).toFixed(3)}</span>
-                          </div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })
-          )}
-        </div>
-      )}
-
-      {activeTab === 'reflections' && (
-        <div className="space-y-3">
-          {reflections.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-4">No reflections yet. REM phase requires an OpenRouter API key.</p>
-          ) : (
-            reflections.map(r => (
-              <div key={r.id} className="bg-gray-800/50 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Brain size={14} className="text-purple-400" />
-                  <span className="text-sm font-semibold text-purple-300">{r.theme}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] font-black text-lobster/50 font-mono tracking-widest">SCORE: {(p.score * 100).toFixed(0)}%</span>
+                    <button onClick={() => { setDiarySubTab('palace'); openWikiPreview('insights/' + p.insight_path); }} className="text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-lobster text-white rounded-lg shadow-sm hover:scale-105 active:scale-95 transition-all">
+                      Witness
+                    </button>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-300">{r.summary}</p>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+              ))
+            }
+          </div>
+        )}
 
-      {activeTab === 'journal' && (
-        <div className="bg-gray-800/50 rounded-lg p-4 max-h-[500px] overflow-y-auto">
-          {journal ? (
-            <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono leading-relaxed">{journal}</pre>
-          ) : (
-            <p className="text-gray-500 text-sm text-center">No journal entries yet.</p>
-          )}
+        {diarySubTab === 'palace' && (
+          <div className="h-full flex flex-col gap-4">
+            {isPreviewLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3 text-text-primary/40">
+                <RefreshCw className="animate-spin" size={24} />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Traversing Palace Halls...</span>
+              </div>
+            ) : previewPage ? (
+              <div className="bg-bg-primary border border-border-primary rounded-xl overflow-hidden shadow-inner flex flex-col h-full">
+                <div className="flex justify-between items-center p-4 border-b border-border-primary bg-card-bg">
+                  <div>
+                    <h3 className="text-sm font-black text-text-primary uppercase tracking-tight">{previewPage.title}</h3>
+                    <p className="text-[9px] text-text-primary/40 font-mono">{previewPage.path} · {previewPage.totalLines} lines</p>
+                  </div>
+                  <button onClick={() => setPreviewPage(null)} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 bg-border-primary/50 hover:bg-border-primary rounded transition-colors">Dismiss</button>
+                </div>
+                <div className="p-6 overflow-y-auto custom-scrollbar bg-bg-primary">
+                  <pre className="text-sm text-text-primary/80 whitespace-pre-wrap font-sans prose-lobster prose-invert max-w-none">{previewPage.content}</pre>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <BookOpen size={48} className="text-border-primary" />
+                <p className="text-text-primary/40 font-black uppercase tracking-widest text-[10px] text-center max-w-xs">Select an insight to view its markdown representation in the machine wiki.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderAdvanced = () => (
+    <div className="flex flex-col h-full gap-6">
+      <div className="bg-bg-primary border border-border-primary rounded-xl p-5 mb-6 shadow-inner">
+        <div className="flex justify-between items-start mb-6 border-b border-border-primary pb-4">
+          <div>
+            <h3 className="text-lg font-black text-text-primary tracking-tight uppercase">Daily Log Review</h3>
+            <p className="text-sm text-text-primary/50 mt-1 font-medium">Review candidates waiting for promotion and maintain the Dream Cache.</p>
+          </div>
+          <div className="flex flex-wrap gap-2 justify-end">
+            <button onClick={() => triggerAction('dedupe')} className="px-3 py-1.5 bg-border-primary/50 hover:bg-border-primary text-text-primary rounded text-[10px] font-black uppercase tracking-widest transition-all">Dedupe Diary</button>
+            <button onClick={() => triggerAction('repair')} className="px-3 py-1.5 bg-border-primary/50 hover:bg-border-primary text-text-primary rounded text-[10px] font-black uppercase tracking-widest transition-all">Repair Cache</button>
+            <button onClick={() => triggerAction('backfill')} className="px-3 py-1.5 bg-border-primary/50 hover:bg-border-primary text-text-primary rounded text-[10px] font-black uppercase tracking-widest transition-all">Backfill</button>
+            <button onClick={() => triggerAction('reset')} className="px-3 py-1.5 border border-lobster/30 text-lobster hover:bg-lobster/5 rounded text-[10px] font-black uppercase tracking-widest transition-all">Reset State</button>
+          </div>
         </div>
-      )}
+
+        <div>
+          <h4 className="text-[10px] font-black text-text-primary/40 mb-3 uppercase tracking-[0.2em]">Candidates Waiting ({candidates.length})</h4>
+          <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+            {candidates.length === 0 ? <p className="text-text-primary/30 italic text-sm">No candidates currently staged.</p> :
+              candidates.map(c => (
+                <div key={c.id} className="flex justify-between items-center p-4 bg-bg-primary border border-border-primary rounded-lg hover:border-lobster/50 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <Zap size={14} className={c.signal_type === 'hot_pearl' ? 'text-lobster' : 'text-yellow-500'} />
+                    <span className="text-sm font-bold text-text-primary font-mono">{c.page_id}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-text-primary/40">
+                    <span className="px-2 py-0.5 bg-border-primary/30 rounded">{c.signal_type.replace('_', ' ')}</span>
+                    <span className="text-lobster font-mono">{(c.score * 100).toFixed(0)}%</span>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="dreams-page p-6 max-w-6xl mx-auto h-full flex flex-col gap-6 relative">
+      
+      {/* Top Header */}
+      <div className="flex justify-between items-center shrink-0 relative z-50">
+        <h1 className="text-3xl font-black text-text-primary tracking-tight flex items-center gap-3">
+          <Moon className="text-lobster" size={32} /> carapace_dreamer.mind
+        </h1>
+        <div className="flex items-center gap-4">
+          <AnimatePresence>
+            {toastMessage && (
+              <motion.span 
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="text-[10px] font-black uppercase tracking-widest bg-lobster/10 text-lobster px-3 py-1.5 rounded border border-lobster/20"
+              >
+                {toastMessage}
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <button 
+            onClick={triggerDream} 
+            disabled={isDreaming || status.running}
+            className="flex items-center gap-2 px-4 py-2 bg-lobster hover:bg-lobster/90 disabled:bg-border-primary disabled:text-text-primary/30 text-white rounded-lg font-black uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95"
+          >
+            {isDreaming ? <RefreshCw className="animate-spin" size={14} /> : <Moon size={14} />}
+            {isDreaming ? 'Sleeping...' : 'Force Dream'}
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs - Red Theme consistent with Timeline */}
+      <nav className="flex gap-1 p-1 bg-bg-primary border border-border-primary rounded-lg w-fit shrink-0 relative z-50">
+        <button 
+          className={`px-4 py-1.5 rounded text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'scene' ? 'bg-lobster text-white shadow-md' : 'text-text-primary/50 hover:text-text-primary'}`} 
+          onClick={() => setActiveTab('scene')}
+        >
+          Scene
+        </button>
+        <button 
+          className={`px-4 py-1.5 rounded text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'diary' ? 'bg-lobster text-white shadow-md' : 'text-text-primary/50 hover:text-text-primary'}`} 
+          onClick={() => setActiveTab('diary')}
+        >
+          Diary
+        </button>
+        <button 
+          className={`px-4 py-1.5 rounded text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'advanced' ? 'bg-lobster text-white shadow-md' : 'text-text-primary/50 hover:text-text-primary'}`} 
+          onClick={() => setActiveTab('advanced')}
+        >
+          Advanced
+        </button>
+      </nav>
+
+      {/* Content Area */}
+      <div className={`flex-1 min-h-0 rounded-2xl overflow-hidden transition-all duration-500 ${activeTab === 'scene' ? 'p-0 shadow-2xl' : 'bg-card-bg border border-border-primary p-6 shadow-xl'}`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="h-full"
+          >
+            {activeTab === 'scene' && renderScene()}
+            {activeTab === 'diary' && renderDiary()}
+            {activeTab === 'advanced' && renderAdvanced()}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
     </div>
   );
 };
-
-// ─── Sub-Components ───────────────────────────────────────────────────────────
-
-const StatCard: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div className="bg-gray-800/50 rounded-lg p-3">
-    <div className="text-xs text-gray-500 mb-1">{label}</div>
-    <div className="text-sm text-gray-200 font-mono truncate">{value}</div>
-  </div>
-);

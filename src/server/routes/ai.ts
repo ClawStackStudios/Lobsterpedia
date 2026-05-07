@@ -57,6 +57,8 @@ router.post("/openrouter", async (req, res) => {
     const safeTitle = "Lobsterpedia";
     const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
     
+    const modelToUse = model || dbService.getDreamState('model') || "nousresearch/hermes-3-llama-3.1-405b:free";
+    
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -67,7 +69,7 @@ router.post("/openrouter", async (req, res) => {
         "Accept": "application/json"
       },
       body: JSON.stringify({
-        model: model || "openai/gpt-oss-120b:free",
+        model: modelToUse,
         messages: [{ role: "user", content: prompt }]
       })
     });
@@ -110,6 +112,8 @@ router.post("/fix", async (req, res) => {
     const safeTitle = "Lobsterpedia";
     const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
 
+    const modelToUse = openRouterModel || dbService.getDreamState('model') || "nousresearch/hermes-3-llama-3.1-405b:free";
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -120,7 +124,7 @@ router.post("/fix", async (req, res) => {
         "Accept": "application/json"
       },
       body: JSON.stringify({
-        model: openRouterModel || "openai/gpt-oss-120b:free",
+        model: modelToUse,
         messages: [{ role: "user", content: prompt }]
       })
     });

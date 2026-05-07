@@ -13,7 +13,10 @@ interface WikiIndexProps {
 }
 
 export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
-  const concepts = (Object.values(pages) as PolyP[]).filter(p => p.type === 'concept');
+  const concepts = React.useMemo(() => 
+    (Object.values(pages) as PolyP[]).filter(p => p.type === 'concept'),
+    [pages]
+  );
   const indexListPage = pages['index-list'];
 
   const [showVaultNotice, setShowVaultNotice] = useState(false);

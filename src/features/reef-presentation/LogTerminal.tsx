@@ -23,15 +23,25 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({ logs }) => {
           {logs.map((log, i) => (
              <div key={i} className="flex gap-4 group">
                <span className="text-cyan-400 whitespace-nowrap opacity-70">[{log.timestamp}]</span>
-               <span className={`uppercase font-bold text-[9px] min-w-[50px] ${
-                 log.action === 'error' ? 'text-red-500' : 
-                 log.action === 'ingest' ? 'text-blue-400' :
-                 'text-green-500'
-               }`}>
-                 {log.action}:
-               </span>
-               <span className="text-white group-hover:text-[#00FF00] transition-colors">{log.message}</span>
-             </div>
+                <span className={`uppercase font-bold text-[9px] min-w-[50px] ${
+                  log.type === 'error' ? 'text-red-500' : 
+                  log.type === 'warn' ? 'text-yellow-500' :
+                  log.type === 'success' ? 'text-green-500' :
+                  log.type === 'system' ? 'text-purple-400' :
+                  log.action === 'error' ? 'text-red-500' : 
+                  log.action === 'ingest' ? 'text-blue-400' :
+                  log.action === 'dreamer' ? 'text-indigo-400' :
+                  log.action === 'ledger' ? 'text-amber-500' :
+                  'text-green-500'
+                }`}>
+                  {log.action}:
+                </span>
+                <span className={`transition-colors ${
+                  log.type === 'error' ? 'text-red-300' : 
+                  log.type === 'warn' ? 'text-yellow-200' :
+                  'text-white group-hover:text-[#00FF00]'
+                }`}>{log.message}</span>
+              </div>
           ))}
           <div className="flex gap-2 mt-2 animate-pulse text-[#00FF00]">
             <span>&gt;</span>

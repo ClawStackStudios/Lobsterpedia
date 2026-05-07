@@ -81,4 +81,28 @@ router.post('/molt', (req, res) => {
   }
 });
 
+// ─── Config ───────────────────────────────────────────────────────────────────
+// Get or set system-wide configuration keys (stored in dream_state table).
+router.get('/config/:key', (req, res) => {
+  if (!dbService.isActive) return res.status(503).json({ error: 'Ledger not hatched.' });
+  try {
+    const value = dbService.getDreamState(req.params.key);
+    res.json({ key: req.params.key, value });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch config.' });
+  }
+});
+
+router.post('/config/:key', (req, res) => {
+  if (!dbService.isActive) return res.status(503).json({ error: 'Ledger not hatched.' });
+  const { value } = req.body;
+  if (value === undefined) return res.status(400).json({ error: 'Value is required.' });
+  try {
+    dbService.setDreamState(req.params.key, value);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update config.' });
+  }
+});
+
 export default router;

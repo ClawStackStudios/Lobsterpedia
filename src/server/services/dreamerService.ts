@@ -13,6 +13,7 @@ import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { dbService } from './dbService.js';
+import { habitatLogger } from './habitatLogger.js';
 import type { DreamCandidateRecord, PearlSignals } from './dbService.js';
 import { PROMPTS } from './promptManager.js';
 import {
@@ -66,11 +67,10 @@ export class DreamerService {
     if (!this.isHatched) return;
 
     this.ensureCarapaceStructure();
-    const freqMinutes = parseInt(process.env.CARAPACE_FREQUENCY || '360', 10);
-    if (freqMinutes > 0) {
-      const ms = freqMinutes * 60 * 1000;
-      this.timer = setInterval(() => this.runSweep(), ms);
-      console.log(`[Carapace] 💤 Dreamer scheduled every ${freqMinutes}m`);
+    const freqMs = parseInt(process.env.CARAPACE_FREQUENCY || '3600000', 10);
+    if (freqMs > 0) {
+      this.timer = setInterval(() => this.runSweep(), freqMs);
+      console.log(`[Carapace] 💤 Dreamer scheduled every ${Math.round(freqMs / 60000)}m`);
     }
     console.log(`[Carapace] 🦞 Carapace hatched at: ${this.carapacePath}`);
   }
@@ -194,6 +194,7 @@ This directory contains autonomous outputs related to the ${cat} phase of dreami
       dbService.setDreamState('last_sweep_phase', 'complete');
 
       const duration = Date.now() - startMs;
+      habitatLogger.log('dreamer', `Sweep ${sweepId} complete: ${candidates.length} candidates, ${reflections} reflections, ${promotions} promotions`, 'success');
       console.log(
         `[Carapace] ✅ Sweep ${sweepId} complete: ` +
         `${candidates.length} candidates, ${reflections} reflections, ${promotions} promotions (${duration}ms)`
@@ -319,7 +320,7 @@ This directory contains autonomous outputs related to the ${cat} phase of dreami
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'mistralai/mistral-small-3.1-24b-instruct',
+          model: dbService.getDreamState('model') || 'nousresearch/hermes-3-llama-3.1-405b:free',
           messages: [
             {
               role: 'user',
@@ -339,7 +340,7 @@ This directory contains autonomous outputs related to the ${cat} phase of dreami
       const data = await response.json() as any;
       const content = data.choices?.[0]?.message?.content?.trim() || '[]';
 
-      let reflections: { theme: string; summary: string; related_ids: string[] }[];
+      let reflections: { theme: string; summary: string; related_ids: string[], confidence?: number, relationship?: string }[];
       try {
         reflections = JSON.parse(content);
         if (!Array.isArray(reflections)) reflections = [];
@@ -355,14 +356,16 @@ This directory contains autonomous outputs related to the ${cat} phase of dreami
           theme: r.theme,
           summary: r.summary,
           related_ids: JSON.stringify(r.related_ids || []),
-          confidence: r.confidence,
-          relationship: r.relationship,
+          confidence: r.confidence || 0,
+          relationship: r.relationship || '',
         });
       }
 
+      habitatLogger.log('dreamer', `REM phase captured ${reflections.length} thematic reflections`, 'success');
       console.log(`[Carapace]   → ${reflections.length} reflections captured`);
       return reflections.length;
     } catch (err) {
+      habitatLogger.log('dreamer', `REM phase error: ${(err as Error).message}`, 'error');
       console.log(`[Carapace]   → REM phase error: ${(err as Error).message}`);
       return 0;
     }

@@ -7,6 +7,7 @@
 import { Router } from 'express';
 import { dreamerService } from '../services/dreamerService.js';
 import { dbService } from '../services/dbService.js';
+import { scuttlerService } from '../services/scuttlerService.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -112,6 +113,64 @@ router.post('/dream', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
+});
+
+// ─── GET /page — Read raw Markdown from Carapace ──────────────────────────────
+
+router.get('/page', (req, res) => {
+  try {
+    const targetPath = req.query.path as string;
+    if (!targetPath) {
+      return res.status(400).json({ error: 'Path is required' });
+    }
+
+    const carapacePath = process.env.CARAPACE_PATH || path.join(process.cwd(), 'carapace');
+    // Ensure the requested path is actually inside the carapace directory
+    const resolvedPath = path.resolve(carapacePath, targetPath);
+    
+    if (!resolvedPath.startsWith(path.resolve(carapacePath))) {
+      return res.status(403).json({ error: 'Path traversal forbidden' });
+    }
+
+    if (!fs.existsSync(resolvedPath)) {
+      return res.status(404).json({ error: 'Page not found' });
+    }
+
+    const content = fs.readFileSync(resolvedPath, 'utf-8');
+    const stats = fs.statSync(resolvedPath);
+    
+    res.json({ 
+      title: path.basename(resolvedPath),
+      path: targetPath,
+      content,
+      updatedAt: stats.mtime.toISOString(),
+      totalLines: content.split('\n').length
+    });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// ─── Advanced Actions ────────────────────────────────────────────────────────
+
+router.post('/action/dedupe', async (req, res) => {
+  const result = await scuttlerService.dedupeJournal();
+  res.json({ status: 'success', ...result });
+});
+
+router.post('/action/repair', async (req, res) => {
+  const result = await scuttlerService.repairCache();
+  res.json({ status: 'success', ...result });
+});
+
+router.post('/action/backfill', async (req, res) => {
+  const result = await scuttlerService.backfillLedger();
+  res.json({ status: 'success', ...result });
+});
+
+router.post('/action/reset', async (req, res) => {
+  const result = await scuttlerService.resetState();
+  res.json({ status: 'success', ...result });
 });
 
 export default router;

@@ -22,6 +22,7 @@ export type AIProvider = 'openrouter';
 
 export interface HabitatLog {
   timestamp: string;
-  action: 'init' | 'ingest' | 'lint' | 'error' | 'watch';
+  action: string;
   message: string;
+  type?: 'info' | 'warn' | 'error' | 'success' | 'system';
 }

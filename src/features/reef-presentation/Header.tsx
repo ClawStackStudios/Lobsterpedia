@@ -7,6 +7,7 @@ interface HeaderProps {
   onSearch: (query: string) => void;
   onToggleTheme: (e: React.MouseEvent) => void;
   isDark: boolean;
+  currentView?: string;
 }
 
 class Spring {
@@ -91,7 +92,7 @@ const BouncyLetter: React.FC<{ char: string; colorClass: string; variant?: 'subt
   );
 };
 
-export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTheme, isDark }) => {
+export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTheme, isDark, currentView }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -131,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
           onClick={() => { onNavigate('index'); setIsMenuOpen(false); }}
           className="w-8 h-8 md:w-10 md:h-10 bg-lobster/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-lobster/30 transition-all overflow-hidden"
         >
-          <img src="/assets/logo.png" alt="Lobsterpedia Logo" className="w-full h-full object-contain logo-mask" />
+          <img src={currentView === 'carapace' ? "/assets/sleeping-lobster-logo.png" : "/assets/logo.png"} alt="Lobsterpedia Logo" className="w-full h-full object-contain logo-mask" />
         </button>
         <div className="flex items-baseline gap-2">
           {renderBrand()}

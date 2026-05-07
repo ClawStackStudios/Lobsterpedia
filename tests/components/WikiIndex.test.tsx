@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { WikiIndex } from '../../src/features/reef-presentation/WikiIndex';
-import { MemoryRouter } from 'react-router-dom';
+
 
 const mockPages = {
   'index-list': {

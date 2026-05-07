@@ -243,6 +243,7 @@ router.post("/parse", upload.single('file'), async (req, res) => {
 
 router.get("/lint", (req, res) => {
   try {
+    habitatLogger.log('lint', `Starting reef-wide scan...`, 'info');
     const files = wikiService.walkDir().filter(f => f.endsWith('.md'));
     const issues: any[] = [];
     const allIds = files.map(f => path.relative(wikiService.getWikiPath(), f).replace(/\.md$/, '').replace(/\\/g, '/'));
@@ -299,11 +300,16 @@ router.get("/lint", (req, res) => {
       }
     });
     
+    habitatLogger.log('lint', `Scan complete: Found ${issues.length} issues across ${files.length} pearls`, issues.length > 0 ? 'warn' : 'success');
     res.json({ issues });
   } catch (err) {
     res.status(500).json({ error: "Linting engine failed." });
   }
 });
+
+import { habitatLogger, HabitatSignal } from '../services/habitatLogger.js';
+
+// ... (existing code remains above)
 
 router.get("/watch", (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
@@ -311,25 +317,36 @@ router.get("/watch", (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  const watcher = chokidar.watch(wikiService.getWikiPath(), {
+  const carapacePath = path.resolve(process.env.CARAPACE_PATH || path.join(process.cwd(), 'carapace'));
+  const watcher = chokidar.watch([wikiService.getWikiPath(), carapacePath], {
     ignored: /(^|[\/\\])\../,
     persistent: true,
     ignoreInitial: true
   });
 
-  const sendEvent = (event: string, file: string) => {
-    res.write(`data: ${JSON.stringify({ event, file })}\n\n`);
+  // Handle system signals from habitatLogger
+  const onSignal = (signal: HabitatSignal) => {
+    res.write(`data: ${JSON.stringify(signal)}\n\n`);
+  };
+
+  habitatLogger.on('signal', onSignal);
+
+  // Map FS events to habitatLogger
+  const logFs = (event: string, file: string) => {
+    const relativeFile = path.relative(process.cwd(), file);
+    habitatLogger.log('watch', `FS Change: [${event}] observed`, 'info', relativeFile);
   };
 
   watcher
-    .on('add', path => sendEvent('add', path))
-    .on('change', path => sendEvent('change', path))
-    .on('unlink', path => sendEvent('unlink', path))
-    .on('addDir', path => sendEvent('addDir', path))
-    .on('unlinkDir', path => sendEvent('unlinkDir', path));
+    .on('add', path => logFs('add', path))
+    .on('change', path => logFs('change', path))
+    .on('unlink', path => logFs('unlink', path))
+    .on('addDir', path => logFs('addDir', path))
+    .on('unlinkDir', path => logFs('unlinkDir', path));
 
   req.on('close', () => {
     watcher.close();
+    habitatLogger.removeListener('signal', onSignal);
   });
 });
 

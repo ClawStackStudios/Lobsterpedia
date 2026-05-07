@@ -30,12 +30,25 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestedIngestTitle, setSuggestedIngestTitle] = useState<string | undefined>(undefined);
   const [aiProvider] = useState<AIProvider>('openrouter');
-  const [openRouterModel, setOpenRouterModel] = useState(() => {
-    return localStorage.getItem('lobsterpedia_model') || 'google/gemini-2.0-flash-exp:free';
-  });
+  const [openRouterModel, setOpenRouterModel] = useState('nousresearch/hermes-3-llama-3.1-405b:free');
 
+  // Fetch model from Sovereign Ledger on mount
   useEffect(() => {
-    localStorage.setItem('lobsterpedia_model', openRouterModel);
+    fetch('/api/ledger/config/model')
+      .then(res => res.json())
+      .then(data => {
+        if (data.value) setOpenRouterModel(data.value);
+      })
+      .catch(err => console.warn("[CrustAgent] Failed to fetch model from ledger:", err));
+  }, []);
+
+  // Persist model to Sovereign Ledger when it changes
+  useEffect(() => {
+    fetch('/api/ledger/config/model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: openRouterModel })
+    }).catch(err => console.warn("[CrustAgent] Failed to persist model to ledger:", err));
   }, [openRouterModel]);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -187,21 +200,18 @@ export default function App() {
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          const fileName = data.file.split(/[/\\]/).pop() || 'unknown';
-          const cleanName = fileName.replace('.md', '');
           
           setHabitatLogs(prev => [...prev, {
-            timestamp: new Date().toLocaleTimeString(),
-            action: 'watch',
-            message: `FS Change: [${data.event}] observed on ${cleanName}`
+            timestamp: new Date(data.timestamp || Date.now()).toLocaleTimeString(),
+            action: data.action || 'system',
+            message: data.message + (data.file ? ` (${data.file})` : ''),
+            type: data.type
           }]);
 
-          if (data.event === 'add' || data.event === 'change' || data.event === 'unlink' || data.event === 'addDir' || data.event === 'unlinkDir') {
+          // Trigger UI refreshes on significant signals
+          if (data.action === 'watch' || data.action === 'ingest' || data.action === 'lint' || data.action === 'ledger') {
             loadReef();
             loadLintIssues();
-            if (data.event === 'change' || data.event === 'add') {
-              showToast(`Reef Updated: ${cleanName}`, 'info');
-            }
           }
         } catch (e) {
           console.error("Failed to parse watcher event", e);
@@ -392,7 +402,7 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
           exit={{ opacity: 0 }}
           className="h-screen flex flex-col bg-bg-primary overflow-hidden"
         >
-          <Header onNavigate={moltNavigate as any} onSearch={handleSearch} onToggleTheme={toggleTheme} isDark={theme === 'dark'} />
+          <Header onNavigate={moltNavigate as any} onSearch={handleSearch} onToggleTheme={toggleTheme} isDark={theme === 'dark'} currentView={currentView} />
           
           <div className="flex flex-1 overflow-hidden relative">
             {/* Sidebar Toggle Button (Visible when sidebar is closed) */}

@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
+import { habitatLogger } from './habitatLogger.js';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -109,7 +110,7 @@ export class DbService {
     this.db.pragma('foreign_keys = ON');
 
     this.runMigrations();
-    console.log(`[Ledger] ⚓ Sovereign Ledger hatched at: ${this.dbPath}`);
+    habitatLogger.log('ledger', `Sovereign Ledger hatched at: ${this.dbPath}`, 'success');
   }
 
   private runMigrations() {
@@ -246,6 +247,7 @@ export class DbService {
         tags            = excluded.tags
     `);
     upsert.run(record);
+    habitatLogger.log('ledger', `Pearl Upserted: ${record.page_id}`, 'info');
   }
 
   /**
@@ -306,6 +308,7 @@ export class DbService {
       }
     });
     syncTx();
+    habitatLogger.log('ledger', `Links Synced: ${sourceId} (${targets.length} links)`, 'info');
   }
 
   /**
@@ -369,41 +372,45 @@ export class DbService {
     const pearl = this.getPearl(pageId);
     if (!pearl) return null;
 
-    const moltCount = (db.prepare(
-      'SELECT COUNT(*) as c FROM molt_ledger WHERE page_id = ?'
-    ).get(pageId) as any).c;
+    // Combined molt signal query
+    const moltSignals = db.prepare(`
+      SELECT 
+        COUNT(*) as molt_count,
+        COUNT(DISTINCT author) as author_count,
+        COUNT(DISTINCT DATE(timestamp)) as day_count,
+        MAX(timestamp) as last_molt
+      FROM molt_ledger 
+      WHERE page_id = ?
+    `).get(pageId) as { molt_count: number; author_count: number; day_count: number; last_molt: string | null };
 
-    const inboundCount = (db.prepare(
-      'SELECT COUNT(*) as c FROM pearl_links WHERE target_id = ?'
-    ).get(pageId) as any).c;
+    // Combined link signal query
+    const linkSignals = db.prepare(`
+      SELECT 
+        (SELECT COUNT(*) FROM pearl_links WHERE target_id = ?) as inbound_count,
+        (SELECT COUNT(*) FROM pearl_links WHERE source_id = ?) as outbound_count
+    `).get(pageId, pageId) as { inbound_count: number; outbound_count: number };
 
-    const outboundCount = (db.prepare(
-      'SELECT COUNT(*) as c FROM pearl_links WHERE source_id = ?'
-    ).get(pageId) as any).c;
-
+    // Distinct authors for the record
     const authors = db.prepare(
       'SELECT DISTINCT author FROM molt_ledger WHERE page_id = ?'
     ).all(pageId) as { author: string }[];
 
+    // Distinct days for the record
     const days = db.prepare(
       `SELECT DISTINCT DATE(timestamp) as day FROM molt_ledger WHERE page_id = ?`
     ).all(pageId) as { day: string }[];
-
-    const lastMolt = db.prepare(
-      'SELECT timestamp FROM molt_ledger WHERE page_id = ? ORDER BY timestamp DESC LIMIT 1'
-    ).get(pageId) as { timestamp: string } | undefined;
 
     let tags: string[] = [];
     try { tags = JSON.parse(pearl.tags); } catch { tags = []; }
 
     return {
       page_id: pageId,
-      molt_count: moltCount,
-      inbound_link_count: inboundCount,
-      outbound_link_count: outboundCount,
+      molt_count: moltSignals.molt_count,
+      inbound_link_count: linkSignals.inbound_count,
+      outbound_link_count: linkSignals.outbound_count,
       unique_authors: authors.map(a => a.author),
       unique_days: days.map(d => d.day),
-      last_molt_at: lastMolt?.timestamp ?? null,
+      last_molt_at: moltSignals.last_molt,
       confidence: pearl.confidence,
       tags,
     };
@@ -416,7 +423,7 @@ export class DbService {
   public getMoltedPagesSince(since: string): string[] {
     const db = this.guard();
     const rows = db.prepare(
-      'SELECT DISTINCT page_id FROM molt_ledger WHERE timestamp >= ? AND page_id != "__system__"'
+      "SELECT DISTINCT page_id FROM molt_ledger WHERE timestamp >= ? AND page_id != '__system__'"
     ).all(since) as { page_id: string }[];
     return rows.map(r => r.page_id);
   }
@@ -427,9 +434,11 @@ export class DbService {
   public getIslandPearls(): string[] {
     const db = this.guard();
     const rows = db.prepare(`
-      SELECT page_id FROM pearl_registry
-      WHERE page_id NOT IN (SELECT source_id FROM pearl_links)
-        AND page_id NOT IN (SELECT target_id FROM pearl_links)
+      SELECT p.page_id 
+      FROM pearl_registry p
+      LEFT JOIN pearl_links l1 ON p.page_id = l1.source_id
+      LEFT JOIN pearl_links l2 ON p.page_id = l2.target_id
+      WHERE l1.source_id IS NULL AND l2.target_id IS NULL
     `).all() as { page_id: string }[];
     return rows.map(r => r.page_id);
   }
@@ -526,6 +535,21 @@ export class DbService {
     const molt_count  = (db.prepare('SELECT COUNT(*) as c FROM molt_ledger').get() as any).c;
     const dream_count = (db.prepare('SELECT COUNT(*) as c FROM dream_promotions').get() as any).c;
     return { pearl_count, link_count, molt_count, dream_count };
+  }
+
+  /**
+   * Clears transient dreaming state (candidates, reflections, and key-value state).
+   * Does NOT delete promoted insights.
+   */
+  public resetDreamingState(): void {
+    const db = this.guard();
+    const resetTx = db.transaction(() => {
+      db.prepare('DELETE FROM dream_candidates').run();
+      db.prepare('DELETE FROM dream_reflections').run();
+      db.prepare('DELETE FROM dream_state').run();
+    });
+    resetTx();
+    habitatLogger.log('ledger', 'Dream state reset: candidates and reflections cleared.', 'warn');
   }
 
   public close() {

@@ -97,3 +97,88 @@
     transform: scale(1.25);
   }
 }
+
+/* ─── Dreaming UI Animations & Styles ───────────────────────────────────────── */
+
+.dreams-page {
+  @apply flex flex-col h-full;
+}
+
+.dreams {
+  @apply relative w-full bg-[#0A0D14] rounded-2xl overflow-hidden flex flex-col items-center justify-center border border-white/5 shadow-2xl;
+}
+
+.dreams--idle {
+  @apply opacity-90 grayscale-[30%];
+}
+
+.dreams__glow {
+  @apply absolute bottom-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(230,57,70,0.1),transparent_70%)] blur-3xl opacity-50;
+}
+
+.dreams__lobster {
+  @apply relative z-10 w-48 h-48 transform transition-transform duration-1000;
+  animation: breathe 4s infinite ease-in-out;
+}
+
+.dreams__lobster--large {
+  @apply w-80 h-80;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1) translateY(0) rotate(0deg); }
+  50% { transform: scale(1.05) translateY(-10px) rotate(1deg); }
+}
+
+.dreams__z {
+  @apply absolute text-lobster/60 font-mono font-black opacity-0;
+  animation: floatZ 4s infinite linear;
+}
+
+@keyframes floatZ {
+  0% { opacity: 0; transform: translateY(0) scale(0.5); }
+  20% { opacity: 1; transform: translateY(-20px) scale(1); }
+  80% { opacity: 1; transform: translateY(-60px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+}
+
+.dreams__status {
+  @apply absolute bottom-0 left-0 flex flex-col gap-1;
+}
+
+.dreams__phases {
+  @apply absolute bottom-0 right-0 flex gap-4;
+}
+
+.dreams__phase {
+  @apply flex items-center gap-2 px-3 py-1.5 rounded-lg;
+}
+
+.dreams__phase--off {
+  @apply opacity-30 grayscale;
+}
+
+.dreams__phase-dot {
+  @apply w-1.5 h-1.5 rounded-full bg-white/20 transition-all;
+}
+
+.dreams__phase-dot--on {
+  @apply bg-lobster shadow-[0_0_12px_#E63946];
+}
+
+.dreams__phase-name {
+  @apply text-[10px] font-black text-white/60 uppercase tracking-widest;
+}
+
+.dreams__bubble {
+  @apply absolute top-[15%] left-1/2 -translate-x-1/2 -translate-y-full bg-black/60 border border-white/10 backdrop-blur-xl px-8 py-4 rounded-3xl max-w-sm text-center shadow-2xl z-20;
+}
+
+.dreams__bubble-text {
+  @apply text-white text-[11px] font-black uppercase tracking-widest opacity-80;
+}
+
+.dreams__bubble-dot {
+  @apply absolute rounded-full bg-black/60 border border-white/10 backdrop-blur-md z-10;
+}
+
