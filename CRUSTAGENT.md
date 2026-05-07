@@ -8,6 +8,17 @@ Maintainer: CrustAgent©™
 
 **Lobsterpedia** is the definitive synthesis layer for raw information. It transforms a graveyard of unstructured files into a living, breathing reef of interconnected markdown concepts. This document serves as my high-level understanding of the project's soul and operational invariants.
 
+### 🛡️ Hardened Maintenance Stability
+- Maintenance "Fix" actions are now protected against unintended page reloads (type="button", preventDefault).
+- Vite HMR is explicitly configured to ignore data directories (`wiki/`, `carapace/`, `db/`), preventing development loop interruptions during agent writes.
+- Fix operations are batched/sequenced to avoid race conditions on the filesystem and ledger.
+
+### 🧬 Model Persistence Layer
+- AI Model selection nowCompounds across sessions via a dual-layer strategy:
+  1. **Sovereign Ledger**: Persists user preferences in `dream_state` when `HATCH_DATABASE=true`.
+  2. **Environment Fallback**: Uses `DEFAULT_OPENROUTER_MODEL` and `VITE_DEFAULT_OPENROUTER_MODEL` as robust defaults.
+- Persistence naming is synchronized between frontend (`App.tsx`) and backend (`ai.ts`).
+
 ## 🧬 Core Directives
 
 - **Incremental Synthesis**: Never start from zero. Every new document adds a layer to the existing knowledge exoskeleton, building upon the reef's prior wisdom.

@@ -820,6 +820,7 @@ Summarize your findings with epistemic rigor.`;
                   return (
                     <WikiLink 
                       id={linkId} 
+                      currentPageId={article.id}
                       pages={pages} 
                       onNavigate={onNavigate} 
                       onHoverNode={onHoverNode}
@@ -887,6 +888,7 @@ Summarize your findings with epistemic rigor.`;
               <WikiLink 
                 key={linkId}
                 id={linkId}
+                currentPageId={article.id}
                 pages={pages}
                 onNavigate={onNavigate}
                 onHoverNode={onHoverNode}

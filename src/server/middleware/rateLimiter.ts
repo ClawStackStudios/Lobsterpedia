@@ -12,7 +12,7 @@ export const apiLimiter = rateLimit({
 // Strict limiter for expensive AI synthesis endpoints
 export const aiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50,
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'AI Synthesis quota exceeded. Please try again later.' },

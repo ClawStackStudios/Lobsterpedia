@@ -37,8 +37,7 @@ export class WikiService {
     // Ensure default categories exist (The Skeletal Structure)
     const defaultCategories = [
       'concepts', 'entities', 'events', 'insights', 
-      'meetings', 'patterns', 'projects', 'references', 
-      'llm-wiki'
+      'meetings', 'patterns', 'projects', 'references'
     ];
     
     defaultCategories.forEach(cat => {
@@ -55,38 +54,46 @@ export class WikiService {
     });
 
     // Ensure initial seed if empty (The Genetic Pearl)
-    // We check if the root has any markdown files (excluding log.md)
     const files = fs.readdirSync(this.wikiPath);
     const hasContent = files.some(f => f.endsWith('.md') && f !== 'log.md');
     
     if (!hasContent) {
       const seedReef: Record<string, any> = {
         'index': {
-          title: 'The Sacred Reef', 
-          type: 'system', 
-          author: 'System', 
-          lastUpdated: '2026-05-06', 
-          tags: ['root', 'index'], 
-          links: ['llm-wiki/LLM Wiki'], 
-          content: '# Welcome to Lobsterpedia©™\n\nThis is your **Sacred Knowledge Reef**. It is a manually managed, agent-augmented repository of wisdom.\n\n## 🦞 Navigation\n- [[llm-wiki/LLM Wiki|The LLM Wiki]] — Our core philosophy on Agentic Knowledge.\n- [[index-list|The Full Catalog]] — A topological view of all concepts.'
+          title: 'Lobsterpedia Knowledge Hub',
+          type: 'system',
+          author: 'CrustAgent',
+          lastUpdated: '2026-05-07',
+          tags: ['hub', 'index'],
+          links: ['index-list', 'concepts/llm-knowledge-bases'],
+          content: '# Lobsterpedia Knowledge Index\n\nWelcome to the synthesized knowledge base. This index manages the thematic structure and high-level connections of the wiki.\n\n## Core Concepts\n- [LLM Knowledge Bases](concepts/llm-knowledge-bases)\n- [LLM Wiki Pattern](concepts/llm-wiki)\n- [LLM Wiki v2: Advanced Memory](concepts/llm-wiki-v2)\n- [General LLM Cognition](concepts/general-llm-cognition)\n- [Limitations of RAG](concepts/rag-limitations)\n\n## Key Entities\n- [Andrej Karpathy](entities/andrej-karpathy)\n\n## System Files\n- [Article List (UI Manifest)](index-list)\n- [Activity Log](log)\n\n---\n*Maintained by CrustAgent Maintenance Systems*'
         },
-        'llm-wiki/LLM Wiki': {
-          title: 'The LLM Wiki', 
-          type: 'concept', 
-          author: 'System', 
-          lastUpdated: '2026-05-06', 
-          tags: ['philosophy', 'agentic'], 
-          links: ['llm-wiki/rag-limitations'], 
-          content: 'The LLM Wiki is the heart of the agent-augmented workflow. It defines how we treat the knowledge reef not as a retrieval database (RAG), but as a **Compounding Mental Model**.\n\n### The Law of the Reef\nNo ghost files. No background magic. Only deliberate, user-proxied maintenance.'
+        'concepts/llm-wiki': {
+          title: 'LLM Wiki',
+          type: 'concept',
+          author: 'CrustAgent',
+          lastUpdated: '2026-05-07',
+          tags: ['blueprint', 'system', 'methodology'],
+          links: ['concepts/llm-wiki-v2', 'concepts/llm-knowledge-bases'],
+          content: '# LLM Wiki\n\nA pattern for building personal knowledge bases using LLMs...\n\n(See full content in repository docs)'
         },
-        'llm-wiki/rag-limitations': {
-          title: 'Limitations of RAG', 
-          type: 'concept', 
-          author: 'System', 
-          lastUpdated: '2026-05-06', 
-          tags: ['architecture'], 
-          links: ['llm-wiki/LLM Wiki'], 
-          content: 'Retrieval-Augmented Generation (RAG) suffers from a lack of synthesis. It retrieves fragments but does not build a compounding mental model of the domain over time.'
+        'concepts/llm-wiki-v2': {
+          title: 'LLM Wiki v2',
+          type: 'concept',
+          author: 'CrustAgent',
+          lastUpdated: '2026-05-07',
+          tags: ['methodology', 'memory', 'architecture'],
+          links: ['concepts/llm-wiki', 'concepts/llm-knowledge-bases', 'concepts/poly-context-llm-wiki-v2'],
+          content: '# LLM Wiki v2\n\nA pattern for building personal knowledge bases using LLMs. Extended with lessons from agentmemory...'
+        },
+        'entities/andrej-karpathy': {
+          title: 'Andrej Karpathy',
+          type: 'entity',
+          author: 'CrustAgent',
+          lastUpdated: '2026-05-07',
+          tags: ['founder', 'researcher', 'ai'],
+          links: ['concepts/llm-wiki'],
+          content: '# Andrej Karpathy\n\nFounding member of OpenAI and former Director of AI at Tesla.'
         }
       };
 
@@ -138,6 +145,9 @@ export class WikiService {
             if (value.startsWith('[') && value.endsWith(']')) {
               const arr = value.slice(1, -1).split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
               metadata[key] = arr;
+            } else if (key === 'tags' || key === 'links' || key === 'externalUrls') {
+              // Robustness: Handle single values for array-typed fields
+              metadata[key] = value ? [value.replace(/^"|"$/g, '').trim()] : [];
             } else if (key === 'confidence') {
               metadata[key] = parseFloat(value);
             } else {
@@ -197,9 +207,18 @@ export class WikiService {
   }
 
   public savePage(id: string, metadata: Partial<WikiMetadata>, content: string) {
-    const safeId = id.replace(/\.\./g, '').replace(/[^a-zA-Z0-9_\-\/]/g, '');
+    // Strip .md if present and sanitize
+    const cleanId = id.endsWith('.md') ? id.slice(0, -3) : id;
+    const safeId = cleanId.replace(/\.\./g, '').replace(/[^a-zA-Z0-9_\-\/\.]/g, '');
     const now = new Date().toISOString().split('T')[0];
-    const frontmatter = `---\ntitle: "${metadata.title || safeId}"\ntype: "${metadata.type || 'concept'}"\nauthor: "${metadata.author || 'System'}"\nlastUpdated: "${metadata.lastUpdated || now}"\ntags: [${(metadata.tags || []).map(t => `"${t}"`).join(', ')}]\nlinks: [${(metadata.links || []).map(l => `"${l}"`).join(', ')}]\nexternalUrls: [${(metadata.externalUrls || []).map(l => `"${l}"`).join(', ')}]\nconfidence: ${metadata.confidence || 1.0}\nsupersededBy: "${metadata.supersededBy || ''}"\n---\n`;
+
+    // Ensure array fields are actually arrays to prevent .map errors
+    const ensureArray = (val: any) => Array.isArray(val) ? val : (val ? [String(val)] : []);
+    const tags = ensureArray(metadata.tags);
+    const links = ensureArray(metadata.links);
+    const externalUrls = ensureArray(metadata.externalUrls);
+
+    const frontmatter = `---\ntitle: "${metadata.title || safeId}"\ntype: "${metadata.type || 'concept'}"\nauthor: "${metadata.author || 'System'}"\nlastUpdated: "${metadata.lastUpdated || now}"\ntags: [${tags.map(t => `"${t}"`).join(', ')}]\nlinks: [${links.map(l => `"${l}"`).join(', ')}]\nexternalUrls: [${externalUrls.map(l => `"${l}"`).join(', ')}]\nconfidence: ${metadata.confidence || 1.0}\nsupersededBy: "${metadata.supersededBy || ''}"\n---\n`;
     
     const filePath = path.join(this.wikiPath, `${safeId}.md`);
     this.ensureDir(filePath);

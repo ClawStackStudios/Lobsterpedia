@@ -30,16 +30,23 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestedIngestTitle, setSuggestedIngestTitle] = useState<string | undefined>(undefined);
   const [aiProvider] = useState<AIProvider>('openrouter');
-  const [openRouterModel, setOpenRouterModel] = useState('nousresearch/hermes-3-llama-3.1-405b:free');
+  const [openRouterModel, setOpenRouterModel] = useState(() => {
+    // Priority: Environment Variable > Default
+    return import.meta.env.VITE_DEFAULT_OPENROUTER_MODEL || 'nousresearch/hermes-3-llama-3.1-405b:free';
+  });
 
-  // Fetch model from Sovereign Ledger on mount
   useEffect(() => {
     fetch('/api/ledger/config/model')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Ledger inactive or unreachable");
+        return res.json();
+      })
       .then(data => {
         if (data.value) setOpenRouterModel(data.value);
       })
-      .catch(err => console.warn("[CrustAgent] Failed to fetch model from ledger:", err));
+      .catch(err => {
+        console.log("[CrustAgent] Using environment default model (Ledger is dormant).");
+      });
   }, []);
 
   // Persist model to Sovereign Ledger when it changes
@@ -178,6 +185,15 @@ export default function App() {
     }
   }, []);
 
+  const refreshTimerRef = React.useRef<any>(null);
+  const debouncedRefresh = useCallback(() => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    refreshTimerRef.current = setTimeout(() => {
+      loadReef();
+      loadLintIssues();
+    }, 500); // 500ms debounce
+  }, [loadReef, loadLintIssues]);
+
   useEffect(() => {
     loadReef();
     loadLintIssues();
@@ -209,9 +225,8 @@ export default function App() {
           }]);
 
           // Trigger UI refreshes on significant signals
-          if (data.action === 'watch' || data.action === 'ingest' || data.action === 'lint' || data.action === 'ledger') {
-            loadReef();
-            loadLintIssues();
+          if (data.action === 'watch' || data.action === 'ingest' || data.action === 'ledger') {
+            debouncedRefresh();
           }
         } catch (e) {
           console.error("Failed to parse watcher event", e);

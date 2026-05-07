@@ -23,6 +23,8 @@ services:
       - HATCH_CARAPACE=${HATCH_CARAPACE:-false}
       - CARAPACE_PATH=/app/carapace
       - CARAPACE_FREQUENCY=${CARAPACE_FREQUENCY:-3600000}
+      - DEFAULT_OPENROUTER_MODEL=${DEFAULT_OPENROUTER_MODEL:-nousresearch/hermes-3-llama-3.1-405b:free}
+      - VITE_DEFAULT_OPENROUTER_MODEL=${VITE_DEFAULT_OPENROUTER_MODEL:-nousresearch/hermes-3-llama-3.1-405b:free}
       # For detailed configuration, see README.md → Running with Docker section
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:7575/api/wiki/health"]

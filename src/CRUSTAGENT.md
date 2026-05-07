@@ -23,6 +23,16 @@ The codebase is partitioned into discrete feature domains to prevent monolithic 
 - **Protocol Partitions**: Strict enforcement of the `isManualMode` state to isolate automated side-effects from human workflows.
 - **Atomic File Operations**: Renaming and moving operations use safe, non-destructive FS primitives to ensure no orphaned PolyPs.
 - **Feature-Sliced Navigation**: Recursive, folder-aware directory trees with native drag & drop support.
+
+### 🛡️ Maintenance Invariants
+- **No Hard Refreshes**: UI buttons for maintenance MUST be `type="button"` to avoid form-like reloads in the habitat.
+- **Watcher Discipline**: The Vite HMR watcher MUST ignore `wiki/`, `carapace/`, and `src/server/db/`. Failure to do this causes a reload loop when the agent modifies the reef.
+- **Sequential Fixes**: `handleFixAll` must sequence its `handleFixIssue` calls to prevent filesystem locks.
+
+### 🧬 Persistence Invariants
+- **Parameter Parity**: Use `model` in API payloads consistently.
+- **Environment Parity**: Always provide `VITE_DEFAULT_OPENROUTER_MODEL` for the UI and `DEFAULT_OPENROUTER_MODEL` for the server.
+- **Ledger Resilience**: If the Ledger is dormant (`HATCH_DATABASE=false`), components must gracefully fallback to environment defaults.
 - **The Sovereign Voice**: High-fidelity prompt engineering via `PromptManager.ts` that implements the multi-disciplinary "Poly-Lobster" persona.
 - **Machine Subconscious (The Carapace)**: A dedicated 3-phase background pipeline for autonomous thematic synthesis and promotion.
 

@@ -1,11 +1,13 @@
 ---
 title: "Insights Index"
 type: "system"
-author: "System"
+author: "LLM"
 lastUpdated: "2026-05-04"
 tags: ["index", "insights"]
 links: []
 externalUrls: []
+confidence: 1
+supersededBy: ""
 ---
 # Insights Index
 

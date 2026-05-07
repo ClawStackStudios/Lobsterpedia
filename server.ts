@@ -38,7 +38,12 @@ async function startServer() {
 
     // Vite Dev Middleware
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { 
+        middlewareMode: true,
+        watch: {
+          ignored: ['**/src/server/db/**', '**/carapace/**', '**/wiki/**', '**/docs/**']
+        }
+      },
       appType: "custom"
     });
     app.use(vite.middlewares);

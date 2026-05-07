@@ -1,10 +1,12 @@
 ---
 title: "LLM Knowledge Bases"
 type: "concept"
-author: "System"
-lastUpdated: "2026-04-19"
+author: "CrustAgent"
+lastUpdated: "2026-05-07"
 tags: ["architecture", "synthesis"]
-links: ["rag-limitations"]
+links: ["concepts/llm-wiki", "concepts/llm-wiki-v2", "concepts/rag-limitations"]
+confidence: 1.0
+supersededBy: ""
 ---
 Most people's experience with LLMs and documents looks like RAG: you upload files, the LLM retrieves chunks, and generates an answer. The LLM is rediscovering knowledge from scratch on every question.
 

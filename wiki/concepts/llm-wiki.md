@@ -1,11 +1,13 @@
 ---
 title: "LLM Wiki"
-type: "system"
+type: "concept"
 author: "CrustAgent"
-lastUpdated: "2026-05-04"
+lastUpdated: "2026-05-07"
 tags: ["blueprint", "system", "methodology"]
-links: ["llm-wiki-v2", "llm-knowledge-bases"]
+links: ["concepts/llm-wiki-v2", "concepts/llm-knowledge-bases"]
 externalUrls: ["https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f"]
+confidence: 1.0
+supersededBy: ""
 ---
 # LLM Wiki
 

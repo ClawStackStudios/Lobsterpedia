@@ -5,6 +5,7 @@ import { Reef } from '../features/shell-core/types';
 
 export interface WikiLinkProps {
   id: string;
+  currentPageId?: string; // The ID of the page where this link appears
   children?: React.ReactNode;
   pages: Reef;
   onNavigate: (view: any, id?: string) => void;
@@ -16,6 +17,7 @@ export interface WikiLinkProps {
 
 export const WikiLink: React.FC<WikiLinkProps> = ({ 
   id, 
+  currentPageId,
   children, 
   pages, 
   onNavigate, 
@@ -25,13 +27,44 @@ export const WikiLink: React.FC<WikiLinkProps> = ({
   variant = 'inline'
 }) => {
   const [localHovered, setLocalHovered] = useState(false);
-  const targetPage = pages[id];
-  const isHovered = hoveredLink !== undefined ? hoveredLink === id : localHovered;
+
+  // ─── Smart Link Resolution (The Nervous System) ──────────────────────────────
+  // We attempt to find the target ID through several layers of resolution:
+  // 1. Exact Global Match: id === page.id
+  // 2. Relative Match: category/id
+  // 3. Fuzzy Global Match: any category/id
+  
+  const resolveTarget = () => {
+    if (!pages) return null;
+    const cleanId = id.replace(/\.md$/, '');
+    
+    // 1. Exact match
+    if (pages[cleanId]) return cleanId;
+
+    // 2. Relative match (if current page is in a directory)
+    if (currentPageId && currentPageId.includes('/')) {
+      const category = currentPageId.split('/')[0];
+      const relativePath = `${category}/${cleanId}`;
+      if (pages[relativePath]) return relativePath;
+    }
+
+    // 3. Fuzzy match (any page ending in /id)
+    const fuzzyMatch = Object.keys(pages).find(k => k.endsWith(`/${cleanId}`));
+    if (fuzzyMatch) return fuzzyMatch;
+
+    return null;
+  };
+
+  const resolvedId = resolveTarget();
+  const targetPage = resolvedId ? pages[resolvedId] : null;
+  const displayId = resolvedId || id;
+  
+  const isHovered = hoveredLink !== undefined ? hoveredLink === displayId : localHovered;
 
   const handleMouseEnter = () => {
-    if (setHoveredLink) setHoveredLink(id);
+    if (setHoveredLink) setHoveredLink(displayId);
     else setLocalHovered(true);
-    onHoverNode?.(id);
+    onHoverNode?.(displayId);
   };
 
   const handleMouseLeave = () => {
@@ -58,11 +91,11 @@ export const WikiLink: React.FC<WikiLinkProps> = ({
         onMouseLeave={handleMouseLeave}
       >
         <button 
-          onClick={() => onNavigate('article', id)} 
+          onClick={() => onNavigate('article', resolvedId!)} 
           className={buttonClass}
           style={{ cursor: 'pointer' }}
         >
-          {children || (variant === 'button' ? `${id}.md` : targetPage.title)}
+          {children || (variant === 'button' ? `${resolvedId}.md` : targetPage.title)}
           <ArrowRight size={variant === 'button' ? 14 : 10} className={`text-current transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
         </button>
         
@@ -100,4 +133,4 @@ export const WikiLink: React.FC<WikiLinkProps> = ({
       <Plus size={10} className="text-red-500 opacity-60 group-hover:opacity-100 transition-opacity" />
     </button>
   );
-};
+};;

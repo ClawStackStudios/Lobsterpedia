@@ -25,6 +25,8 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
   const [isLoading, setIsLoading] = useState(false);
   const [isFixing, setIsFixing] = useState<string | null>(null);
   const [isFixingAll, setIsFixingAll] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
+  const stopFixingRef = React.useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState({ scanInterval: '5m', autoIngest: false });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -55,19 +57,19 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
     setIsSavingSettings(false);
   };
 
-  const handleFixIssue = async (issue: LintIssue) => {
+  const handleFixIssue = async (issue: LintIssue, skipRefresh: boolean = false) => {
     setIsFixing(issue.id);
     try {
-      const res = await fetch('/api/wiki/fix', {
+      const res = await fetch('/api/ai/fix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ issue, openRouterModel })
+        body: JSON.stringify({ issue, model: openRouterModel })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Fix applied but failed.');
       
-      // Refresh global list
-      onRefresh();
+      // Refresh global list if not skipping
+      if (!skipRefresh) onRefresh();
     } catch (err) {
       console.error(err);
       setError(`Failed to fix ${issue.id}: ${err instanceof Error ? err.message : ''}`);
@@ -78,18 +80,32 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
 
   const handleFixAll = async () => {
     setIsFixingAll(true);
+    setIsStopping(false);
+    stopFixingRef.current = false;
     setError(null);
     try {
-      // Process sequentially to not overload openrouter/api or have race conditions on index
+      // Process sequentially with a delay to respect OpenRouter rate limits
       for (const issue of issues) {
-        await handleFixIssue(issue);
+        if (stopFixingRef.current) {
+          console.log("[CrustAgent] Maintenance fix-all sequence aborted by user.");
+          break;
+        }
+        await handleFixIssue(issue, true);
+        await new Promise(resolve => setTimeout(resolve, 5000)); // 5s delay
       }
-      onRefresh();
+      onRefresh(); // Single refresh after all fixes are complete
     } catch (err) {
       console.error(err);
     } finally {
       setIsFixingAll(false);
+      setIsStopping(false);
+      stopFixingRef.current = false;
     }
+  };
+
+  const handleStopFixing = () => {
+    setIsStopping(true);
+    stopFixingRef.current = true;
   };
 
   const handleRescan = async () => {
@@ -127,21 +143,36 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
         
         <div className="flex items-center gap-3">
           <button 
-            onClick={handleRescan}
-            disabled={isLoading || isFixingAll}
-            className="px-4 py-2 bg-text-primary text-bg-primary border border-border-primary rounded font-bold text-sm hover:opacity-90 transition-colors"
+            type="button"
+            onClick={(e) => { e.preventDefault(); handleRescan(); }}
+            disabled={isFixingAll || isFixing !== null}
+            className="px-4 py-2 bg-text-primary text-bg-primary border border-border-primary rounded font-bold text-sm hover:opacity-90 transition-colors disabled:opacity-50"
           >
             Rescan
           </button>
           
           {issues.length > 0 && !isManualMode && (
-            <button 
-              onClick={handleFixAll}
-              disabled={isFixingAll || isFixing !== null}
-              className="px-4 py-2 bg-lobster text-white rounded font-bold text-sm hover:opacity-90 transition-colors flex items-center gap-2"
-            >
-              {isFixingAll ? 'Fixing All...' : 'Fix All'}
-            </button>
+            <div className="flex items-center gap-2">
+              {isFixingAll ? (
+                <button 
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); handleStopFixing(); }}
+                  disabled={isStopping}
+                  className="px-4 py-2 bg-habitat-dark text-lobster border border-lobster/50 rounded font-bold text-sm hover:bg-lobster/10 transition-colors flex items-center gap-2"
+                >
+                  {isStopping ? 'Stopping...' : 'Stop Fixing'}
+                </button>
+              ) : (
+                <button 
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); handleFixAll(); }}
+                  disabled={isFixing !== null}
+                  className="px-4 py-2 bg-lobster text-white rounded font-bold text-sm hover:opacity-90 transition-colors flex items-center gap-2"
+                >
+                  Fix All
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -268,7 +299,8 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
               </div>
               
               <button 
-                onClick={() => handleFixIssue(issue)}
+                type="button"
+                onClick={(e) => { e.preventDefault(); handleFixIssue(issue); }}
                 disabled={isFixing === issue.id || isFixingAll}
                 className="shrink-0 px-4 py-1.5 border border-lobster text-lobster hover:bg-lobster hover:text-white rounded text-xs font-bold transition-colors disabled:opacity-50 flex items-center"
               >

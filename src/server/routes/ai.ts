@@ -57,7 +57,7 @@ router.post("/openrouter", async (req, res) => {
     const safeTitle = "Lobsterpedia";
     const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
     
-    const modelToUse = model || dbService.getDreamState('model') || "nousresearch/hermes-3-llama-3.1-405b:free";
+    const modelToUse = model || dbService.getDreamState('model') || process.env.DEFAULT_OPENROUTER_MODEL || "nousresearch/hermes-3-llama-3.1-405b:free";
     
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -85,7 +85,7 @@ router.post("/openrouter", async (req, res) => {
 });
 
 router.post("/fix", async (req, res) => {
-  const { issue, openRouterModel } = req.body;
+  const { issue, model } = req.body;
   let apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey || apiKey.trim() === "") {
@@ -112,7 +112,7 @@ router.post("/fix", async (req, res) => {
     const safeTitle = "Lobsterpedia";
     const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
 
-    const modelToUse = openRouterModel || dbService.getDreamState('model') || "nousresearch/hermes-3-llama-3.1-405b:free";
+    const modelToUse = model || dbService.getDreamState('model') || process.env.DEFAULT_OPENROUTER_MODEL || "nousresearch/hermes-3-llama-3.1-405b:free";
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -130,39 +130,67 @@ router.post("/fix", async (req, res) => {
     });
 
     const data = await response.json();
+    if (!response.ok) {
+       console.error("[CrustAgent] OpenRouter Fix Handshake Failed:", data.error || data);
+       return res.status(response.status).json({ error: "OpenRouter failure: " + (data.error?.message || response.statusText) });
+    }
+
+    if (!data.choices || !data.choices[0]) {
+       console.error("[CrustAgent] OpenRouter returned empty choices:", data);
+       return res.status(500).json({ error: "OpenRouter returned no response choices." });
+    }
+
     const replyStr = data.choices[0].message.content;
     const jsonMatch = replyStr.match(/(\[[\s\S]*\])/);
-    if (!jsonMatch) return res.status(500).json({ error: "Invalid LLM response." });
+    if (!jsonMatch) {
+      console.warn("[CrustAgent] LLM output did not contain valid action JSON:", replyStr);
+      return res.status(500).json({ error: "Invalid LLM response format." });
+    }
 
-    const actions = JSON.parse(jsonMatch[1]);
+    let actions;
+    try {
+      actions = JSON.parse(jsonMatch[1]);
+    } catch (e) {
+      console.error("[CrustAgent] Failed to parse LLM action JSON:", jsonMatch[1], e);
+      return res.status(500).json({ error: "Broken action payload from LLM." });
+    }
+
+    if (!Array.isArray(actions)) {
+      console.error("[CrustAgent] LLM response was not an array:", actions);
+      return res.status(500).json({ error: "LLM response is not a valid action set." });
+    }
+
     for (const act of actions) {
-       if (!act.fileId) continue;
-       const fPath = path.resolve(path.join(wikiPath, `${act.fileId}.md`));
+       if (!act.fileId || !act.action) continue;
+       const cleanFileId = act.fileId.endsWith('.md') ? act.fileId.slice(0, -3) : act.fileId;
        
-       // 🛡️ Path Traversal Security Check: Ensure fPath is strictly within wikiPath
-       if (!fPath.startsWith(path.resolve(wikiPath))) {
-         console.warn(`[CrustAgent] AI attempted to escape habitat boundary: ${act.fileId}`);
-         continue; 
-       }
-
        if (act.action === "update" || act.action === "create") {
           // Use wikiService.savePage to ensure the edit is Witnessed by the ledger
-          const { metadata, content } = wikiService.parseCrustMarkdown(act.content);
+          const { metadata, content } = wikiService.parseCrustMarkdown(act.content || "");
           
           // Ensure we don't lose existing metadata if the LLM hallucinated a blank set
+          const fPath = path.resolve(path.join(wikiPath, `${cleanFileId}.md`));
+          
+          // 🛡️ Path Traversal Security Check: Ensure fPath is strictly within wikiPath
+          if (!fPath.startsWith(path.resolve(wikiPath))) {
+            console.warn(`[CrustAgent] AI attempted to escape habitat boundary: ${cleanFileId}`);
+            continue; 
+          }
+
           const existingRaw = fs.existsSync(fPath) ? fs.readFileSync(fPath, 'utf-8') : "";
           const existing = existingRaw ? wikiService.parseCrustMarkdown(existingRaw).metadata : {};
           
-          wikiService.savePage(act.fileId, {
+          wikiService.savePage(cleanFileId, {
             ...existing,
             ...metadata,
-            author: "LLM" // Mark the hand of the agent
+            author: "LLM" 
           }, content);
        }
     }
     wikiService.appendLog('fix', issue.id);
     res.json({ success: true, actions });
   } catch (err) {
+    console.error("[CrustAgent] Maintenance fix CRITICAL FAILURE:", err);
     res.status(500).json({ error: "IsCracked: Maintenance fix failed." });
   }
 });
