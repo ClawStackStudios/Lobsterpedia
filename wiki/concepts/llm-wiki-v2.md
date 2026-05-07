@@ -1,12 +1,12 @@
 ---
-title: "LLM Wiki v2"
-type: "concept"
-author: "CrustAgent"
+title: "llm-wiki-v2"
+type: "concepts"
+author: "Manual User"
 lastUpdated: "2026-05-07"
-tags: ["methodology", "memory", "architecture"]
-links: ["concepts/llm-wiki", "concepts/llm-knowledge-bases", "concepts/poly-context-llm-wiki-v2"]
-externalUrls: ["https://github.com/rohitg00/agentmemory"]
-confidence: 1.0
+tags: ["test"]
+links: ["index"]
+externalUrls: []
+confidence: 1
 supersededBy: ""
 ---
 # LLM Wiki v2
@@ -171,10 +171,3 @@ The Memex is finally buildable. Not because we have better documents or better s
 ---
 
 *This document extends [Andrej Karpathy's LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) with patterns proven in [agentmemory](https://github.com/rohitg00/agentmemory), a persistent memory engine for AI agents built on [iii-engine](https://github.com/iii-hq/iii). The original idea file is the foundation; this adds what we learned building the engine.*
-
----
-**Poly Pearl Integration:**
-- LLM Wiki v2 is now linked from llm-knowledge-bases.md via its **links** metadata field.
-- This establishes an incoming reference to satisfy our integrity checks.
----
-Source: llm-knowledge-bases.md

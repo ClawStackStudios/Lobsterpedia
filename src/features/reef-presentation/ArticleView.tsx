@@ -22,9 +22,10 @@ interface ArticleViewProps {
   externalHoveredId?: string | null;
   aiProvider: AIProvider;
   openRouterModel: string;
+  isManualMode?: boolean;
 }
 
-export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues, onRefreshIssues, onNavigate, onHoverNode, externalHoveredId, aiProvider, openRouterModel }) => {
+export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues, onRefreshIssues, onNavigate, onHoverNode, externalHoveredId, aiProvider, openRouterModel, isManualMode }) => {
   const [copied, setCopied] = useState(false);
   const [isLinting, setIsLinting] = useState(false);
   const [lintReport, setLintReport] = useState<string | null>(null);
@@ -333,11 +334,12 @@ Summarize your findings with epistemic rigor.`;
                 </button>
                 <button 
                   onClick={handleSummarize}
-                  disabled={isSummarizing}
+                  disabled={isSummarizing || isManualMode}
                   className="p-2 hover:bg-border-primary/50 rounded-md transition-colors flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-widest cursor-pointer disabled:opacity-50"
+                  title={isManualMode ? "Summarization is locked in manual mode." : "AI Synthesis Pass"}
                 >
-                  {isSummarizing ? <RefreshCw size={14} className="animate-spin" /> : <Activity size={14} />}
-                  {isSummarizing ? 'Summarizing...' : 'Summarize'}
+                  {isSummarizing ? <RefreshCw size={14} className="animate-spin" /> : (isManualMode ? <Save size={14} className="opacity-40" /> : <Activity size={14} />)}
+                  {isSummarizing ? 'Summarizing...' : (isManualMode ? 'Summarize (Locked)' : 'Summarize')}
                 </button>
                 <button 
                   onClick={() => setShowCitations(!showCitations)}
@@ -907,11 +909,12 @@ Summarize your findings with epistemic rigor.`;
             <p className="text-sm text-text-primary/50 mb-6 font-medium">Trigger an agentic lint pass to automatically resolve contradictions across synthesized documents.</p>
             <button 
               onClick={handleLintAgent}
-              disabled={isLinting}
+              disabled={isLinting || isManualMode}
               className="bg-lobster text-white px-6 py-3 rounded-lg font-bold text-xs hover:opacity-90 transition-all flex items-center gap-3 uppercase tracking-widest shadow-lg shadow-lobster/20 disabled:opacity-50 cursor-pointer"
+              title={isManualMode ? "Linting is locked in manual mode." : "Trigger Health Check"}
             >
-              {isLinting ? <RefreshCw className="animate-spin" size={16} /> : <Activity size={16} />} 
-              {isLinting ? 'Scuttling the reef...' : 'Trigger Lint Health Check'}
+              {isLinting ? <RefreshCw className="animate-spin" size={16} /> : (isManualMode ? <Save size={16} className="opacity-40" /> : <Activity size={16} />)} 
+              {isLinting ? 'Scuttling the reef...' : (isManualMode ? 'Lint Health Check (Locked)' : 'Trigger Lint Health Check')}
             </button>
 
             <AnimatePresence>

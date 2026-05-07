@@ -1,13 +1,11 @@
 ---
 title: "Index List Meta-Index"
 type: "system"
-author: "LLM"
-lastUpdated: "2026-05-05"
-tags: ["index", "metaindex", "system"]
+author: "System"
+lastUpdated: "2026-05-07"
+tags: []
 links: ["llm-knowledge-bases", "insights/insights-index", "concepts/concepts-index", "entities/entities-index", "events/events-index", "meetings/meetings-index", "patterns/patterns-index", "projects/projects-index", "references/references-index", "log"]
 externalUrls: []
-confidence: 1
-supersededBy: ""
 ---
 # Index List Meta-Index
 
@@ -41,3 +39,6 @@ Primary repository of all top-level index manifests within the knowledge graph.
 - **Type:** system
 - **Relevance:** 0.0%
 - **Status:** In development.
+
+### Conceptss
+- **[llm-wiki-v2](concepts/llm-wiki-v2)** (concepts): LLM Wiki v2...

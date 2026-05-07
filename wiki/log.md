@@ -29,3 +29,15 @@ Chronological record of wiki evolution, synthesis events, and system updates.
 ## [2026-05-07] fix | orphan-concepts/general-llm-cognition
 
 ## [2026-05-07] fix | orphan-entities/entities-index
+
+## [2026-05-07] update | concepts/llm-wiki-v2
+
+## [2026-05-07] update | concepts/llm-wiki-v2
+
+## [2026-05-07] update | concepts/llm-wiki-v2
+
+## [2026-05-07] delete | concepts/isolated-poly-p
+
+## [2026-05-07] delete | concepts/poly-context-llm-wiki-v2
+
+## [2026-05-07] delete | entities/polyP
