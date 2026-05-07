@@ -141,23 +141,37 @@ router.post("/fix", async (req, res) => {
     }
 
     const replyStr = data.choices[0].message.content;
-    const jsonMatch = replyStr.match(/(\[[\s\S]*\])/);
-    if (!jsonMatch) {
-      console.warn("[CrustAgent] LLM output did not contain valid action JSON:", replyStr);
-      return res.status(500).json({ error: "Invalid LLM response format." });
+    
+    // 🛡️ Robust JSON Extraction: Handle markdown code blocks, whitespace, and conversational filler
+    let jsonContent = replyStr;
+    const codeBlockMatch = replyStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch) {
+      jsonContent = codeBlockMatch[1];
+    } else {
+      const arrayMatch = replyStr.match(/(\[[\s\S]*\])/);
+      if (arrayMatch) {
+        jsonContent = arrayMatch[1];
+      }
     }
 
     let actions;
     try {
-      actions = JSON.parse(jsonMatch[1]);
+      actions = JSON.parse(jsonContent.trim());
     } catch (e) {
-      console.error("[CrustAgent] Failed to parse LLM action JSON:", jsonMatch[1], e);
-      return res.status(500).json({ error: "Broken action payload from LLM." });
+      console.error("[CrustAgent] Failed to parse LLM action JSON. Content was:", jsonContent);
+      console.error("[CrustAgent] Original reply was:", replyStr);
+      return res.status(500).json({ 
+        error: "Broken action payload from LLM.",
+        debug: {
+          message: "The AI produced an invalid JSON structure.",
+          raw: replyStr.substring(0, 100) + "..."
+        }
+      });
     }
 
     if (!Array.isArray(actions)) {
       console.error("[CrustAgent] LLM response was not an array:", actions);
-      return res.status(500).json({ error: "LLM response is not a valid action set." });
+      return res.status(500).json({ error: "LLM response is not a valid action set (expected an array)." });
     }
 
     for (const act of actions) {

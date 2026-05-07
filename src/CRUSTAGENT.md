@@ -28,6 +28,15 @@ The codebase is partitioned into discrete feature domains to prevent monolithic 
 - **No Hard Refreshes**: UI buttons for maintenance MUST be `type="button"` to avoid form-like reloads in the habitat.
 - **Watcher Discipline**: The Vite HMR watcher MUST ignore `wiki/`, `carapace/`, and `src/server/db/`. Failure to do this causes a reload loop when the agent modifies the reef.
 - **Sequential Fixes**: `handleFixAll` must sequence its `handleFixIssue` calls to prevent filesystem locks.
+- **Hardened AI Parsing**: The `/fix` route utilizes a robust extraction logic to handle markdown-wrapped JSON, ensuring stability for **gpt-oss-120b** and other chatty models.
+
+### 🏗️ Path-Aware Knowledge Resolution
+- **Hierarchical Registry**: The reef registry uses `id` (path-based) for all lookups.
+- **Three-Tier Resolution**: `WikiLink` and the Linter resolve links via:
+  1. **Canonical Match** (Exact path)
+  2. **Sibling Match** (Current category relative)
+  3. **Global Discovery** (Unique ID search)
+- **Zero-Orphan Skeleton**: The core reef maintains a 100% connected state through recursive category-index linking.
 
 ### 🧬 Persistence Invariants
 - **Parameter Parity**: Use `model` in API payloads consistently.

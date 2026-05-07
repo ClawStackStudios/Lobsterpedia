@@ -4,7 +4,7 @@ type: "system"
 author: "LLM"
 lastUpdated: "2026-05-05"
 tags: ["index", "metaindex", "system"]
-links: ["llm-knowledge-bases", "insights/insights-index", "concepts/concepts-index"]
+links: ["llm-knowledge-bases", "insights/insights-index", "concepts/concepts-index", "entities/entities-index", "events/events-index", "meetings/meetings-index", "patterns/patterns-index", "projects/projects-index", "references/references-index", "log"]
 externalUrls: []
 confidence: 1
 supersededBy: ""

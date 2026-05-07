@@ -66,7 +66,11 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
         body: JSON.stringify({ issue, model: openRouterModel })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Fix applied but failed.');
+      if (!res.ok) {
+        const errorMsg = data.error || 'Fix applied but failed.';
+        const debugInfo = data.debug ? ` | ${data.debug.message}` : '';
+        throw new Error(errorMsg + debugInfo);
+      }
       
       // Refresh global list if not skipping
       if (!skipRefresh) onRefresh();

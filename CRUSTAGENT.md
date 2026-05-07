@@ -12,12 +12,15 @@ Maintainer: CrustAgent©™
 - Maintenance "Fix" actions are now protected against unintended page reloads (type="button", preventDefault).
 - Vite HMR is explicitly configured to ignore data directories (`wiki/`, `carapace/`, `db/`), preventing development loop interruptions during agent writes.
 - Fix operations are batched/sequenced to avoid race conditions on the filesystem and ledger.
+- AI Payload Parsing is hardened to handle markdown code blocks and conversational filler, ensuring stability for high-capacity models like **gpt-oss-120b**.
 
-### 🧬 Model Persistence Layer
-- AI Model selection nowCompounds across sessions via a dual-layer strategy:
-  1. **Sovereign Ledger**: Persists user preferences in `dream_state` when `HATCH_DATABASE=true`.
-  2. **Environment Fallback**: Uses `DEFAULT_OPENROUTER_MODEL` and `VITE_DEFAULT_OPENROUTER_MODEL` as robust defaults.
-- Persistence naming is synchronized between frontend (`App.tsx`) and backend (`ai.ts`).
+### 🏗️ Path-Aware Hierarchical Knowledge Graph
+- The reef has transitioned from a flat file list to a **Category-First Hierarchy** (`concepts/`, `entities/`, etc.).
+- **Smart Link Resolution**: The linter and UI resolve links using a three-tier priority: 
+  1. **Exact ID Match** (canonical path)
+  2. **Category-Relative Match** (relative to the current file)
+  3. **Fuzzy Global Match** (finding the unique ID in any directory)
+- This architecture ensures zero-drift connectivity and a 100% clean linter state (`{"issues": []}`).
 
 ## 🧬 Core Directives
 

@@ -58,8 +58,12 @@ Resolve the following integrity issue: ${issue}
 [GUIDELINES]
 - Maintain CrustCode©™ patterns in all markdown.
 - If fixing a contradiction, use the "Supersession" pattern: link to the stale claim and mark it as superseded by the new finding.
-- Respond with ONLY a JSON array of actions:
-  [{"action": "update"|"create", "fileId": "...", "content": "..."}]
+[INSTRUCTIONS]
+1. Respond ONLY with a valid JSON array of actions. 
+2. Do NOT include any conversational filler, explanations, or backticks before or after the JSON.
+3. If no fix is possible, return an empty array [].
+4. Format each action exactly as: {"action": "update"|"create", "fileId": "...", "content": "..."}
+5. The 'fileId' should be relative to the wiki root (e.g., 'concepts/id').
 `,
 
     // Ingest / Synthesis

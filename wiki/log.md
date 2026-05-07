@@ -23,3 +23,9 @@ Chronological record of wiki evolution, synthesis events, and system updates.
 ## [2026-05-07] fix | orphan-projects/projects-index
 
 ## [2026-05-07] fix | orphan-references/references-index
+
+## [2026-05-07] fix | orphan-concepts/general-llm-cognition
+
+## [2026-05-07] fix | orphan-concepts/general-llm-cognition
+
+## [2026-05-07] fix | orphan-entities/entities-index

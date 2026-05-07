@@ -4,7 +4,7 @@ type: "concept"
 author: "LLM"
 lastUpdated: "2026-05-07"
 tags: ["llm", "cognition", "theory"]
-links: ["concepts/llm-knowledge-bases", "concepts/isolated-poly-p"]
+links: ["concepts/llm-knowledge-bases.md", "concepts/isolated-poly-p.md"]
 externalUrls: []
 confidence: 1
 supersededBy: ""
@@ -19,4 +19,4 @@ Exploring the internal reasoning mechanisms, world-modeling capabilities, and co
 - **Probabilistic Calibration**: How models estimate their own uncertainty.
 
 ## Related PolyPs
-- **Isolated PolyP**: This concept is linked to address the integrity issue of of the isolated poly-p node.
+- **Isolated PolyP**: This concept is linked to address the integrity issue of the isolated poly-p node.

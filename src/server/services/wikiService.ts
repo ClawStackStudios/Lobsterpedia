@@ -44,14 +44,27 @@ export class WikiService {
       const catPath = path.join(this.wikiPath, cat);
       if (!fs.existsSync(catPath)) {
         fs.mkdirSync(catPath, { recursive: true });
+        const subIndexId = `${cat}/${cat}-index`;
         const subIndexPath = path.join(catPath, `${cat}-index.md`);
         if (!fs.existsSync(subIndexPath)) {
           const now = new Date().toISOString().split('T')[0];
-          const fm = `---\ntitle: "${cat.charAt(0).toUpperCase() + cat.slice(1)} Index"\ntype: "system"\nauthor: "System"\nlastUpdated: "${now}"\ntags: ["${cat}", "index"]\nlinks: []\n---\n`;
+          const fm = `---\ntitle: "${cat.charAt(0).toUpperCase() + cat.slice(1)} Index"\ntype: "system"\nauthor: "System"\nlastUpdated: "${now}"\ntags: ["${cat}", "index"]\nlinks: ["index-list"]\n---\n`;
           fs.writeFileSync(subIndexPath, fm + `# ${cat.charAt(0).toUpperCase() + cat.slice(1)} Index\nThis index catalogizes the ${cat} category.`);
+          
+          // Link it to the manifest
+          this.updateIndexCatalog(subIndexId, `${cat.charAt(0).toUpperCase() + cat.slice(1)} Index`, `Index for ${cat}`, 'system');
         }
       }
     });
+
+    // Ensure Activity Log exists and is linked
+    const logPath = path.join(this.wikiPath, 'log.md');
+    if (!fs.existsSync(logPath)) {
+       const now = new Date().toISOString().split('T')[0];
+       const logFm = `---\ntitle: "Activity Log"\ntype: "system"\nauthor: "System"\nlastUpdated: "${now}"\ntags: ["log", "system"]\nlinks: ["index-list"]\n---\n# Wiki Activity Log\nThis is a chronological record of wiki evolution.\n`;
+       fs.writeFileSync(logPath, logFm);
+       this.updateIndexCatalog('log', 'Activity Log', 'System activity and mutation log', 'system');
+    }
 
     // Ensure initial seed if empty (The Genetic Pearl)
     const files = fs.readdirSync(this.wikiPath);
