@@ -22,8 +22,11 @@
   <DonateLink/>
   <Requires/>
   <Config Name="Wiki Data" Target="/app/wiki" Default="/mnt/user/appdata/lobsterpedia/wiki" Mode="rw" Description="Location for the markdown wiki files" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/lobsterpedia/wiki</Config>
+  <Config Name="Carapace Wiki Data" Target="/app/carapace" Default="/mnt/user/appdata/lobsterpedia/carapace" Mode="rw" Description="Location for machine-synthesized insights" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/lobsterpedia/carapace</Config>
   <Config Name="Web UI Port" Target="7575" Default="7575" Mode="tcp" Description="The Default Port for the Web GUI" Type="Port" Display="always" Required="true" Mask="false">7575</Config>
   <Config Name="OpenRouter API Key" Target="OPENROUTER_API_KEY" Default="" Mode="" Description="API Key for synthesis (Optional)" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Hatch Carapace" Target="HATCH_CARAPACE" Default="false" Mode="" Description="Activate the autonomous Dreaming Layer (Requires HATCH_DATABASE=true)" Type="Variable" Display="always" Required="false" Mask="false">false</Config>
+  <Config Name="Carapace Frequency" Target="CARAPACE_FREQUENCY" Default="3600000" Mode="" Description="Frequency of dream sweeps in ms (Default 1hr)" Type="Variable" Display="advanced" Required="false" Mask="false">3600000</Config>
   <Config Name="CORS Origin" Target="CORS_ORIGIN" Default="" Mode="" Description="Allowed origin for strict CORS mode (Optional)" Type="Variable" Display="advanced" Required="false" Mask="false"/>
   <Config Name="Trust Proxy" Target="TRUST_PROXY" Default="false" Mode="" Description="Enable if behind a reverse proxy (true/false)" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
   <Config Name="Enforce HTTPS" Target="ENFORCE_HTTPS" Default="false" Mode="" Description="Force HTTPS redirect in production (true/false)" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>

@@ -14,6 +14,7 @@ The codebase is partitioned into discrete feature domains to prevent monolithic 
 - `shell-core`: Shared types, constants, and global system invariants.
 - `reef-presentation`: Adaptive UI components (Motion, D3, Tailwind 4).
 - `molt-engine`: API state management and asynchronous data handshakes.
+- `services`: The "Reef Mind" (DbService, WikiService, DreamerService, PromptManager).
 
 ## 🦞 CrustCode©™ Patterns
 
@@ -22,6 +23,8 @@ The codebase is partitioned into discrete feature domains to prevent monolithic 
 - **Protocol Partitions**: Strict enforcement of the `isManualMode` state to isolate automated side-effects from human workflows.
 - **Atomic File Operations**: Renaming and moving operations use safe, non-destructive FS primitives to ensure no orphaned PolyPs.
 - **Feature-Sliced Navigation**: Recursive, folder-aware directory trees with native drag & drop support.
+- **The Sovereign Voice**: High-fidelity prompt engineering via `PromptManager.ts` that implements the multi-disciplinary "Poly-Lobster" persona.
+- **Machine Subconscious (The Carapace)**: A dedicated 3-phase background pipeline for autonomous thematic synthesis and promotion.
 
 ## 🧬 Data Flow (The Scuttle Cycle)
 

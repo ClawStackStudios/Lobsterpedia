@@ -52,6 +52,8 @@ export interface DreamReflectionRecord {
   theme: string;
   summary: string;
   related_ids: string;  // JSON array of page_ids
+  confidence?: number;
+  relationship?: string;
   created_at?: string;
 }
 
@@ -175,6 +177,8 @@ export class DbService {
         theme       TEXT NOT NULL,
         summary     TEXT NOT NULL,
         related_ids TEXT DEFAULT '[]',
+        confidence  REAL DEFAULT 0,
+        relationship TEXT DEFAULT 'neutral',
         created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -480,9 +484,13 @@ export class DbService {
   public insertDreamReflection(record: DreamReflectionRecord): void {
     const db = this.guard();
     db.prepare(`
-      INSERT INTO dream_reflections (sweep_id, theme, summary, related_ids)
-      VALUES (@sweep_id, @theme, @summary, @related_ids)
-    `).run(record);
+      INSERT INTO dream_reflections (sweep_id, theme, summary, related_ids, confidence, relationship)
+      VALUES (@sweep_id, @theme, @summary, @related_ids, @confidence, @relationship)
+    `).run({
+      ...record,
+      confidence: record.confidence ?? 0,
+      relationship: record.relationship ?? 'neutral'
+    });
   }
 
   public getDreamReflections(sweepId: string): DreamReflectionRecord[] {

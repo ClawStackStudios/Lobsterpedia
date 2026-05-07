@@ -16,6 +16,8 @@ Maintainer: CrustAgent©™
 - **Manual Protocol**: We respect human intent. If Manual Mode is active, agentic automation (synthesis, linting) must yield to human orchestration.
 - **Epistemic Discipline**: We communicate with rigorous honesty. Measured confidence, deep reasoning, and parsimonious explanations are the requirements for every handshake.
 - **Hardened Shell**: Security is not an afterthought. Smart CORS, Helmet-hardened headers, and Dockerized deployment ensure the habitat is secure in any environment.
+- **The Sovereign Voice (Habitat Agent)**: Our LLM layer isn't a generic assistant. It is a **Master Wiki Habitat Scuttler**—a multi-disciplinary "Poly-Lobster" that combines the traits of the Scribe (narrative), Sentinel (security), Bolt (performance), Lock (persistence), and Palette (polish).
+- **Memory Lifecycle (LLM Wiki v2)**: Knowledge in the reef is not static. We implement confidence scoring, supersession (newer facts refining older ones), and consolidation tiers (Episodic → Semantic) to prevent the wiki from rotting.
 
 ## 🛠️ Specialized Skills Library
 
@@ -50,8 +52,8 @@ The **Carapace** is an autonomous background engine that reads the Ledger, synth
   The engine scans the Molt Ledger for recent activity, identifying "Hot Pearls", "Islands", and "Low Confidence" nodes.
 - **Phase 2: Tidal Dreaming (REM Sleep)**
   The engine uses an LLM to reflect on the staged candidates, identifying cross-cutting themes, contradictions, and knowledge gaps.
-- **Phase 3: Carapace Hardening (Deep Sleep)**
   Candidates are strictly gated using a **6-signal weighted formula** (Molt Frequency, Link Relevance, Author Diversity, Recency, Consolidation, Conceptual Richness). Only candidates that pass `minScore >= 0.6` and `minMoltCount >= 3` are promoted to immutable `carapace/insights/` files.
+- **Sovereign Reflection**: During the REM phase, the agent identifies **Typed Relationships** (supersedes, reinforces, contradicts) and assigns **Confidence Scores** to every synthesized theme, which are persisted in the Sovereign Ledger.
 
 *Constraint:* The Carapace output directory is strictly excluded from `autoScanner` witnessing to prevent runaway feedback loops.
 

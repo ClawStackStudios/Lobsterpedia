@@ -14,6 +14,7 @@ import fs from 'fs';
 import path from 'path';
 import { dbService } from './dbService.js';
 import type { DreamCandidateRecord, PearlSignals } from './dbService.js';
+import { PROMPTS } from './promptManager.js';
 import {
   scorePearl,
   passesGates,
@@ -86,10 +87,74 @@ export class DreamerService {
       path.join(this.carapacePath, 'dreams'),
       path.join(this.carapacePath, 'dreams', 'sweeps'),
       path.join(this.carapacePath, 'insights'),
+      path.join(this.carapacePath, 'reflections'),
     ];
     for (const dir of dirs) {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
+      }
+    }
+
+    this.seedCarapace();
+  }
+
+  /**
+   * Seeds the Carapace with an initial index and category explanation if empty.
+   * This turns the sandboxed directory into a readable "Machine Wiki".
+   */
+  private seedCarapace(): void {
+    const indexPath = path.join(this.carapacePath, 'index.md');
+    if (fs.existsSync(indexPath)) return;
+
+    const now = new Date().toISOString().split('T')[0];
+    const content = `---
+title: "The Carapace: Machine Subconscious"
+type: "system"
+author: "Dreamer"
+lastUpdated: "${now}"
+tags: ["root", "carapace", "subconscious"]
+links: []
+---
+# 🦞 The Carapace
+
+Welcome to the **Machine Subconscious** of Lobsterpedia. 
+
+This directory is a sandboxed "Machine Wiki" where the autonomous Dreaming Layer synthesizes, reflects, and promotes knowledge without human intervention.
+
+## 🌌 Topology of the Subconscious
+
+- **[[insights/|Insights]]**: High-confidence knowledge promoted during **Deep Sleep**. These are the "Hardened Shells" of the reef's thinking.
+- **[[dreams/JOURNAL.md|Dream Journal]]**: A chronological record of every dream sweep, including staged candidates and scoring breakdowns.
+- **[[reflections/|Reflections]]**: Thematic patterns and contradictions identified during **REM Sleep**.
+
+## ⚖️ The Law of the Carapace
+
+1. **Autonomous Territory**: The Dreamer writes here. Humans are encouraged to read and link, but manual edits here may be overwritten or ignored by the engine.
+2. **Promotion Gate**: Nothing enters the \`insights/\` directory without passing the 6-signal weighted scoring gate (\`minScore >= 0.6\`).
+3. **Sandbox Isolation**: This directory is invisible to the main wiki scanner to prevent recursive feedback loops.
+
+---
+*Maintained by the Carapace Dreamer*
+`;
+    fs.writeFileSync(indexPath, content);
+
+    // Create category indices
+    const categories = ['insights', 'reflections'];
+    for (const cat of categories) {
+      const catIndexPath = path.join(this.carapacePath, cat, 'index.md');
+      if (!fs.existsSync(catIndexPath)) {
+        const catContent = `---
+title: "Carapace: ${cat.charAt(0).toUpperCase() + cat.slice(1)}"
+type: "system"
+author: "Dreamer"
+lastUpdated: "${now}"
+tags: ["carapace", "${cat}"]
+---
+# ${cat.charAt(0).toUpperCase() + cat.slice(1)}
+
+This directory contains autonomous outputs related to the ${cat} phase of dreaming.
+`;
+        fs.writeFileSync(catIndexPath, catContent);
       }
     }
   }
@@ -257,17 +322,8 @@ export class DreamerService {
           model: 'mistralai/mistral-small-3.1-24b-instruct',
           messages: [
             {
-              role: 'system',
-              content: `You are the Carapace Dreamer for Lobsterpedia, a knowledge wiki. ` +
-                `You are performing REM-phase synthesis on wiki activity signals. ` +
-                `Respond ONLY with valid JSON — an array of theme objects. ` +
-                `Each object must have: "theme" (string), "summary" (string), "related_ids" (string array of page IDs). ` +
-                `Identify 2-4 cross-cutting themes, contradictions, or knowledge gaps.`,
-            },
-            {
               role: 'user',
-              content: `These wiki pages showed the most activity recently:\n\n${summaryLines.join('\n')}\n\n` +
-                `Analyze these signals. What themes connect them? What contradictions exist? What knowledge gaps are visible?`,
+              content: PROMPTS.Wiki.TidalDreaming(summaryLines.join('\n')),
             },
           ],
           temperature: 0.7,
@@ -299,6 +355,8 @@ export class DreamerService {
           theme: r.theme,
           summary: r.summary,
           related_ids: JSON.stringify(r.related_ids || []),
+          confidence: r.confidence,
+          relationship: r.relationship,
         });
       }
 

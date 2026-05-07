@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { wikiService } from '../services/wikiService.js';
 import { dbService } from '../services/dbService.js';
+import { PROMPTS } from '../services/promptManager.js';
 
 const router = express.Router();
 
@@ -104,19 +105,7 @@ router.post("/fix", async (req, res) => {
     // Augment with Geometric Context if database is active
     const geometricContext = getGeometricContext(issue.sourceId);
 
-    const prompt = `You are the backend maintenance agent for Lobsterpedia, a "Geometric Knowledge Reef."
-Your goal is to maintain the integrity of the knowledge graph while fixing issues.
-
-${geometricContext}
-
-Issue to Fix: ${issue.description}
-Contextual Files Provided: ${contextStr}
-
-INSTRUCTIONS:
-1. Fix the issue strictly following the Lobsterpedia philosophy (no ghost files, high synthesis).
-2. If the target page has a high confidence score or high relevance hub status, proceed with surgical precision.
-3. Maintain all frontmatter fields (title, type, author, lastUpdated, tags, links, confidence).
-4. Respond with ONLY a JSON array of actions: [{"action": "update", "fileId": "...", "content": "..."}]`;
+    const prompt = PROMPTS.Wiki.HabitatMaintenance(geometricContext, issue.description + `\nContextual Files Provided: ${contextStr}`);
 
     const safeTitle = "Lobsterpedia";
     const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');

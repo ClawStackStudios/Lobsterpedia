@@ -8,6 +8,7 @@ services:
     # ─── Docker Bind Mount for Wiki ───────
     volumes:
       - ./wiki:/app/wiki
+      - ./carapace:/app/carapace
     environment:
       - NODE_ENV=production
       - PORT=7575
@@ -18,6 +19,10 @@ services:
       - PGID=1000
       - TRUST_PROXY=true
       - ENFORCE_HTTPS=false
+      - HATCH_DATABASE=${HATCH_DATABASE:-false}
+      - HATCH_CARAPACE=${HATCH_CARAPACE:-false}
+      - CARAPACE_PATH=/app/carapace
+      - CARAPACE_FREQUENCY=${CARAPACE_FREQUENCY:-3600000}
       # For detailed configuration, see README.md → Running with Docker section
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:7575/api/wiki/health"]
