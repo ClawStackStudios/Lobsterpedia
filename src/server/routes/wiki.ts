@@ -3,7 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import { wikiService } from '../services/wikiService.js';
-import { createRequire } from "module";
+import { fileParserService } from '../services/fileParserService.js';
+import { linterService } from '../services/linterService.js';
+import { habitatLogger, HabitatSignal } from '../services/habitatLogger.js';
 import chokidar from 'chokidar';
 
 const router = express.Router();
@@ -211,140 +213,28 @@ router.delete("/delete/*", async (req, res) => {
 });
 
 router.post("/parse", upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: "Missing file payload." });
-    
-    const require = createRequire(import.meta.url);
-    let extractedText = "";
-    const ext = path.extname(req.file.originalname).toLowerCase();
-    
-    if (ext === '.pdf') {
-      const pdfParse = require("pdf-parse");
-      const data = await pdfParse(req.file.buffer);
-      extractedText = data.text;
-    } else if (ext === '.docx' || ext === '.doc') {
-      const mammoth = require("mammoth");
-      const result = await mammoth.extractRawText({ buffer: req.file.buffer });
-      extractedText = result.value;
-    } else if (ext === '.rtf') {
-      const { parseOffice } = require("officeparser");
-      const doc = await parseOffice(req.file.buffer);
-      extractedText = doc.toText();
-    } else if (ext === '.txt' || ext === '.md') {
-      extractedText = req.file.buffer.toString('utf-8');
-    } else {
-      return res.status(400).json({ error: "Unsupported file type." });
+  if (!req.file) return res.status(400).json({ error: "Missing file payload." });
+
+  const result = await fileParserService.parseBuffer(req.file.originalname, req.file.buffer);
+
+  if (result.error) {
+    if (result.error === "Unsupported file type.") {
+      return res.status(400).json({ error: result.error });
     }
-    res.json({ text: extractedText });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to extract pearl payload." });
+    return res.status(500).json({ error: result.error });
   }
+
+  res.json({ text: result.text });
 });
 
 router.get("/lint", (req, res) => {
   try {
-    habitatLogger.log('lint', `Starting reef-wide scan...`, 'info');
-    const files = wikiService.walkDir().filter(f => f.endsWith('.md'));
-    const issues: any[] = [];
-    const allIds = files.map(f => path.relative(wikiService.getWikiPath(), f).replace(/\.md$/, '').replace(/\\/g, '/'));
-    
-    // ─── Smart Link Resolution (The Linter's Eyes) ──────────────────────────────
-    const resolveLinkId = (rawLinkId: string, sourceId: string) => {
-      const linkId = rawLinkId.replace(/\.md$/, '');
-      
-      // 1. Exact match
-      if (allIds.includes(linkId)) return linkId;
-      if (linkId === 'index' || linkId === 'index-list') return linkId;
-
-      // 2. Relative match (same category)
-      if (sourceId.includes('/')) {
-        const category = sourceId.split('/')[0];
-        const relativePath = `${category}/${linkId}`;
-        if (allIds.includes(relativePath)) return relativePath;
-      }
-
-      // 3. Fuzzy global match (any category/id)
-      const fuzzyMatch = allIds.find(id => id.endsWith(`/${linkId}`));
-      if (fuzzyMatch) return fuzzyMatch;
-
-      return null;
-    };
-
-    const parsedPages = files.map(f => {
-      const data = fs.readFileSync(f, 'utf-8');
-      const { metadata, content } = wikiService.parseCrustMarkdown(data);
-      const id = path.relative(wikiService.getWikiPath(), f).replace(/\.md$/, '').replace(/\\/g, '/');
-      return { id, metadata, content };
-    });
-
-    parsedPages.forEach(page => {
-      const { id, metadata } = page;
-      
-      // 1. Broken Links
-      const links = metadata.links || [];
-      links.forEach((link: string) => {
-        const resolved = resolveLinkId(link, id);
-        if (!resolved) {
-          issues.push({
-            id: `broken-link-${id}-${link}`,
-            type: 'broken-link',
-            severity: 'warn',
-            sourceId: id,
-            description: `Reference to non-existent PolyP: [[${link}]]`,
-            suggestion: `Verify the link ID or synthesize the missing knowledge node.`
-          });
-        }
-      });
-      
-      // 2. Metadata Rot
-      if (!metadata.title) {
-        issues.push({
-          id: `missing-title-${id}`,
-          type: 'metadata-rot',
-          severity: 'info',
-          sourceId: id,
-          description: `Missing title in frontmatter.`,
-          suggestion: `Add a 'title' field to ensure professional indexing.`
-        });
-      }
-      
-      // 3. Orphans (No incoming links)
-      const isLinked = parsedPages.some(otherPage => {
-        if (otherPage.id === id) return false;
-        
-        // Check metadata links
-        const otherLinks = otherPage.metadata.links || [];
-        const hasLinkInMeta = otherLinks.some((l: string) => resolveLinkId(l, otherPage.id) === id);
-        if (hasLinkInMeta) return true;
-
-        // Special case: root hub and index-list are starting points
-        if (otherPage.id === 'index' || otherPage.id === 'index-list') {
-           // We already checked metadata, but let's be explicit
-        }
-
-        return false;
-      });
-      
-      if (!isLinked && id !== 'index' && id !== 'index-list') {
-        issues.push({
-          id: `orphan-${id}`,
-          type: 'orphan',
-          severity: 'info',
-          sourceId: id,
-          description: `Isolated PolyP: No incoming links detected.`,
-          suggestion: `Connect this node to the reef by linking to it from the index or related articles.`
-        });
-      }
-    });
-    
-    habitatLogger.log('lint', `Scan complete: Found ${issues.length} issues across ${files.length} pearls`, issues.length > 0 ? 'warn' : 'success');
-    res.json({ issues });
+    const result = linterService.lintReef();
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: "Linting engine failed." });
   }
 });
-
-import { habitatLogger, HabitatSignal } from '../services/habitatLogger.js';
 
 // ... (existing code remains above)
 
