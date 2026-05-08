@@ -8,6 +8,7 @@ import wikiRoutes from './routes/wiki.js';
 import aiRoutes from './routes/ai.js';
 import ledgerRoutes from './routes/ledger.js';
 import carapaceRoutes from './routes/carapace.js';
+import systemRoutes from './routes/system.js';
 import { dreamerService } from './services/dreamerService.js';
 
 export function createApp() {
@@ -69,6 +70,7 @@ export function createApp() {
   app.use('/api/ai', aiLimiter, aiRoutes);
   app.use('/api/ledger', ledgerRoutes);
   app.use('/api/carapace', carapaceRoutes);
+  app.use('/api/system', systemRoutes);
 
   // ─── Start Autonomous Services ────────────────────────────────────────────
   dreamerService.start();

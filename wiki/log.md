@@ -41,3 +41,5 @@ Chronological record of wiki evolution, synthesis events, and system updates.
 ## [2026-05-07] delete | concepts/poly-context-llm-wiki-v2
 
 ## [2026-05-07] delete | entities/polyP
+
+## [2026-05-08] fix | broken-link-concepts/general-llm-cognition-concepts/isolated-poly-p.md

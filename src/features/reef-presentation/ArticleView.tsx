@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Activity, Copy, CheckCircle2, Edit3, Save, X, Plus, Trash2, Library, ExternalLink, ArrowRight, Bot, AlertTriangle, AlertCircle } from 'lucide-react';
+import { RefreshCw, Activity, Copy, CheckCircle2, Edit3, Save, X, Plus, Trash2, Library, ExternalLink, ArrowRight, Bot, AlertTriangle, AlertCircle, Network, Grip } from 'lucide-react';
 import { PolyP, Reef, AIProvider } from '../shell-core/types';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -71,6 +71,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
 
   // Citation State
   const [showCitations, setShowCitations] = useState(false);
+  const [showCrossReferences, setShowCrossReferences] = useState(true);
 
   // History State
   const [activeTab, setActiveTab] = useState<'content' | 'history'>('content');
@@ -81,6 +82,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
 
   // Frontmatter State
   const [showFrontmatter, setShowFrontmatter] = useState(false);
+  const [showActionsModal, setShowActionsModal] = useState(false);
 
   // Reset edit/delete/summary state when article changes
   useEffect(() => {
@@ -96,6 +98,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
       setActiveTab('content');
       setViewingHistoricalCommit(null);
       setHistoricalContent(null);
+      setShowActionsModal(false);
     }
   }, [article?.id]);
 
@@ -300,11 +303,21 @@ Summarize your findings with epistemic rigor.`;
             <button onClick={() => onNavigate('index')} className="hover:underline cursor-pointer">wiki</button>
             <span>/</span>
             <span className="text-text-primary/70 font-bold">{article.id}.md</span>
-            {article.confidence !== undefined && (
-              <div className={`ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter ${article.confidence > 0.8 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                {Math.round(article.confidence * 100)}% Confidence
+            <div className="flex flex-col gap-1 min-w-[100px] ml-4">
+              <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-[0.2em] text-text-primary/30">
+                <span>Confidence</span>
+                <span className="text-lobster">
+                  {article.confidence !== undefined ? `${Math.round(article.confidence * 100)}%` : 'No Score'}
+                </span>
               </div>
-            )}
+              <div className="h-1 w-full bg-border-primary/50 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: article.confidence !== undefined ? `${article.confidence * 100}%` : '0%' }}
+                  className="h-full bg-lobster shadow-[0_0_8px_rgba(230,57,70,0.4)]"
+                />
+              </div>
+            </div>
             {article.supersededBy && (
               <button 
                 onClick={() => onNavigate('article', article.supersededBy!)}
@@ -320,78 +333,18 @@ Summarize your findings with epistemic rigor.`;
             >
               <Activity size={10} /> View in Graph
             </button>
+            <span className="mx-2 opacity-20">|</span>
+            <button 
+              onClick={() => setShowActionsModal(true)}
+              className="group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-text-primary/40 hover:text-lobster transition-colors"
+            >
+              <Grip size={12} className="group-hover:rotate-90 transition-transform" />
+              Actions
+            </button>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            {!isEditing ? (
-              <>
-                <button 
-                  onClick={handleCopy}
-                  className="p-2 hover:bg-border-primary/50 rounded-md transition-colors flex items-center gap-2 text-xs font-bold text-text-primary/50 uppercase tracking-widest cursor-pointer"
-                >
-                  {copied ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
-                  {copied ? 'Copy' : 'Copy'}
-                </button>
-                <button 
-                  onClick={handleSummarize}
-                  disabled={isSummarizing || isManualMode}
-                  className="p-2 hover:bg-border-primary/50 rounded-md transition-colors flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-widest cursor-pointer disabled:opacity-50"
-                  title={isManualMode ? "Summarization is locked in manual mode." : "AI Synthesis Pass"}
-                >
-                  {isSummarizing ? <RefreshCw size={14} className="animate-spin" /> : (isManualMode ? <Save size={14} className="opacity-40" /> : <Activity size={14} />)}
-                  {isSummarizing ? 'Summarizing...' : (isManualMode ? 'Summarize (Locked)' : 'Summarize')}
-                </button>
-                <button 
-                  onClick={() => setShowCitations(!showCitations)}
-                  className={`p-2 rounded-md transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest cursor-pointer ${showCitations ? 'bg-lobster text-white' : 'hover:bg-border-primary/50 text-text-primary/50'}`}
-                  title="Cite Sources"
-                >
-                  <Library size={14} /> Cite
-                </button>
-                <button 
-                  onClick={() => setIsEditing(true)}
-                  className="p-2 hover:bg-border-primary/50 rounded-md transition-colors flex items-center gap-2 text-xs font-bold text-lobster uppercase tracking-widest cursor-pointer"
-                >
-                  <Edit3 size={14} /> Edit
-                </button>
-
-                {article.id !== 'index' && (
-                  <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border-primary">
-                    {!confirmDelete ? (
-                      <button 
-                        onClick={() => setConfirmDelete(true)}
-                        className="p-2 hover:bg-red-500/10 rounded-md transition-colors flex items-center gap-2 text-xs font-bold text-text-primary/40 hover:text-red-500 uppercase tracking-widest cursor-pointer"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-1 bg-red-500/10 p-1 rounded-md border border-red-500/20">
-                        <button 
-                          onClick={handleDelete}
-                          disabled={isDeleting}
-                          className="px-2 py-1 bg-red-600 text-white rounded text-[9px] font-black uppercase tracking-widest hover:bg-red-700 transition-all flex items-center gap-1 min-w-[100px] justify-center"
-                        >
-                          {isDeleting ? (
-                            <>
-                              <RefreshCw size={10} className="animate-spin" /> 
-                              <span>Purging...</span>
-                            </>
-                          ) : (
-                            'Confirm Purge'
-                          )}
-                        </button>
-                        <button 
-                          onClick={() => setConfirmDelete(false)}
-                          className="px-2 py-1 text-text-primary/50 text-[9px] font-black uppercase tracking-widest hover:bg-bg-primary rounded"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
+          <div className="flex items-center gap-3">
+            {isEditing && (
               <div className="flex items-center gap-3">
                 <button 
                   onClick={handleSave}
@@ -426,6 +379,140 @@ Summarize your findings with epistemic rigor.`;
             )}
           </div>
         </div>
+
+        {/* Actions Modal */}
+        <AnimatePresence>
+          {showActionsModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowActionsModal(false)}
+                className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                className="bg-card-bg border border-border-primary rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative z-10"
+              >
+                <div className="p-6 border-b border-border-primary flex items-center justify-between bg-bg-primary/50">
+                  <div className="flex items-center gap-2 text-lobster">
+                    <Grip size={18} />
+                    <span className="font-black uppercase tracking-[0.2em] text-xs">Node Actions</span>
+                  </div>
+                  <button onClick={() => setShowActionsModal(false)} className="text-text-primary/30 hover:text-lobster transition-colors">
+                    <X size={18} />
+                  </button>
+                </div>
+                
+                <div className="p-4 space-y-2">
+                  <button 
+                    onClick={() => { handleCopy(); setShowActionsModal(false); }}
+                    className="w-full p-4 rounded-xl hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/50 group-hover:text-lobster">
+                        {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                      </div>
+                      <div className="text-left">
+                        <div className="text-xs font-black uppercase tracking-widest text-text-primary">Copy Content</div>
+                        <div className="text-[9px] text-text-primary/40 font-mono">Clipboard Buffer</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setIsEditing(true); setShowActionsModal(false); }}
+                    className="w-full p-4 rounded-xl hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/50 group-hover:text-lobster">
+                        <Edit3 size={16} />
+                      </div>
+                      <div className="text-left">
+                        <div className="text-xs font-black uppercase tracking-widest text-text-primary">Edit Article</div>
+                        <div className="text-[9px] text-text-primary/40 font-mono">Manual Revision</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { handleSummarize(); setShowActionsModal(false); }}
+                    disabled={isSummarizing || isManualMode}
+                    className="w-full p-4 rounded-xl hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all flex items-center justify-between group disabled:opacity-40"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-blue-500">
+                        {isSummarizing ? <RefreshCw size={16} className="animate-spin" /> : <Activity size={16} />}
+                      </div>
+                      <div className="text-left">
+                        <div className="text-xs font-black uppercase tracking-widest text-text-primary">AI Summarize</div>
+                        <div className="text-[9px] text-text-primary/40 font-mono">{isManualMode ? 'Locked: Manual Mode' : 'Synthesis Pass'}</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => { setShowCitations(!showCitations); setShowActionsModal(false); }}
+                    className={`w-full p-4 rounded-xl border transition-all flex items-center justify-between group ${showCitations ? 'bg-lobster text-white border-lobster shadow-lg shadow-lobster/20' : 'hover:bg-lobster/10 border-transparent hover:border-lobster/20'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${showCitations ? 'bg-white/20' : 'bg-bg-primary text-text-primary/50 group-hover:text-lobster'}`}>
+                        <Library size={16} />
+                      </div>
+                      <div className="text-left">
+                        <div className={`text-xs font-black uppercase tracking-widest ${showCitations ? 'text-white' : 'text-text-primary'}`}>Citations</div>
+                        <div className={`text-[9px] font-mono ${showCitations ? 'text-white/60' : 'text-text-primary/40'}`}>{showCitations ? 'Visible' : 'Hidden'}</div>
+                      </div>
+                    </div>
+                    {showCitations && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+                  </button>
+
+                  {article.id !== 'index' && (
+                    <div className="pt-2">
+                      {!confirmDelete ? (
+                        <button 
+                          onClick={() => setConfirmDelete(true)}
+                          className="w-full p-4 rounded-xl hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all flex items-center justify-between group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/40 group-hover:text-red-500">
+                              <Trash2 size={16} />
+                            </div>
+                            <div className="text-left">
+                              <div className="text-xs font-black uppercase tracking-widest text-text-primary">Delete Page</div>
+                              <div className="text-[9px] text-text-primary/40 font-mono">Irreversible Purge</div>
+                            </div>
+                          </div>
+                        </button>
+                      ) : (
+                        <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4">
+                          <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3 text-center">Confirm Deletion?</div>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={handleDelete}
+                              className="flex-1 py-2 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all"
+                            >
+                              Confirm
+                            </button>
+                            <button 
+                              onClick={() => setConfirmDelete(false)}
+                              className="flex-1 py-2 bg-bg-primary text-text-primary/50 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-border-primary/50 transition-all"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {isEditing ? (
           <div className="space-y-4">
@@ -881,25 +968,71 @@ Summarize your findings with epistemic rigor.`;
       )}
 
       {article.links && article.links.length > 0 && !isEditing && activeTab === 'content' && (
-        <div className="my-10 bg-lobster/10 border-l-4 border-lobster p-8 rounded-r-lg shadow-sm">
-          <h3 className="text-[10px] font-black text-lobster uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-            <RefreshCw size={14}/> Semantic Cross-References
-          </h3>
-          <div className="flex flex-wrap gap-3">
-            {article.links.map(linkId => (
-              <WikiLink 
-                key={linkId}
-                id={linkId}
-                currentPageId={article.id}
-                pages={pages}
-                onNavigate={onNavigate}
-                onHoverNode={onHoverNode}
-                hoveredLink={hoveredLink}
-                setHoveredLink={setHoveredLink}
-                variant="button"
-              />
-            ))}
-          </div>
+        <div className="my-10">
+          <button 
+            type="button"
+            onClick={() => setShowCrossReferences(!showCrossReferences)}
+            className="group flex items-center gap-3 mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-text-primary/30 hover:text-lobster transition-all cursor-pointer w-full text-left"
+          >
+            <Network size={14} className={showCrossReferences ? 'text-lobster' : 'text-text-primary/20 group-hover:text-lobster'} />
+            <span>Semantic Topology Meta-Index</span>
+            <div className="h-[1px] flex-1 bg-border-primary/50 group-hover:bg-lobster/30 transition-all" />
+            <span className="text-[8px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+               {showCrossReferences ? '[ Collapse ]' : '[ Expand ]'}
+            </span>
+          </button>
+
+          <AnimatePresence>
+            {showCrossReferences && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-8 bg-card-bg text-text-primary rounded-xl shadow-xl border border-border-primary relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-lobster/5 rounded-full -mr-24 -mt-24 blur-3xl pointer-events-none" />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+                    {article.links.map(linkId => {
+                      const linked = pages[linkId];
+                      return (
+                        <button 
+                          key={linkId} 
+                          type="button"
+                          onClick={() => onNavigate('article', linkId)}
+                          className="flex items-center justify-between p-4 rounded-lg bg-bg-primary/40 border border-border-primary hover:border-lobster hover:bg-bg-primary transition-all text-left group cursor-pointer"
+                        >
+                          <div className="overflow-hidden flex-1 pr-4">
+                            <div className="text-xs font-black text-text-primary group-hover:text-lobster transition-colors truncate">{linked?.title || linkId}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                               <span className="text-[8px] font-mono text-text-primary/40 truncate">{linkId}</span>
+                            </div>
+                          </div>
+
+                          <ArrowRight size={14} className="text-text-primary/10 group-hover:text-lobster transition-all transform group-hover:translate-x-1 shrink-0" />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-8 flex items-center justify-between border-t border-border-primary/30 pt-6">
+                     <div className="flex items-center gap-4 text-[9px] font-bold text-text-primary/30 uppercase tracking-widest">
+                        <div className="flex items-center gap-1.5">
+                           <div className="w-1.5 h-1.5 rounded-full bg-lobster" />
+                           <span>{article.links.length} Identified Connections</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                           <div className="w-1.5 h-1.5 rounded-full bg-blue-500/40" />
+                           <span>Auto-Reflexive Index</span>
+                        </div>
+                     </div>
+                     <p className="text-[9px] italic text-text-primary/20">Synthesized topology mapping active.</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 

@@ -13,7 +13,7 @@ import { dbService } from './dbService.js';
 
 export class AutoScanner {
   private timer: NodeJS.Timeout | null = null;
-  private settings = { scanInterval: '5m', autoIngest: false };
+  private settings = { scanInterval: '5m', autoIngest: false, preventAutoGenesis: false };
   private fileTimestamps: Map<string, number> = new Map();
 
   constructor() {
@@ -26,6 +26,15 @@ export class AutoScanner {
       try {
         this.settings = { ...this.settings, ...JSON.parse(fs.readFileSync(settingsPath, 'utf-8')) };
       } catch(e) {}
+    }
+  }
+
+  private saveSettings() {
+    const settingsPath = path.join(wikiService.getWikiPath(), 'settings.json');
+    try {
+      fs.writeFileSync(settingsPath, JSON.stringify(this.settings, null, 2));
+    } catch(e) {
+      console.error('[AutoScanner] Failed to save settings:', e);
     }
   }
 
@@ -97,6 +106,11 @@ export class AutoScanner {
     if (!dbService.isActive) return;
     const stats = dbService.getStats();
     if (stats.pearl_count > 0) return;
+
+    if (this.settings.preventAutoGenesis) {
+      console.log(`[CrustAgent Witness] Auto-Genesis is LOCKED. Waiting for manual authorization.`);
+      return;
+    }
 
     console.log(`[CrustAgent Witness] Performing Genesis Molt — seeding ${mdFiles.length} pearls...`);
     const wikiRoot = wikiService.getWikiPath();
@@ -195,6 +209,31 @@ export class AutoScanner {
 
   public stop() {
     if (this.timer) clearInterval(this.timer);
+  }
+
+  // ─── Hatch Lock Protocol ──────────────────────────────────────────────────
+
+  /**
+   * Locks or unlocks the Genesis protocol.
+   * When locked, an empty DB will stay empty until triggerGenesisMolt is called.
+   */
+  public setHatchLock(locked: boolean) {
+    this.settings.preventAutoGenesis = locked;
+    this.saveSettings();
+    console.log(`[AutoScanner] Hatch Lock ${locked ? 'ENGAGED' : 'DISENGAGED'}`);
+  }
+
+  public getHatchLock(): boolean {
+    return this.settings.preventAutoGenesis;
+  }
+
+  /**
+   * Manually triggers the Genesis Molt and clears the lock.
+   */
+  public async triggerGenesisMolt() {
+    this.setHatchLock(false);
+    // Trigger a scan immediately
+    await this.performScan();
   }
 }
 

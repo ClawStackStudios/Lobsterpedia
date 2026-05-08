@@ -25,6 +25,7 @@
 - [x] Auto-detect and convert `[[page-id]]` internal links
 - [x] Implemented Dark Mode Toggle with liquid transition
 - [/] **Search Filters**: Tags, Author, and Date implemented.
+- [ ] **Add Edit button to `index-list.md` page so users can make uanual edits to the markdown list file, but no changes to the machine database storage. That remains view only. 
     - [ ] Add **Document Type** (Concept, Entity, System) filter.
 - [ ] **Search Refinement**:
     - [ ] Highlight query terms in search results.

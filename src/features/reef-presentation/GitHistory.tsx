@@ -275,12 +275,15 @@ export const GitHistory: React.FC<{ theme?: 'light' | 'dark' }> = ({ theme: _the
                       <span className="text-[9px] font-black bg-border-primary/60 text-text-primary/50 px-2 py-0.5 rounded uppercase">
                         {pearl.type}
                       </span>
-                      <span
-                        className="text-[9px] font-black text-lobster"
-                        title={`Relevance Score: ${relevancePct}% (inbound link density)`}
-                      >
-                        ↑{relevancePct}%
-                      </span>
+                      <div className="flex flex-col gap-1 min-w-[60px] text-right">
+                        <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-tighter text-lobster/40">
+                          <span>Rel</span>
+                          <span>{relevancePct}%</span>
+                        </div>
+                        <div className="h-1 w-full bg-border-primary/50 rounded-full overflow-hidden">
+                          <div className="h-full bg-lobster" style={{ width: `${relevancePct}%` }} />
+                        </div>
+                      </div>
                     </div>
                   </div>
                   {tags.length > 0 && (
@@ -292,14 +295,22 @@ export const GitHistory: React.FC<{ theme?: 'light' | 'dark' }> = ({ theme: _the
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-4 mt-2">
-                    <span className="text-[9px] text-text-primary/30">
-                      conf: {(pearl.confidence * 100).toFixed(0)}%
-                    </span>
-                    <span className="text-[9px] text-text-primary/30">
-                      by {pearl.author}
-                    </span>
-                    <span className="text-[9px] text-text-primary/30 flex items-center gap-1">
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-primary/30">
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col gap-1 min-w-[60px]">
+                        <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-tighter text-text-primary/30">
+                          <span>Conf</span>
+                          <span>{(pearl.confidence * 100).toFixed(0)}%</span>
+                        </div>
+                        <div className="h-0.5 w-full bg-border-primary/50 rounded-full overflow-hidden">
+                          <div className="h-full bg-lobster/60" style={{ width: `${pearl.confidence * 100}%` }} />
+                        </div>
+                      </div>
+                      <span className="text-[9px] text-text-primary/30 font-bold uppercase tracking-tighter">
+                        by {pearl.author}
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-text-primary/30 flex items-center gap-1 font-mono">
                       <Clock size={8} /> {pearl.last_updated}
                     </span>
                   </div>

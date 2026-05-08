@@ -17,6 +17,7 @@ import { DreamDiary } from './features/reef-presentation/DreamDiary';
 import { SearchResults } from './features/reef-presentation/SearchResults';
 import { SystemicGraph } from './features/reef-presentation/SystemicGraph';
 import { MaintenanceZone } from './features/reef-presentation/MaintenanceZone';
+import { ShipyardView } from './features/reef-presentation/ShipyardView';
 import { WikiDirectory } from './features/reef-presentation/WikiDirectory';
 import { Reef, HabitatLog, PolyP, AIProvider } from './features/shell-core/types';
 import { Search, List, Share2, Terminal, Network, GitBranch, FileText, Cpu, Menu, PanelLeftClose, PanelLeftOpen, Folder, ChevronRight, ChevronDown, GripVertical, Moon } from 'lucide-react';
@@ -116,10 +117,7 @@ export default function App() {
   const [showGraphSidebar, setShowGraphSidebar] = useState(false);
   const [graphSidebarWidth, setGraphSidebarWidth] = useState(450);
   const [isResizing, setIsResizing] = useState(false);
-  const [isManualMode, setIsManualMode] = useState(() => {
-    const saved = localStorage.getItem('lobsterpedia_manual_mode');
-    return saved === null ? true : saved === 'true';
-  });
+  const [isManualMode, setIsManualMode] = useState(true);
 
   useEffect(() => {
     localStorage.setItem('lobsterpedia_manual_mode', String(isManualMode));
@@ -529,7 +527,14 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                     </span>
                   </div>
                   <div className="w-full bg-border-primary h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-green-500 h-full w-[96%] transition-all duration-1000" />
+                    <div 
+                      className="h-full transition-all duration-1000 shadow-[0_0_10px_rgba(230,57,70,0.2)]" 
+                      style={{ 
+                        width: '96%',
+                        background: 'linear-gradient(to right, #E63946, #F59E0B, #10B981)',
+                        boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)'
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -620,10 +625,10 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                     <SearchResults key="search" query={searchQuery} reef={reef} onNavigate={moltNavigate} />
                   )}
                   {currentView === 'maintenance' && (
-                    <MaintenanceZone 
+                    <ShipyardView 
                       key="maintenance" 
                       issues={lintIssues}
-                      onRefresh={loadLintIssues}
+                      onRefreshIssues={loadLintIssues}
                       onNavigate={moltNavigate} 
                       aiProvider={aiProvider} 
                       openRouterModel={openRouterModel} 

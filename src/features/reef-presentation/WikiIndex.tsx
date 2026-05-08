@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Activity, Network, X } from 'lucide-react';
+import { Box, Activity, Network, X, ArrowRight, ChevronDown, ChevronUp, ShieldCheck, BarChart3, Database } from 'lucide-react';
 import { Reef, PolyP } from '../shell-core/types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -13,13 +13,15 @@ interface WikiIndexProps {
 }
 
 export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
-  const concepts = React.useMemo(() => 
-    (Object.values(pages) as PolyP[]).filter(p => p.type === 'concept'),
+  const allArticles = React.useMemo(() => 
+    (Object.values(pages) as PolyP[]).sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0)),
     [pages]
   );
+  
   const indexListPage = pages['index-list'];
 
   const [showVaultNotice, setShowVaultNotice] = useState(false);
+  const [showDatabaseIndex, setShowDatabaseIndex] = useState(false);
 
   useEffect(() => {
     const isDismissed = localStorage.getItem('lobsterpedia_vault_notice_dismissed');
@@ -93,74 +95,136 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
 
       {indexListPage && indexListPage.content && (
         <div className="mb-12">
-          <div className="bg-card-bg p-8 rounded-xl border border-border-primary prose prose-sm max-w-none prose-neutral prose-headings:text-text-primary prose-headings:font-black">
-            <ReactMarkdown 
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: ({node, ...props}) => <h1 className="text-2xl font-black mb-4 mt-8 pb-2 border-b border-border-primary" {...props} />,
-                h2: ({node, ...props}) => <h2 className="text-xl font-bold mb-3 mt-6 text-text-primary" {...props} />,
-                p: ({node, ...props}) => <p className="mb-4 leading-relaxed text-text-primary" {...props} />,
-                ul: ({node, ...props}) => <ul className="list-disc list-inside mb-4 space-y-1 ml-4 text-text-primary" {...props} />,
-                li: ({node, ...props}) => <li className="mb-1" {...props} />,
-                table: ({node, ...props}) => <div className="overflow-x-auto my-6"><table className="min-w-full divide-y divide-border-primary border border-border-primary rounded-lg text-sm" {...props} /></div>,
-                th: ({node, ...props}) => <th className="px-4 py-3 bg-bg-primary text-left text-xs font-semibold text-text-primary/50 uppercase tracking-wider border-b border-border-primary" {...props} />,
-                td: ({node, ...props}) => <td className="px-4 py-3 text-sm text-text-primary border-b border-border-primary" {...props} />,
-                blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-lobster pl-4 italic text-text-primary/70 my-6 bg-bg-primary py-2 pr-4 rounded-r-lg" {...props} />,
-                a: ({ node, href, children, ...props }) => {
-                  const isInternal = href && !href.startsWith('http');
-                  if (isInternal) {
-                    const linkId = href!.replace(/\.md$/, '');
-                    // Handle category links like "concepts" -> "concepts/concepts-index"
-                    const targetId = pages[linkId] ? linkId : (pages[`${linkId}/${linkId}-index`] ? `${linkId}/${linkId}-index` : linkId);
-                    
-                    return (
-                      <WikiLink 
-                        id={targetId} 
-                        pages={pages} 
-                        onNavigate={onNavigate} 
-                      >
-                        {children}
-                      </WikiLink>
-                    );
-                  }
-                  return <a href={href} className="text-lobster hover:underline" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h1: ({node, ...props}) => <h1 className="text-2xl font-black mb-4 mt-8 pb-2 border-b border-border-primary" {...props} />,
+              h2: ({node, ...props}) => <h2 className="text-xl font-bold mb-3 mt-6 text-text-primary" {...props} />,
+              p: ({node, ...props}) => <p className="mb-4 leading-relaxed text-text-primary/70" {...props} />,
+              ul: ({node, ...props}) => <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mb-6 list-none p-0" {...props} />,
+              li: ({node, children, ...props}) => (
+                  <li className="m-0 p-0" {...props}>
+                    {children}
+                  </li>
+              ),
+              table: ({node, ...props}) => <div className="overflow-x-auto my-6"><table className="min-w-full divide-y divide-border-primary border border-border-primary rounded-lg text-sm" {...props} /></div>,
+              th: ({node, ...props}) => <th className="px-4 py-3 bg-bg-primary text-left text-xs font-semibold text-text-primary/50 uppercase tracking-wider border-b border-border-primary" {...props} />,
+              td: ({node, ...props}) => <td className="px-4 py-3 text-sm text-text-primary border-b border-border-primary" {...props} />,
+              blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-lobster pl-4 italic text-text-primary/70 my-6 bg-bg-primary py-2 pr-4 rounded-r-lg" {...props} />,
+              a: ({ node, href, children, ...props }) => {
+                const isInternal = href && !href.startsWith('http');
+                if (isInternal) {
+                  const linkId = href!.replace(/\.md$/, '');
+                  const targetId = pages[linkId] ? linkId : (pages[`${linkId}/${linkId}-index`] ? `${linkId}/${linkId}-index` : linkId);
+                  const targetPage = pages[targetId];
+
+                  return (
+                    <button 
+                      onClick={() => onNavigate('article', targetId)}
+                      className="flex items-center justify-between w-full p-4 rounded-xl bg-card-bg border border-border-primary hover:border-lobster hover:shadow-lg hover:shadow-lobster/5 transition-all text-left group"
+                    >
+                      <div className="overflow-hidden flex-1 pr-4">
+                        <div className="text-sm font-black text-text-primary group-hover:text-lobster transition-colors truncate">{targetPage?.title || children}</div>
+                        <div className="text-[10px] font-mono text-text-primary/30 mt-1 uppercase tracking-widest">{targetId}</div>
+                      </div>
+                      <Activity size={14} className="text-text-primary/10 group-hover:text-lobster transition-colors shrink-0" />
+                    </button>
+                  );
                 }
-              }}
-            >
-              {indexListPage.content}
-            </ReactMarkdown>
-          </div>
+                return <a href={href} className="text-lobster hover:underline" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
+              }
+            }}
+          >
+            {indexListPage.content}
+          </ReactMarkdown>
         </div>
       )}
 
-      <div className="grid gap-4">
-        {concepts.map(page => (
-          <motion.div 
-            key={page.id} 
-            whileHover={{ y: -2 }}
-            onClick={() => onNavigate('article', page.id)}
-            className="group cursor-pointer card-polished p-6 hover:border-lobster transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card-bg"
-          >
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
-                <h3 className="text-xl font-bold text-text-primary group-hover:text-lobster transition-colors">{page.title}</h3>
-                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-bg-primary text-[10px] font-bold text-text-primary/40 border border-border-primary/50" title="Outbound Connectivity">
-                  <Network size={10} className="text-lobster opacity-70"/> 
-                  {(page.links?.length || 0) + (page.externalUrls?.length || 0)}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider text-text-primary/40">
-                {page.tags?.map(tag => (
-                  <span key={tag} className="bg-bg-primary px-2 py-0.5 rounded text-text-primary/60">#{tag}</span>
+      {/* Habitat Database Index (Collapsible) */}
+      <div className="mt-8">
+        <button 
+          onClick={() => setShowDatabaseIndex(!showDatabaseIndex)}
+          className="w-full flex items-center justify-between p-4 px-6 bg-bg-primary border border-border-primary rounded-xl hover:border-lobster/40 transition-all group shadow-sm"
+        >
+          <div className="flex items-center gap-4">
+            <div className={`p-2 rounded-lg transition-colors ${showDatabaseIndex ? 'bg-lobster text-white' : 'bg-lobster/10 text-lobster'}`}>
+              <Database size={18} />
+            </div>
+            <div className="text-left">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-text-primary">Habitat Database Index</h3>
+              <p className="text-[9px] font-bold text-text-primary/30 uppercase tracking-widest mt-0.5">Machine Diagnostics • {allArticles.length} Known Pearls</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {!showDatabaseIndex && (
+               <div className="hidden md:flex items-center gap-6 text-[9px] font-black uppercase tracking-widest text-text-primary/20">
+                  <div className="flex items-center gap-1.5"><ShieldCheck size={12}/> Verified</div>
+                  <div className="flex items-center gap-1.5"><BarChart3 size={12}/> {allArticles.length} Entries</div>
+               </div>
+            )}
+            <div className="text-text-primary/20 group-hover:text-lobster transition-colors">
+              {showDatabaseIndex ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </div>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {showDatabaseIndex && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-6 grid gap-3">
+                {allArticles.map(page => (
+                  <motion.div 
+                    key={page.id} 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    onClick={() => onNavigate('article', page.id)}
+                    className="group cursor-pointer p-4 rounded-xl border border-border-primary/50 hover:border-lobster/30 hover:bg-lobster/[0.02] transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card-bg/30"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1.5">
+                        <h4 className="text-sm font-black text-text-primary group-hover:text-lobster transition-colors truncate">{page.title}</h4>
+                        <span className="px-1.5 py-0.5 rounded bg-bg-primary text-[8px] font-black text-text-primary/40 border border-border-primary/50 uppercase tracking-tighter" title="Node Type">
+                          {page.type}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-text-primary/30">
+                        <span className="flex items-center gap-1"><Activity size={10}/> {page.links?.length || 0} connections</span>
+                        <span className="truncate max-w-[200px]">Path: {page.id}.md</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-8 text-right">
+                      <div className="hidden lg:block w-32">
+                        <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-text-primary/30 mb-1">
+                          <span>Confidence</span>
+                          <span className={page.confidence && page.confidence >= 0.8 ? 'text-green-500' : 'text-amber-500'}>
+                            {page.confidence !== undefined ? `${Math.round(page.confidence * 100)}%` : '??%'}
+                          </span>
+                        </div>
+                        <div className="h-1 w-full bg-border-primary rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full transition-all ${page.confidence && page.confidence >= 0.8 ? 'bg-green-500' : 'bg-amber-500'}`}
+                            style={{ width: page.confidence !== undefined ? `${page.confidence * 100}%` : '0%' }}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-end gap-1 min-w-[80px]">
+                        <div className="text-[9px] font-black text-lobster tracking-tighter">REL: {(page.relevanceScore || 0).toFixed(4)}</div>
+                        <div className="text-[8px] font-bold text-text-primary/20 uppercase tracking-widest">{page.lastUpdated}</div>
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
-            <div className="text-right flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-1 text-xs text-text-primary/40">
-              <span className="flex items-center gap-1 font-semibold text-text-primary/50 tracking-tighter uppercase text-[9px]"><Activity size={12}/> {page.links?.length || 0} pips</span>
-              <span>Updated: {page.lastUpdated}</span>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );

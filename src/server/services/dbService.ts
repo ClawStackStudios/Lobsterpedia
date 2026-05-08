@@ -552,6 +552,29 @@ export class DbService {
     habitatLogger.log('ledger', 'Dream state reset: candidates and reflections cleared.', 'warn');
   }
 
+  /**
+   * ☢️ Hard Reset: Truncates all tables in the Sovereign Ledger.
+   * Irreversible action. Clears registry, links, ledger, and dreaming state.
+   */
+  public resetFullDatabase(): void {
+    const db = this.guard();
+    const hardResetTx = db.transaction(() => {
+      db.prepare('DELETE FROM pearl_registry').run();
+      db.prepare('DELETE FROM pearl_links').run();
+      db.prepare('DELETE FROM molt_ledger').run();
+      db.prepare('DELETE FROM dream_candidates').run();
+      db.prepare('DELETE FROM dream_reflections').run();
+      db.prepare('DELETE FROM dream_promotions').run();
+      db.prepare('DELETE FROM dream_state').run();
+    });
+    hardResetTx();
+
+    // 💨 VACUUM must run OUTSIDE of a transaction in SQLite
+    db.prepare('VACUUM').run();
+
+    habitatLogger.log('ledger', 'CRITICAL: Full database hard reset executed. Ledger is now empty.', 'error');
+  }
+
   public close() {
     if (this.db) {
       this.db.close();

@@ -11,6 +11,7 @@ interface MaintenanceZoneProps {
   openRouterModel: string;
   isManualMode: boolean;
   onToggleManualMode: () => void;
+  isModal?: boolean;
 }
 
 interface LintIssue {
@@ -21,7 +22,9 @@ interface LintIssue {
   description: string;
 }
 
-export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefresh, onNavigate, openRouterModel, isManualMode, onToggleManualMode }) => {
+export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ 
+  issues, onRefresh, onNavigate, openRouterModel, isManualMode, onToggleManualMode, isModal = false 
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFixing, setIsFixing] = useState<string | null>(null);
   const [isFixingAll, setIsFixingAll] = useState(false);
@@ -132,17 +135,26 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="max-w-4xl mx-auto p-8"
+      className={`${isModal ? 'p-6' : 'max-w-4xl mx-auto p-8'}`}
     >
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-3">
-            <Wrench className="text-lobster" size={32} />
-            Shipyard Maintenance
-          </h1>
-          <p className="text-text-primary/50 font-medium mt-2">
-            Automated LLM linting and wiki self-healing.
-          </p>
+      {!isModal && (
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-extrabold text-text-primary tracking-tight flex items-center gap-3">
+              <Wrench className="text-lobster" size={32} />
+              Shipyard Maintenance
+            </h1>
+            <p className="text-text-primary/50 font-medium mt-2">
+              Automated LLM linting and wiki self-healing.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Control Bar (Moved into issue section if modal) */}
+      <div className={`flex items-center justify-between mb-6 ${isModal ? 'bg-bg-primary p-4 rounded-2xl border border-border-primary sticky top-0 z-10 shadow-sm' : ''}`}>
+        <div className="text-xs font-black uppercase tracking-widest text-text-primary/40">
+           Structural integrity: <span className={issues.length > 0 ? 'text-amber-500' : 'text-green-500'}>{issues.length > 0 ? `${issues.length} Issues` : 'Optimal'}</span>
         </div>
         
         <div className="flex items-center gap-3">
@@ -150,9 +162,9 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
             type="button"
             onClick={(e) => { e.preventDefault(); handleRescan(); }}
             disabled={isFixingAll || isFixing !== null}
-            className="px-4 py-2 bg-text-primary text-bg-primary border border-border-primary rounded font-bold text-sm hover:opacity-90 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-text-primary text-bg-primary border border-border-primary rounded-lg font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-colors disabled:opacity-50"
           >
-            Rescan
+            Rescan Hull
           </button>
           
           {issues.length > 0 && !isManualMode && (
@@ -162,7 +174,7 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
                   type="button"
                   onClick={(e) => { e.preventDefault(); handleStopFixing(); }}
                   disabled={isStopping}
-                  className="px-4 py-2 bg-habitat-dark text-lobster border border-lobster/50 rounded font-bold text-sm hover:bg-lobster/10 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-habitat-dark text-lobster border border-lobster/50 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-lobster/10 transition-colors flex items-center gap-2"
                 >
                   {isStopping ? 'Stopping...' : 'Stop Fixing'}
                 </button>
@@ -171,9 +183,9 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
                   type="button"
                   onClick={(e) => { e.preventDefault(); handleFixAll(); }}
                   disabled={isFixing !== null}
-                  className="px-4 py-2 bg-lobster text-white rounded font-bold text-sm hover:opacity-90 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-lobster text-white rounded-lg font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-colors flex items-center gap-2"
                 >
-                  Fix All
+                  Apply All Fixes
                 </button>
               )}
             </div>
@@ -187,94 +199,96 @@ export const MaintenanceZone: React.FC<MaintenanceZoneProps> = ({ issues, onRefr
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-8 mb-8">
-        {/* Master Control Panel */}
-        <div className="bg-habitat-dark border border-lobster/30 rounded-lg shadow-xl p-6 text-white overflow-hidden relative group">
-           <div className="absolute -right-4 -top-4 w-24 h-24 bg-lobster/10 rounded-full blur-3xl group-hover:bg-lobster/20 transition-colors" />
-           <h2 className="text-lg font-black uppercase tracking-widest mb-6 flex items-center gap-3">
-              <Cpu size={24} className="text-lobster" />
-              Master System Protocol
-           </h2>
-           
-            <div className="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/5 relative">
+      {!isModal && (
+        <div className="grid grid-cols-1 gap-8 mb-8">
+          {/* Master Control Panel */}
+          <div className="bg-habitat-dark border border-lobster/30 rounded-lg shadow-xl p-6 text-white overflow-hidden relative group">
+             <div className="absolute -right-4 -top-4 w-24 h-24 bg-lobster/10 rounded-full blur-3xl group-hover:bg-lobster/20 transition-colors" />
+             <h2 className="text-lg font-black uppercase tracking-widest mb-6 flex items-center gap-3">
+                <Cpu size={24} className="text-lobster" />
+                Master System Protocol
+             </h2>
+             
+              <div className="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/5 relative">
+                 <div>
+                   <div className="text-sm font-black uppercase tracking-wider mb-1 flex items-center gap-2">
+                     Manual Mode Enforcement
+                     {isManualMode && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-lobster"><CheckCircle2 size={14} /></motion.span>}
+                   </div>
+                   <div className="text-[10px] text-white/40 uppercase font-mono tracking-tighter">
+                      Disable all automated LLM features (Synthesis, Self-Healing, Auto-Linking)
+                   </div>
+                 </div>
+                 <button
+                   disabled={isManualMode} // 🛡️ ENFORCED BLOCKER
+                   onClick={onToggleManualMode}
+                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ring-2 ring-white/10 ${isManualMode ? 'bg-lobster/50 cursor-not-allowed opacity-80' : 'bg-white/10'}`}
+                 >
+                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isManualMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                   {isManualMode && (
+                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                       <Wrench size={10} className="text-lobster mix-blend-difference" />
+                     </div>
+                   )}
+                 </button>
+              </div>
+              
+              {isManualMode && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-3 bg-lobster/10 border border-lobster/20 rounded-lg flex items-center justify-between"
+                >
+                   <div className="text-[9px] font-black uppercase text-lobster tracking-[0.2em] animate-pulse">
+                      // PROTOCOL: MANUAL_ONLY_ENFORCED
+                   </div>
+                   <div className="text-[8px] font-medium text-white/30 uppercase tracking-widest italic">
+                      Contact Maintenance to unlock
+                   </div>
+                </motion.div>
+              )}
+          </div>
+
+          {/* Settings Panel */}
+          <div className={`bg-card-bg border border-border-primary rounded-lg shadow-sm p-6 transition-opacity ${isManualMode ? 'opacity-40 pointer-events-none' : ''}`}>
+            <h2 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+               <Bot className="text-blue-500" size={20} />
+               Automated System Settings
+            </h2>
+            <div className="flex items-center justify-between mb-4">
                <div>
-                 <div className="text-sm font-black uppercase tracking-wider mb-1 flex items-center gap-2">
-                   Manual Mode Enforcement
-                   {isManualMode && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-lobster"><CheckCircle2 size={14} /></motion.span>}
-                 </div>
-                 <div className="text-[10px] text-white/40 uppercase font-mono tracking-tighter">
-                    Disable all automated LLM features (Synthesis, Self-Healing, Auto-Linking)
-                 </div>
+                  <div className="font-bold text-text-primary/80 text-sm">Background File Scanning Interval</div>
+                  <div className="text-xs text-text-primary/40">How frequently to scan the wiki/ dir for new files (PDF, docx, raw folders)</div>
+               </div>
+               <select 
+                 value={settings.scanInterval} 
+                 onChange={(e) => saveSettings({ ...settings, scanInterval: e.target.value })}
+                 disabled={isSavingSettings}
+                 className="bg-bg-primary border border-border-primary text-text-primary/70 text-sm rounded px-3 py-1.5 focus:border-lobster outline-none"
+               >
+                 <option value="off">Disabled</option>
+                 <option value="30s">Every 30 seconds</option>
+                 <option value="5m">Every 5 minutes</option>
+                 <option value="30m">Every 30 minutes</option>
+                 <option value="1h">Every hour</option>
+               </select>
+            </div>
+            <div className="flex items-center justify-between">
+               <div>
+                  <div className="font-bold text-text-primary/80 text-sm">LLM Auto-Ingest Pipeline</div>
+                  <div className="text-xs text-text-primary/40">If enabled, the LLM will automatically parse and synthesize detected raw files into Markdown.</div>
                </div>
                <button
-                 disabled={isManualMode} // 🛡️ ENFORCED BLOCKER
-                 onClick={onToggleManualMode}
-                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ring-2 ring-white/10 ${isManualMode ? 'bg-lobster/50 cursor-not-allowed opacity-80' : 'bg-white/10'}`}
+                  onClick={() => saveSettings({ ...settings, autoIngest: !settings.autoIngest })}
+                  disabled={isSavingSettings}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.autoIngest ? 'bg-lobster' : 'bg-border-primary'}`}
                >
-                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isManualMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                 {isManualMode && (
-                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                     <Wrench size={10} className="text-lobster mix-blend-difference" />
-                   </div>
-                 )}
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.autoIngest ? 'translate-x-6' : 'translate-x-1'}`} />
                </button>
             </div>
-            
-            {isManualMode && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-3 bg-lobster/10 border border-lobster/20 rounded-lg flex items-center justify-between"
-              >
-                 <div className="text-[9px] font-black uppercase text-lobster tracking-[0.2em] animate-pulse">
-                    // PROTOCOL: MANUAL_ONLY_ENFORCED
-                 </div>
-                 <div className="text-[8px] font-medium text-white/30 uppercase tracking-widest italic">
-                    Contact Maintenance to unlock
-                 </div>
-              </motion.div>
-            )}
-        </div>
-
-        {/* Settings Panel */}
-        <div className={`bg-card-bg border border-border-primary rounded-lg shadow-sm p-6 transition-opacity ${isManualMode ? 'opacity-40 pointer-events-none' : ''}`}>
-          <h2 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
-             <Bot className="text-blue-500" size={20} />
-             Automated System Settings
-          </h2>
-          <div className="flex items-center justify-between mb-4">
-             <div>
-                <div className="font-bold text-text-primary/80 text-sm">Background File Scanning Interval</div>
-                <div className="text-xs text-text-primary/40">How frequently to scan the wiki/ dir for new files (PDF, docx, raw folders)</div>
-             </div>
-             <select 
-               value={settings.scanInterval} 
-               onChange={(e) => saveSettings({ ...settings, scanInterval: e.target.value })}
-               disabled={isSavingSettings}
-               className="bg-bg-primary border border-border-primary text-text-primary/70 text-sm rounded px-3 py-1.5 focus:border-lobster outline-none"
-             >
-               <option value="off">Disabled</option>
-               <option value="30s">Every 30 seconds</option>
-               <option value="5m">Every 5 minutes</option>
-               <option value="30m">Every 30 minutes</option>
-               <option value="1h">Every hour</option>
-             </select>
-          </div>
-          <div className="flex items-center justify-between">
-             <div>
-                <div className="font-bold text-text-primary/80 text-sm">LLM Auto-Ingest Pipeline</div>
-                <div className="text-xs text-text-primary/40">If enabled, the LLM will automatically parse and synthesize detected raw files into Markdown.</div>
-             </div>
-             <button
-                onClick={() => saveSettings({ ...settings, autoIngest: !settings.autoIngest })}
-                disabled={isSavingSettings}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.autoIngest ? 'bg-lobster' : 'bg-border-primary'}`}
-             >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.autoIngest ? 'translate-x-6' : 'translate-x-1'}`} />
-             </button>
           </div>
         </div>
-      </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20 text-text-primary/40">

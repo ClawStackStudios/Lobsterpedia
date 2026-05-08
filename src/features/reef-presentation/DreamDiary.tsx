@@ -334,7 +334,15 @@ export const DreamDiary: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black text-lobster/50 font-mono tracking-widest">SCORE: {(p.score * 100).toFixed(0)}%</span>
+                    <div className="flex flex-col gap-1 min-w-[80px]">
+                      <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-lobster/40">
+                        <span>Score</span>
+                        <span>{(p.score * 100).toFixed(0)}%</span>
+                      </div>
+                      <div className="h-1 w-full bg-border-primary/50 rounded-full overflow-hidden">
+                        <div className="h-full bg-lobster" style={{ width: `${p.score * 100}%` }} />
+                      </div>
+                    </div>
                     <button onClick={() => { setDiarySubTab('palace'); openWikiPreview('insights/' + p.insight_path); }} className="text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-lobster text-white rounded-lg shadow-sm hover:scale-105 active:scale-95 transition-all">
                       Witness
                     </button>
@@ -405,7 +413,12 @@ export const DreamDiary: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-text-primary/40">
                     <span className="px-2 py-0.5 bg-border-primary/30 rounded">{c.signal_type.replace('_', ' ')}</span>
-                    <span className="text-lobster font-mono">{(c.score * 100).toFixed(0)}%</span>
+                  <div className="flex flex-col gap-1 min-w-[60px] text-right">
+                    <span className="text-[9px] font-mono text-lobster/70 font-black">{(c.score * 100).toFixed(0)}%</span>
+                    <div className="h-1 w-full bg-border-primary/50 rounded-full overflow-hidden">
+                      <div className="h-full bg-lobster" style={{ width: `${c.score * 100}%` }} />
+                    </div>
+                  </div>
                   </div>
                 </div>
               ))

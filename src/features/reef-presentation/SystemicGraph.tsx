@@ -311,8 +311,14 @@ export const SystemicGraph: React.FC<SystemicGraphProps> = ({ reef, onNavigate, 
             </div>
             
             <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
-              <div className="flex items-center gap-2 text-[10px] font-mono text-text-primary/30 uppercase tracking-widest mb-6 bg-border-primary/20 px-3 py-1.5 rounded-lg w-fit">
-                 <Info size={12} /> Reef Signature: {(selectedNode.confidence || 1.0) * 100}%
+              <div className="flex flex-col gap-1 min-w-[120px] mb-6">
+                <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-[0.2em] text-text-primary/30">
+                  <div className="flex items-center gap-1.5"><Info size={10} /> Reef Signature</div>
+                  <span className="text-lobster">{(selectedNode.confidence || 1.0) * 100}%</span>
+                </div>
+                <div className="h-1 w-full bg-border-primary/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-lobster" style={{ width: `${(selectedNode.confidence || 1.0) * 100}%` }} />
+                </div>
               </div>
 
               <p className="text-sm text-text-primary/70 leading-relaxed mb-8 italic border-l-2 border-lobster/30 pl-4">
