@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { RefreshCw, Activity, Copy, CheckCircle2, Edit3, Save, X, Plus, Trash2, Library, ExternalLink, ArrowRight, Bot, AlertTriangle, AlertCircle, Network, Grip } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { RefreshCw, Activity, Copy, CheckCircle2, Edit3, Save, X, Plus, Trash2, Library, ExternalLink, ArrowRight, Bot, AlertTriangle, AlertCircle, Network, Grip, ChevronDown, Search, Eye } from 'lucide-react';
 import { PolyP, Reef, AIProvider } from '../shell-core/types';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -11,6 +11,8 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import 'katex/dist/katex.min.css';
 import { aiService } from '../../services/aiService';
 import { WikiLink } from '../../components/WikiLink';
+import { MarkdownEditorToolbar } from '../../components/MarkdownEditorToolbar';
+import { EditorPreviewModal } from '../../components/EditorPreviewModal';
 
 interface ArticleViewProps {
   article: PolyP;
@@ -29,6 +31,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
   const [copied, setCopied] = useState(false);
   const [isLinting, setIsLinting] = useState(false);
   const [lintReport, setLintReport] = useState<string | null>(null);
+  const [showActionsDropdown, setShowActionsDropdown] = useState(false);
 
   const articleIssues = issues.filter(i => i.sourceId === article.id);
   const isHealthy = articleIssues.length === 0;
@@ -61,6 +64,12 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Editor Enhancement State
+  const [showPreview, setShowPreview] = useState(false);
+  const [isSearchingLinks, setIsSearchingLinks] = useState(false);
+  const [linkSearchQuery, setLinkSearchQuery] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   // Summarization State
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -82,8 +91,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
 
   // Frontmatter State
   const [showFrontmatter, setShowFrontmatter] = useState(false);
-  const [showActionsModal, setShowActionsModal] = useState(false);
-
+  
   // Reset edit/delete/summary state when article changes
   useEffect(() => {
     if (article) {
@@ -98,7 +106,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
       setActiveTab('content');
       setViewingHistoricalCommit(null);
       setHistoricalContent(null);
-      setShowActionsModal(false);
+      setShowActionsDropdown(false);
     }
   }, [article?.id]);
 
@@ -291,6 +299,27 @@ Summarize your findings with epistemic rigor.`;
     setEditExternalUrls(editExternalUrls.filter(u => u !== urlToRemove));
   };
 
+  const insertAtCursor = (before: string, after: string = '') => {
+    if (!textareaRef.current) return;
+    const el = textareaRef.current;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const text = el.value;
+    const selection = text.substring(start, end);
+    const beforeSelection = text.substring(0, start);
+    const afterSelection = text.substring(end);
+
+    const newText = beforeSelection + before + selection + after + afterSelection;
+    setEditContent(newText);
+
+    // Focus back and set cursor position after re-render
+    setTimeout(() => {
+      el.focus();
+      const newCursorPos = start + before.length + selection.length + after.length;
+      el.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
   return (
     <motion.article 
       initial={{ opacity: 0 }}
@@ -334,13 +363,130 @@ Summarize your findings with epistemic rigor.`;
               <Activity size={10} /> View in Graph
             </button>
             <span className="mx-2 opacity-20">|</span>
-            <button 
-              onClick={() => setShowActionsModal(true)}
-              className="group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-text-primary/40 hover:text-lobster transition-colors"
-            >
-              <Grip size={12} className="group-hover:rotate-90 transition-transform" />
-              Actions
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowActionsDropdown(!showActionsDropdown)}
+                className="group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-text-primary/40 hover:text-lobster transition-colors"
+              >
+                <Grip size={12} className="group-hover:rotate-90 transition-transform" />
+                Actions
+                <ChevronDown size={10} className={`transition-transform ${showActionsDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {showActionsDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    className="absolute right-0 top-full mt-2 w-72 bg-card-bg border border-border-primary rounded-lg shadow-xl overflow-hidden z-10"
+                  >
+                    <div className="p-2 space-y-1">
+                      <button
+                        onClick={() => { handleCopy(); setShowActionsDropdown(false); }}
+                        className="w-full p-3 rounded-lg hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/50 group-hover:text-lobster">
+                            {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                          </div>
+                          <div className="text-left">
+                            <div className="text-xs font-black uppercase tracking-widest text-text-primary">Copy Content</div>
+                            <div className="text-[9px] text-text-primary/40 font-mono">Clipboard Buffer</div>
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => { setIsEditing(true); setShowActionsDropdown(false); }}
+                        className="w-full p-3 rounded-lg hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/50 group-hover:text-lobster">
+                            <Edit3 size={16} />
+                          </div>
+                          <div className="text-left">
+                            <div className="text-xs font-black uppercase tracking-widest text-text-primary">Edit Article</div>
+                            <div className="text-[9px] text-text-primary/40 font-mono">Manual Revision</div>
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => { handleSummarize(); setShowActionsDropdown(false); }}
+                        disabled={isSummarizing || isManualMode}
+                        className="w-full p-3 rounded-lg hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all flex items-center justify-between group disabled:opacity-40"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-blue-500">
+                            {isSummarizing ? <RefreshCw size={16} className="animate-spin" /> : <Activity size={16} />}
+                          </div>
+                          <div className="text-left">
+                            <div className="text-xs font-black uppercase tracking-widest text-text-primary">AI Summarize</div>
+                            <div className="text-[9px] text-text-primary/40 font-mono">{isManualMode ? 'Locked: Manual Mode' : 'Synthesis Pass'}</div>
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => { setShowCitations(!showCitations); setShowActionsDropdown(false); }}
+                        className={`w-full p-3 rounded-lg border transition-all flex items-center justify-between group ${showCitations ? 'bg-lobster text-white border-lobster shadow-lg shadow-lobster/20' : 'hover:bg-lobster/10 border-transparent hover:border-lobster/20'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${showCitations ? 'bg-white/20' : 'bg-bg-primary text-text-primary/50 group-hover:text-lobster'}`}>
+                            <Library size={16} />
+                          </div>
+                          <div className="text-left">
+                            <div className={`text-xs font-black uppercase tracking-widest ${showCitations ? 'text-white' : 'text-text-primary'}`}>Citations</div>
+                            <div className={`text-[9px] font-mono ${showCitations ? 'text-white/60' : 'text-text-primary/40'}`}>{showCitations ? 'Visible' : 'Hidden'}</div>
+                          </div>
+                        </div>
+                        {showCitations && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+                      </button>
+
+                      {article.id !== 'index' && (
+                        <>
+                          {!confirmDelete ? (
+                            <button
+                              onClick={() => setConfirmDelete(true)}
+                              className="w-full p-3 rounded-lg hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all flex items-center justify-between group"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/40 group-hover:text-red-500">
+                                  <Trash2 size={16} />
+                                </div>
+                                <div className="text-left">
+                                  <div className="text-xs font-black uppercase tracking-widest text-text-primary">Delete Page</div>
+                                  <div className="text-[9px] text-text-primary/40 font-mono">Irreversible Purge</div>
+                                </div>
+                              </div>
+                            </button>
+                          ) : (
+                            <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3">
+                              <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2 text-center">Confirm Deletion?</div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={handleDelete}
+                                  className="flex-1 py-2 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all"
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => { setConfirmDelete(false); setShowActionsDropdown(false); }}
+                                  className="flex-1 py-2 border border-red-500 text-red-500 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500/10 transition-all"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -380,424 +526,115 @@ Summarize your findings with epistemic rigor.`;
           </div>
         </div>
 
-        {/* Actions Modal */}
-        <AnimatePresence>
-          {showActionsModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowActionsModal(false)}
-                className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm"
-              />
-              <motion.div 
-                initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                className="bg-card-bg border border-border-primary rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative z-10"
+        {isEditing ? (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-text-primary/40">
+                Markdown & KaTeX Supported
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPreview(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-lobster/10 text-lobster border border-lobster/20 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-lobster/20 transition-all"
               >
-                <div className="p-6 border-b border-border-primary flex items-center justify-between bg-bg-primary/50">
-                  <div className="flex items-center gap-2 text-lobster">
-                    <Grip size={18} />
-                    <span className="font-black uppercase tracking-[0.2em] text-xs">Node Actions</span>
-                  </div>
-                  <button onClick={() => setShowActionsModal(false)} className="text-text-primary/30 hover:text-lobster transition-colors">
-                    <X size={18} />
-                  </button>
-                </div>
-                
-                <div className="p-4 space-y-2">
-                  <button 
-                    onClick={() => { handleCopy(); setShowActionsModal(false); }}
-                    className="w-full p-4 rounded-xl hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/50 group-hover:text-lobster">
-                        {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                      </div>
-                      <div className="text-left">
-                        <div className="text-xs font-black uppercase tracking-widest text-text-primary">Copy Content</div>
-                        <div className="text-[9px] text-text-primary/40 font-mono">Clipboard Buffer</div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setIsEditing(true); setShowActionsModal(false); }}
-                    className="w-full p-4 rounded-xl hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/50 group-hover:text-lobster">
-                        <Edit3 size={16} />
-                      </div>
-                      <div className="text-left">
-                        <div className="text-xs font-black uppercase tracking-widest text-text-primary">Edit Article</div>
-                        <div className="text-[9px] text-text-primary/40 font-mono">Manual Revision</div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { handleSummarize(); setShowActionsModal(false); }}
-                    disabled={isSummarizing || isManualMode}
-                    className="w-full p-4 rounded-xl hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all flex items-center justify-between group disabled:opacity-40"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-blue-500">
-                        {isSummarizing ? <RefreshCw size={16} className="animate-spin" /> : <Activity size={16} />}
-                      </div>
-                      <div className="text-left">
-                        <div className="text-xs font-black uppercase tracking-widest text-text-primary">AI Summarize</div>
-                        <div className="text-[9px] text-text-primary/40 font-mono">{isManualMode ? 'Locked: Manual Mode' : 'Synthesis Pass'}</div>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button 
-                    onClick={() => { setShowCitations(!showCitations); setShowActionsModal(false); }}
-                    className={`w-full p-4 rounded-xl border transition-all flex items-center justify-between group ${showCitations ? 'bg-lobster text-white border-lobster shadow-lg shadow-lobster/20' : 'hover:bg-lobster/10 border-transparent hover:border-lobster/20'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${showCitations ? 'bg-white/20' : 'bg-bg-primary text-text-primary/50 group-hover:text-lobster'}`}>
-                        <Library size={16} />
-                      </div>
-                      <div className="text-left">
-                        <div className={`text-xs font-black uppercase tracking-widest ${showCitations ? 'text-white' : 'text-text-primary'}`}>Citations</div>
-                        <div className={`text-[9px] font-mono ${showCitations ? 'text-white/60' : 'text-text-primary/40'}`}>{showCitations ? 'Visible' : 'Hidden'}</div>
-                      </div>
-                    </div>
-                    {showCitations && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
-                  </button>
-
-                  {article.id !== 'index' && (
-                    <div className="pt-2">
-                      {!confirmDelete ? (
-                        <button 
-                          onClick={() => setConfirmDelete(true)}
-                          className="w-full p-4 rounded-xl hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all flex items-center justify-between group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/40 group-hover:text-red-500">
-                              <Trash2 size={16} />
-                            </div>
-                            <div className="text-left">
-                              <div className="text-xs font-black uppercase tracking-widest text-text-primary">Delete Page</div>
-                              <div className="text-[9px] text-text-primary/40 font-mono">Irreversible Purge</div>
-                            </div>
-                          </div>
-                        </button>
-                      ) : (
-                        <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4">
-                          <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3 text-center">Confirm Deletion?</div>
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={handleDelete}
-                              className="flex-1 py-2 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all"
-                            >
-                              Confirm
-                            </button>
-                            <button 
-                              onClick={() => setConfirmDelete(false)}
-                              className="flex-1 py-2 bg-bg-primary text-text-primary/50 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-border-primary/50 transition-all"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {isEditing ? (
-          <div className="space-y-4">
-            <input 
-              type="text" 
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              className="text-5xl font-extrabold text-text-primary tracking-tight w-full outline-none border-b-2 border-transparent focus:border-lobster transition-all bg-transparent"
-              placeholder="Article Title"
-            />
-            
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              {editTags.map(tag => (
-                <span key={tag} className="bg-lobster/10 text-lobster px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                  #{tag}
-                  <button onClick={() => removeTag(tag)} className="hover:text-red-600">
-                    <X size={10} />
-                  </button>
-                </span>
-              ))}
-              <div className="flex items-center gap-2 ml-2">
-                <input 
-                  type="text" 
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="New tag..."
-                  className="text-[10px] uppercase font-bold tracking-widest border-b border-border-primary outline-none focus:border-lobster bg-transparent text-text-primary"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addTag();
-                    }
-                  }}
-                />
-                <button onClick={addTag} className="text-lobster hover:scale-110 transition-transform">
-                  <Plus size={14} />
-                </button>
-              </div>
+                <Eye size={14} />
+                Preview
+              </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              {editExternalUrls.map(url => (
-                <span key={url} className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider flex items-center gap-2">
-                  {url}
-                  <button onClick={() => removeUrl(url)} className="hover:text-red-600">
-                    <X size={10} />
-                  </button>
-                </span>
-              ))}
-              <div className="flex items-center gap-2 ml-2">
-                <input 
-                  type="text" 
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  placeholder="Add external URL..."
-                  className="text-[10px] uppercase font-bold tracking-widest border-b border-border-primary outline-none focus:border-indigo-500 w-48 bg-transparent text-text-primary"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addUrl();
-                    }
-                  }}
-                />
-                <button onClick={addUrl} className="text-indigo-500 hover:scale-110 transition-transform">
-                  <Plus size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <h1 className="text-5xl font-extrabold text-text-primary tracking-tight mb-6 leading-tight">{article.title}</h1>
-            <div className="flex flex-wrap items-center gap-2 mb-6">
-              {article.tags?.map(tag => (
-                <span key={tag} className="bg-bg-primary text-text-primary/50 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
-                  #{tag}
-                </span>
-              ))}
-              {article.externalUrls?.map(url => (
-                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider hover:bg-indigo-100 flex items-center gap-1 transition-colors">
-                  <Activity size={10} />
-                  External Link
-                </a>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-text-primary/40">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-text-primary text-bg-primary flex items-center justify-center text-[10px]">LA</div>
-                <span className="text-text-primary/60">{article.author || 'Synthesized by Agent'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${isHealthy ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`}></span>
-                <button 
-                  onClick={() => onNavigate('maintenance')}
-                  className={`${isHealthy ? 'text-green-500' : 'text-amber-500 hover:underline'} font-bold cursor-pointer`}
+            <div>
+              <label className="block text-[10px] font-black text-text-primary/40 uppercase tracking-widest mb-3">
+                Content
+              </label>
+
+              <MarkdownEditorToolbar
+                onInsert={insertAtCursor}
+                showWikiLink={true}
+                showLinkSearch={true}
+                onToggleLinkSearch={() => setIsSearchingLinks(!isSearchingLinks)}
+              />
+
+              <textarea
+                ref={textareaRef}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full h-[60vh] p-4 border border-border-primary rounded-b-lg font-mono text-sm leading-relaxed outline-none focus:border-lobster transition-all bg-bg-primary text-text-primary/70 shadow-sm resize-none"
+                placeholder="Molt transition markdown content..."
+              />
+
+              {isSearchingLinks && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-4 p-4 bg-habitat-dark/20 border border-border-primary rounded-xl overflow-hidden"
                 >
-                  Status: {isHealthy ? 'Healthy' : `${articleIssues.length} Maintenance Required`}
-                </button>
-              </div>
-              <div className="ml-auto flex items-center gap-2">
-                <span>Last Synced: {article.lastUpdated}</span>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      {!isEditing && (
-        <div className="flex border-b border-border-primary mb-8">
-          <button
-            onClick={() => setActiveTab('content')}
-            className={`px-4 py-2 text-xs font-bold uppercase tracking-widest ${activeTab === 'content' ? 'text-lobster border-b-2 border-lobster' : 'text-text-primary/40 hover:text-text-primary/60'}`}
-          >
-            Content
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`px-4 py-2 text-xs font-bold uppercase tracking-widest ${activeTab === 'history' ? 'text-lobster border-b-2 border-lobster' : 'text-text-primary/40 hover:text-text-primary/60'}`}
-          >
-            Version History
-          </button>
-        </div>
-      )}
-
-      <div className="prose prose-neutral max-w-none 
-        prose-headings:text-text-primary prose-headings:font-extrabold prose-headings:tracking-tight
-        prose-p:text-text-primary/70 prose-p:leading-relaxed prose-p:mb-6 
-        prose-strong:text-text-primary prose-strong:font-bold
-        prose-li:text-text-primary/70 prose-ul:my-6 prose-ol:my-6">
-        <AnimatePresence>
-          {summary && !isEditing && activeTab === 'content' && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="mb-10 p-6 bg-blue-500/10 border border-blue-500/20 rounded-xl shadow-sm italic text-blue-500 relative overflow-hidden group"
-            >
-              <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity">
-                 <Bot size={16} />
-              </div>
-              <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-3 border-b border-blue-500/20 pb-2 flex items-center gap-2">
-                <Activity size={12} />
-                Flash Synthesis Pass
-              </h4>
-              <p className="text-sm leading-relaxed">{summary}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Frontmatter Detection & Display */}
-        {(() => {
-          const match = article.content.match(/^---\n([\s\S]*?)\n---\n/);
-          if (match && !isEditing && activeTab === 'content') {
-            const raw = match[1];
-            return (
-              <div className="mb-10">
-                <button 
-                  onClick={() => setShowFrontmatter(!showFrontmatter)}
-                  className="mb-2 text-[9px] font-black uppercase tracking-widest text-text-primary/30 hover:text-lobster transition-colors flex items-center gap-2"
-                >
-                  <Activity size={10} />
-                  {showFrontmatter ? 'Hide Raw Metadata' : 'Show Raw Metadata'}
-                </button>
-                
-                <AnimatePresence>
-                  {showFrontmatter && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden mb-4"
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Network size={14} className="text-lobster" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-text-primary/60">Semantic Connectors</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsSearchingLinks(false)}
+                      className="text-[9px] font-bold text-lobster uppercase tracking-tighter hover:underline"
                     >
-                      <pre className="p-4 bg-bg-primary text-text-primary/70 rounded-lg text-[10px] font-mono border border-border-primary shadow-inner overflow-x-auto">
-                        {raw}
-                      </pre>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                   {raw.split('\n').map((line, i) => {
-                     const [key, ...vals] = line.split(':');
-                     if (!key || vals.length === 0) return null;
-                     const val = vals.join(':').trim();
-                     return (
-                       <div key={i} className="bg-card-bg border border-border-primary p-2 rounded-md hover:border-lobster/30 transition-colors group">
-                          <div className="text-[8px] font-black text-text-primary/30 uppercase tracking-tighter group-hover:text-lobster transition-colors">{key.trim()}</div>
-                          <div className="text-[10px] font-bold text-text-primary/70 truncate" title={val}>{val}</div>
-                       </div>
-                     );
-                   })}
-                </div>
-              </div>
-            );
-          }
-          return null;
-        })()}
-
-        <AnimatePresence>
-          {showCitations && !isEditing && activeTab === 'content' && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-10 overflow-hidden"
-            >
-              <div className="p-8 bg-card-bg text-text-primary rounded-xl shadow-xl border border-border-primary relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-lobster/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
-                <div className="flex items-center justify-between mb-6 relative z-10">
-                  <h3 className="text-lg font-black uppercase tracking-[0.2em] flex items-center gap-3">
-                    <Library size={20} className="text-lobster" /> 
-                    <span>Cited Knowledge Sources</span>
-                  </h3>
-                  <button 
-                    onClick={() => setShowCitations(false)} 
-                    className="text-text-primary/40 hover:text-lobster transition-colors p-1"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-6 relative z-10">
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-text-primary/30 uppercase tracking-widest border-b border-border-primary pb-2">Internal References</h4>
-                    {article.links && article.links.length > 0 ? (
-                      <div className="grid gap-2">
-                        {article.links.map(linkId => {
-                          const linked = pages[linkId];
-                          return (
-                            <button 
-                              key={linkId} 
-                              onClick={() => onNavigate('article', linkId)}
-                              className="flex items-center justify-between p-3 rounded bg-bg-primary/40 border border-border-primary hover:border-lobster/50 hover:bg-bg-primary transition-all text-left"
-                            >
-                              <div>
-                                <div className="text-xs font-bold text-text-primary">{linked?.title || linkId}</div>
-                                <div className="text-[9px] text-text-primary/40 uppercase">{linked?.type || 'unknown'}</div>
-                              </div>
-                              <ArrowRight size={14} className="text-text-primary/20" />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-text-primary/30 italic">No internal pips detected.</p>
-                    )}
+                      Close Connectors
+                    </button>
                   </div>
 
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-text-primary/30 uppercase tracking-widest border-b border-border-primary pb-2">External Substantiation</h4>
-                    {article.externalUrls && article.externalUrls.length > 0 ? (
-                      <div className="grid gap-2">
-                        {article.externalUrls.map(url => (
-                          <a 
-                            key={url} 
-                            href={url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-between p-3 rounded bg-bg-primary/40 border border-border-primary hover:border-blue-500/50 hover:bg-bg-primary transition-all text-left group"
-                          >
-                            <div className="overflow-hidden">
-                              <div className="text-xs font-bold text-text-primary truncate pr-4">{url}</div>
-                              <div className="text-[9px] text-text-primary/40 uppercase italic">External Verification</div>
-                            </div>
-                            <ExternalLink size={14} className="text-text-primary/20 group-hover:text-blue-500 transition-colors" />
-                          </a>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-text-primary/30 italic">No external URLs provided.</p>
-                    )}
+                  <div className="relative">
+                    <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-primary/20" />
+                    <input
+                      type="text"
+                      value={linkSearchQuery}
+                      onChange={e => setLinkSearchQuery(e.target.value)}
+                      placeholder="Search the knowledge reef for related nodes..."
+                      className="w-full pl-8 pr-4 py-2 bg-bg-primary border border-border-primary rounded-lg text-[10px] font-bold text-text-primary focus:border-lobster outline-none"
+                    />
                   </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        {isEditing ? (
-          <textarea 
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            className="w-full h-[60vh] p-8 border border-border-primary rounded-xl bg-bg-primary font-mono text-sm leading-relaxed outline-none focus:border-lobster transition-all text-text-primary"
-            placeholder="Molt transition markdown content..."
-          />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-2 mt-3">
+                    {Object.values(pages)
+                      .filter(p => !p.id.includes('-index') && (p.title.toLowerCase().includes(linkSearchQuery.toLowerCase()) || p.id.toLowerCase().includes(linkSearchQuery.toLowerCase())))
+                      .slice(0, 10)
+                      .map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            const linkStr = `\n\n## References\n- [[${p.id}]]`;
+                            // If References already exists, just add the list item
+                            if (editContent.includes('## References')) {
+                              setEditContent(editContent + `\n- [[${p.id}]]`);
+                            } else {
+                              setEditContent(editContent + linkStr);
+                            }
+                            setIsSearchingLinks(false);
+                          }}
+                          className="flex items-center justify-between p-2 bg-bg-primary border border-border-primary rounded hover:border-lobster transition-all group"
+                        >
+                          <div className="flex flex-col items-start">
+                            <span className="text-[10px] font-black text-text-primary/80 group-hover:text-lobster truncate max-w-[150px]">{p.title}</span>
+                            <span className="text-[8px] font-mono text-text-primary/20">{p.id}</span>
+                          </div>
+                          <ArrowRight size={14} className="text-text-primary/10 group-hover:text-lobster transition-all" />
+                        </button>
+                      ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            <EditorPreviewModal
+              isOpen={showPreview}
+              onClose={() => setShowPreview(false)}
+              onSave={handleSave}
+              title={editTitle}
+              content={editContent}
+              tags={editTags}
+              isSaving={isSaving}
+            />
+          </div>
         ) : activeTab === 'history' ? (
            <div className="space-y-6 not-prose">
              {isLoadingHistory ? (

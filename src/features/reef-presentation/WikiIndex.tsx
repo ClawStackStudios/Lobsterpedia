@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Activity, Network, X, ArrowRight, ChevronDown, ChevronUp, ShieldCheck, BarChart3, Database, Edit3 } from 'lucide-react';
 import { Reef, PolyP } from '../shell-core/types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -13,21 +13,34 @@ interface WikiIndexProps {
 }
 
 export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
-  const allArticles = React.useMemo(() => 
+  const allArticles = React.useMemo(() =>
     (Object.values(pages) as PolyP[]).sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0)),
     [pages]
   );
-  
+
   const indexListPage = pages['index-list'];
+  const [showActionsDropdown, setShowActionsDropdown] = useState(false);
 
   const [showVaultNotice, setShowVaultNotice] = useState(false);
   const [showDatabaseIndex, setShowDatabaseIndex] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const isDismissed = localStorage.getItem('lobsterpedia_vault_notice_dismissed');
     if (isDismissed !== 'true') {
       setShowVaultNotice(true);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowActionsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const dismissVaultNotice = () => {
@@ -48,13 +61,76 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
           </h1>
           <p className="text-text-primary/50 font-medium">The synthesized manifest of all documents in the knowledge base.</p>
         </div>
-        
-        <button 
-          onClick={() => onNavigate('graph')}
-          className="flex items-center gap-2 btn-dynamic-main px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest"
-        >
-          <Network size={16} /> Explore Semantic Map
-        </button>
+
+        <div className="flex items-center gap-3">
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowActionsDropdown(!showActionsDropdown)}
+              className="flex items-center gap-2 btn-dynamic-main px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest"
+            >
+              <Network size={16} /> Actions
+              <ChevronDown size={14} className={`transition-transform ${showActionsDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {showActionsDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  className="absolute right-0 top-full mt-2 w-72 bg-card-bg border border-border-primary rounded-lg shadow-xl overflow-hidden z-10"
+                >
+                  <div className="p-2 space-y-1">
+                    <button
+                      onClick={() => { onNavigate('graph'); setShowActionsDropdown(false); }}
+                      className="w-full p-3 rounded-lg hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-blue-500">
+                          <Network size={16} />
+                        </div>
+                        <div className="text-left">
+                          <div className="text-xs font-black uppercase tracking-widest text-text-primary">Explore Semantic Map</div>
+                          <div className="text-[9px] text-text-primary/40 font-mono">Knowledge Graph View</div>
+                        </div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => { onNavigate('article', 'index-list'); setShowActionsDropdown(false); }}
+                      className="w-full p-3 rounded-lg hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/50 group-hover:text-lobster">
+                          <Edit3 size={16} />
+                        </div>
+                        <div className="text-left">
+                          <div className="text-xs font-black uppercase tracking-widest text-text-primary">Edit Article List</div>
+                          <div className="text-[9px] text-text-primary/40 font-mono">Manual Revision</div>
+                        </div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => { onNavigate('maintenance'); setShowActionsDropdown(false); }}
+                      className="w-full p-3 rounded-lg hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-lobster">
+                          <ShieldCheck size={16} />
+                        </div>
+                        <div className="text-left">
+                          <div className="text-xs font-black uppercase tracking-widest text-text-primary">Shipyard Maintenance</div>
+                          <div className="text-[9px] text-text-primary/40 font-mono">AI Lint & Self-Heal</div>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
       {/* Obsidian Vault Integration Notice */}
@@ -99,9 +175,17 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
             <h2 className="text-xl font-bold text-text-primary">Article List</h2>
             <button
               onClick={() => onNavigate('article', 'index-list')}
-              className="flex items-center gap-2 btn-dynamic-main px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest"
+              className="w-full p-4 rounded-xl hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
             >
-              <Edit3 size={16} /> Edit List
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary/50 group-hover:text-lobster">
+                  <Edit3 size={16} />
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-black uppercase tracking-widest text-text-primary">Edit Article</div>
+                  <div className="text-[9px] text-text-primary/40 font-mono">Manual Revision</div>
+                </div>
+              </div>
             </button>
           </div>
           <ReactMarkdown 
