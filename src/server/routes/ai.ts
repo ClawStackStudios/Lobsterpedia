@@ -42,17 +42,34 @@ function getGeometricContext(pageId?: string) {
   return context + "\n";
 }
 
+/**
+   * Validates OpenRouter API key format.
+   * Should be a string starting with "sk-"
+   */
+  function validateApiKey(apiKey: string): boolean {
+    if (!apiKey || typeof apiKey !== 'string') return false;
+    apiKey = apiKey.trim();
+    return apiKey.length > 20 && /^sk-([a-z0-9-]+)$/.test(apiKey);
+  }
+
 router.post("/openrouter", async (req, res) => {
   const { prompt, model } = req.body;
   let apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey || apiKey.trim() === "") {
-    return res.status(400).json({ 
-      error: "OPENROUTER_API_KEY is not configured on the server reef. Please check your environment variables." 
+    return res.status(400).json({
+      error: "OPENROUTER_API_KEY is not configured on the server reef. Please check your environment variables."
     });
   }
 
   apiKey = apiKey.trim();
+
+  // Validate API key format
+  if (!validateApiKey(apiKey)) {
+    return res.status(400).json({
+      error: "OPENROUTER_API_KEY has an invalid format. Expected format: sk-xxxxxxxx"
+    });
+  }
   try {
     const safeTitle = "Lobsterpedia";
     const referer = (process.env.APP_URL || "https://lobsterpedia.clawstackstudios.com").replace(/[^\x00-\x7f]/g, '');
@@ -90,6 +107,15 @@ router.post("/fix", async (req, res) => {
 
   if (!apiKey || apiKey.trim() === "") {
     return res.status(400).json({ error: "OPENROUTER_API_KEY is not configured." });
+  }
+
+  apiKey = apiKey.trim();
+
+  // Validate API key format
+  if (!validateApiKey(apiKey)) {
+    return res.status(400).json({
+      error: "OPENROUTER_API_KEY has an invalid format. Expected format: sk-xxxxxxxx"
+    });
   }
 
   try {

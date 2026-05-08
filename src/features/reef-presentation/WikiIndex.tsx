@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Activity, Network, X, ArrowRight, ChevronDown, ChevronUp, ShieldCheck, BarChart3, Database } from 'lucide-react';
+import { Box, Activity, Network, X, ArrowRight, ChevronDown, ChevronUp, ShieldCheck, BarChart3, Database, Edit3 } from 'lucide-react';
 import { Reef, PolyP } from '../shell-core/types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -95,6 +95,15 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
 
       {indexListPage && indexListPage.content && (
         <div className="mb-12">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-bold text-text-primary">Article List</h2>
+            <button
+              onClick={() => onNavigate('article', 'index-list')}
+              className="flex items-center gap-2 btn-dynamic-main px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest"
+            >
+              <Edit3 size={16} /> Edit List
+            </button>
+          </div>
           <ReactMarkdown 
             remarkPlugins={[remarkGfm]}
             components={{
