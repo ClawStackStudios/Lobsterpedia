@@ -20,6 +20,7 @@ interface IngestZoneProps {
   suggestedTitle?: string;
   aiProvider?: string;
   openRouterModel?: string;
+  onRefresh?: () => void;
 }
 
 const LOCAL_STORAGE_KEY_TITLE = 'crustagent:draft_title';
@@ -197,7 +198,7 @@ export const IngestZone: React.FC<IngestZoneProps> = ({ reef, onIngest, suggeste
       // Let's call onIngest anyway but with a flag? 
       // Or just let the user see the success and navigate themselves.
       // Better: we refresh the reef. 
-      window.location.reload(); // Hard refresh to ensure everything is updated for now
+      onRefresh?.();
     } catch (err) {
       console.error(err);
       setSaveStatus("IsCracked: Manual save failed.");

@@ -603,7 +603,7 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                     />
                   )}
                   {currentView === 'ingest' && (
-                    <IngestZone key="ingest" reef={reef} onIngest={pinchIngest} suggestedTitle={suggestedIngestTitle} />
+                    <IngestZone key="ingest" reef={reef} onIngest={pinchIngest} suggestedTitle={suggestedIngestTitle} onRefresh={() => { loadReef(); loadLintIssues(); }} />
                   )}
                   {currentView === 'graph' && (
                     <GraphView key="graph" reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />

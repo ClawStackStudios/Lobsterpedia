@@ -51,7 +51,7 @@ export function createApp() {
   app.use('/api/', apiLimiter);
 
   // ─── Body Parser ──────────────────────────────────────────────────────────
-  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.json({ limit: '10mb' }));
 
   // ─── Logging (KISS — meaningful signals only) ─────────────────────────────
   app.use((req, res, next) => {
