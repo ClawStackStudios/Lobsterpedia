@@ -54,7 +54,7 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-4xl mx-auto py-12 px-6"
     >
-      <div className="mb-10 border-b border-border-primary pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="mb-10 border-b border-border-primary pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-50">
         <div>
           <h1 className="text-4xl font-extrabold text-text-primary tracking-tight mb-2 flex items-center gap-3">
             <Box className="text-lobster" size={32}/> Article Catalog
@@ -68,7 +68,7 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
               onClick={() => setShowActionsDropdown(!showActionsDropdown)}
               className="flex items-center gap-2 btn-dynamic-main px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest"
             >
-              <Network size={16} /> Actions
+              Actions
               <ChevronDown size={14} className={`transition-transform ${showActionsDropdown ? 'rotate-180' : ''}`} />
             </button>
 
@@ -78,24 +78,9 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
                   initial={{ opacity: 0, scale: 0.95, y: -10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  className="absolute right-0 top-full mt-2 w-72 bg-card-bg border border-border-primary rounded-lg shadow-xl overflow-hidden z-10"
+                  className="absolute right-0 top-full mt-2 w-72 bg-card-bg border border-border-primary rounded-lg shadow-xl overflow-hidden z-[100]"
                 >
                   <div className="p-2 space-y-1">
-                    <button
-                      onClick={() => { onNavigate('graph'); setShowActionsDropdown(false); }}
-                      className="w-full p-3 rounded-lg hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all flex items-center justify-between group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-blue-500">
-                          <Network size={16} />
-                        </div>
-                        <div className="text-left">
-                          <div className="text-xs font-black uppercase tracking-widest text-text-primary">Explore Semantic Map</div>
-                          <div className="text-[9px] text-text-primary/40 font-mono">Knowledge Graph View</div>
-                        </div>
-                      </div>
-                    </button>
-
                     <button
                       onClick={() => { onNavigate('article', 'index-list'); setShowActionsDropdown(false); }}
                       className="w-full p-3 rounded-lg hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
@@ -107,21 +92,6 @@ export const WikiIndex: React.FC<WikiIndexProps> = ({ pages, onNavigate }) => {
                         <div className="text-left">
                           <div className="text-xs font-black uppercase tracking-widest text-text-primary">Edit Article List</div>
                           <div className="text-[9px] text-text-primary/40 font-mono">Manual Revision</div>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => { onNavigate('maintenance'); setShowActionsDropdown(false); }}
-                      className="w-full p-3 rounded-lg hover:bg-lobster/10 border border-transparent hover:border-lobster/20 transition-all flex items-center justify-between group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-lobster">
-                          <ShieldCheck size={16} />
-                        </div>
-                        <div className="text-left">
-                          <div className="text-xs font-black uppercase tracking-widest text-text-primary">Shipyard Maintenance</div>
-                          <div className="text-[9px] text-text-primary/40 font-mono">AI Lint & Self-Heal</div>
                         </div>
                       </div>
                     </button>

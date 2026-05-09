@@ -560,75 +560,47 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
             </motion.aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-hidden flex flex-col bg-bg-primary">
-              <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <main className="flex-1 overflow-hidden flex flex-row bg-bg-primary relative">
+              <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+                {/* Global Graph View Toggle - Hidden on small screens */}
+                {(currentView === 'index' || currentView === 'article' || currentView === 'search' || currentView === 'maintenance') && (
+                  <div className="absolute top-4 right-4 z-[60] hidden lg:block">
+                    <button
+                      onClick={() => setShowGraphSidebar(!showGraphSidebar)}
+                      className={`p-2 rounded-full border transition-all ${
+                        showGraphSidebar 
+                          ? 'bg-lobster text-white border-lobster shadow-lg' 
+                          : 'bg-card-bg text-text-primary/40 border-border-primary hover:border-lobster hover:text-lobster'
+                      }`}
+                      title={showGraphSidebar ? "Hide Topology" : "Show Topology"}
+                    >
+                      <Network size={18} />
+                    </button>
+                  </div>
+                )}
+
                 <AnimatePresence mode="wait">
                   {currentView === 'index' && (
                     <WikiIndex key="index" pages={reef} onNavigate={moltNavigate} />
                   )}
                   {currentView === 'article' && activePolyP && (
-                    <div className="h-full flex flex-col lg:flex-row overflow-hidden relative">
-                      <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-                        {/* Graph View Toggle - Hidden on small screens */}
-                        <div className="absolute top-4 right-4 z-40 hidden lg:block">
-                          <button
-                            onClick={() => setShowGraphSidebar(!showGraphSidebar)}
-                            className={`p-2 rounded-full border transition-all ${
-                              showGraphSidebar 
-                                ? 'bg-lobster text-white border-lobster shadow-lg' 
-                                : 'bg-card-bg text-text-primary/40 border-border-primary hover:border-lobster hover:text-lobster'
-                            }`}
-                            title={showGraphSidebar ? "Hide Topology" : "Show Topology"}
-                          >
-                            <Network size={18} />
-                          </button>
-                        </div>
-
-                        <ArticleView
-                          key={`article-${activePolyPId}`}
-                          article={activePolyP}
-                          pages={reef}
-                          issues={lintIssues}
-                          onRefreshIssues={loadLintIssues}
-                          onRefresh={() => {
-                            loadReef();
-                            loadLintIssues();
-                          }}
-                          onNavigate={moltNavigate}
-                          aiProvider={aiProvider}
-                          openRouterModel={openRouterModel}
-                          onHoverNode={setHoveredNodeId}
-                          externalHoveredId={hoveredNodeId}
-                          isManualMode={isManualMode}
-                        />
-                      </div>
-                      
-                      {showGraphSidebar && (
-                        <>
-                          {/* Resize Handle */}
-                          <div 
-                            onMouseDown={startResizing}
-                            className={`hidden lg:block w-1.5 h-full cursor-col-resize transition-colors z-30 relative group ${isResizing ? 'bg-lobster' : 'hover:bg-lobster/50 bg-border-primary'}`}
-                          >
-                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none">
-                                <GripVertical size={16} className="text-lobster" />
-                             </div>
-                          </div>
-
-                          <div 
-                            className="hidden lg:block border-l border-border-primary bg-card-bg relative overflow-hidden group select-none"
-                            style={{ width: `${graphSidebarWidth}px` }}
-                          >
-                            <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="bg-bg-primary/80 backdrop-blur border border-border-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-text-primary">
-                                 <Network size={12} className="text-lobster" /> topology_preview.pyp
-                              </div>
-                            </div>
-                            <GraphView reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
-                          </div>
-                        </>
-                      )}
-                    </div>
+                    <ArticleView
+                      key={`article-${activePolyPId}`}
+                      article={activePolyP}
+                      pages={reef}
+                      issues={lintIssues}
+                      onRefreshIssues={loadLintIssues}
+                      onRefresh={() => {
+                        loadReef();
+                        loadLintIssues();
+                      }}
+                      onNavigate={moltNavigate}
+                      aiProvider={aiProvider}
+                      openRouterModel={openRouterModel}
+                      onHoverNode={setHoveredNodeId}
+                      externalHoveredId={hoveredNodeId}
+                      isManualMode={isManualMode}
+                    />
                   )}
                   {currentView === 'ingest' && (
                     <IngestZone key="ingest" reef={reef} onIngest={pinchIngest} suggestedTitle={suggestedIngestTitle} />
@@ -663,6 +635,32 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                   )}
                 </AnimatePresence>
               </div>
+
+              {showGraphSidebar && (currentView === 'index' || currentView === 'article' || currentView === 'search' || currentView === 'maintenance') && (
+                <>
+                  {/* Resize Handle */}
+                  <div 
+                    onMouseDown={startResizing}
+                    className={`hidden lg:block w-1.5 h-full cursor-col-resize transition-colors z-[45] relative group ${isResizing ? 'bg-lobster' : 'hover:bg-lobster/50 bg-border-primary'}`}
+                  >
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none">
+                        <GripVertical size={16} className="text-lobster" />
+                      </div>
+                  </div>
+
+                  <div 
+                    className="hidden lg:block border-l border-border-primary bg-card-bg relative overflow-hidden group select-none h-full"
+                    style={{ width: `${graphSidebarWidth}px` }}
+                  >
+                    <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-bg-primary/80 backdrop-blur border border-border-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-text-primary">
+                          <Network size={12} className="text-lobster" /> topology_preview.pyp
+                      </div>
+                    </div>
+                    <GraphView reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
+                  </div>
+                </>
+              )}
             </main>
           </div>
 

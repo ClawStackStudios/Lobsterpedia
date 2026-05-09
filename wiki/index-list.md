@@ -6,14 +6,14 @@ lastUpdated: "2026-05-09"
 tags: []
 links: []
 externalUrls: []
+confidence: 1
+supersededBy: ""
 ---
 
 
 ### Concepts
-- **[Concepts Index](concepts/concepts-index)** (concept): Concepts Index...
-- **[General LLM Cognition](concepts/general-llm-cognition)** (concept): General LLM Cognition...
-
 - [Concepts Index](concepts/concepts-index.md)
+- **[General LLM Cognition](concepts/general-llm-cognition)**
 
 ### Entities
 
