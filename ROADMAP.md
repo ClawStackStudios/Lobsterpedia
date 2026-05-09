@@ -39,7 +39,7 @@
 ## Phase 5: Molt Engine & Intelligence (IN PROGRESS)
 - [x] Shipyard Maintenance: Lint Health Check Integration
 - [x] External Substantiation (Citation Tab)
-- [x] Version History & Git-based Reversion
+- [x] Sovereign Ledger Molt History
 - [ ] **Automated Repair**:
     - [ ] Implement AI-driven 'Fix' button for detected lint issues.
     - [ ] Inline Citations: Include per-claim citations in LLM generated summaries.
@@ -53,8 +53,8 @@
 - [x] Individual File Staging & Unstaging UI
 - [x] Agent Watcher Activity Animation (Footer)
 - [ ] **System Telemetry**:
-    - [ ] Dynamic Git Status Badge in Header (Synced / Dirty).
     - [ ] Masked API Key management in MaintenanceZone.
+    - [ ] Reef health dashboard (Ledger stats, watcher status, queue depth).
 - [ ] **The Desktop Shell**:
     - [ ] Setup Tauri integration for native desktop performance.
     - [ ] Native FS access via Rust backend.

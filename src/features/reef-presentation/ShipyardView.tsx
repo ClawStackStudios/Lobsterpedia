@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Wrench, ShieldAlert, Database, Trash2, Cpu, Bot, CheckCircle2, X, Settings2, Info, Search } from 'lucide-react';
+import { Wrench, ShieldAlert, Database, Trash2, Cpu, Bot, CheckCircle2, X, Settings2, Info, Search, RefreshCw } from 'lucide-react';
 import { AIProvider } from '../shell-core/types';
 import { MaintenanceZone } from './MaintenanceZone';
 
@@ -27,7 +27,9 @@ export const ShipyardView: React.FC<ShipyardViewProps> = ({
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
-  const [systemStatus, setSystemStatus] = useState<any>(null);
+   const [systemStatus, setSystemStatus] = useState<any>(null);
+  const [isScuttling, setIsScuttling] = useState(false);
+  const [scuttleComplete, setScuttleComplete] = useState(false);
 
   React.useEffect(() => {
     const fetchStatus = async () => {
@@ -68,6 +70,20 @@ export const ShipyardView: React.FC<ShipyardViewProps> = ({
          window.location.reload();
        }
     } catch (e) {}
+  };
+
+  const handleScuttle = async () => {
+    setIsScuttling(true);
+    setScuttleComplete(false);
+    try {
+      await onRefreshIssues();
+      setScuttleComplete(true);
+      setTimeout(() => setScuttleComplete(false), 3000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsScuttling(false);
+    }
   };
 
   return (
@@ -165,28 +181,58 @@ export const ShipyardView: React.FC<ShipyardViewProps> = ({
             </button>
 
             <button 
-              onClick={onRefreshIssues}
-              className="w-full group/btn relative flex items-center justify-between p-5 rounded-2xl border border-lobster/20 bg-lobster/[0.02] hover:bg-lobster/[0.05] hover:border-lobster/40 transition-all"
+              onClick={handleScuttle}
+              disabled={isScuttling}
+              className={`w-full group/btn relative flex items-center justify-between p-5 rounded-2xl border transition-all ${
+                scuttleComplete 
+                ? 'border-green-500/20 bg-green-500/[0.02]' 
+                : 'border-lobster/20 bg-lobster/[0.02] hover:bg-lobster/[0.05] hover:border-lobster/40'
+              }`}
             >
               <div className="text-left">
-                <div className="text-sm font-black text-lobster uppercase tracking-wider mb-1">Manual Habitat Scuttle</div>
-                <div className="text-[10px] text-lobster/60 uppercase tracking-widest font-bold">Perform a non-destructive hull scan (Witness Layer).</div>
+                <div className="text-sm font-black text-lobster uppercase tracking-wider mb-1 flex items-center gap-2">
+                  <span className={scuttleComplete ? 'text-green-500' : 'text-lobster'}>Manual Habitat Scuttle</span>
+                  {scuttleComplete && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-green-500"><CheckCircle2 size={14} /></motion.span>}
+                </div>
+                <div className={`text-[10px] uppercase tracking-widest font-bold ${scuttleComplete ? 'text-green-500/60' : 'text-lobster/60'}`}>
+                  {isScuttling ? 'Scanning knowledge reef structure...' : scuttleComplete ? 'Scan Complete: All pearls indexed.' : 'Perform a non-destructive hull scan (Witness Layer).'}
+                </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-lobster/10 border border-lobster/20 flex items-center justify-center group-hover/btn:bg-lobster group-hover/btn:border-lobster transition-colors">
-                <Search size={18} className="text-lobster group-hover/btn:text-white transition-colors" />
+              <div className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors ${
+                isScuttling ? 'bg-lobster border-lobster' : scuttleComplete ? 'bg-green-500/10 border-green-500/20' : 'bg-lobster/10 border-lobster/20 group-hover/btn:bg-lobster group-hover/btn:border-lobster'
+              }`}>
+                {isScuttling ? (
+                  <RefreshCw size={18} className="text-white animate-spin" />
+                ) : scuttleComplete ? (
+                  <CheckCircle2 size={18} className="text-green-500" />
+                ) : (
+                  <Search size={18} className="text-lobster group-hover/btn:text-white transition-colors" />
+                )}
               </div>
             </button>
 
             <button 
-              onClick={() => setIsResetConfirmOpen(true)}
-              className="w-full group/btn relative flex items-center justify-between p-5 rounded-2xl border border-red-500/20 bg-red-500/[0.02] hover:bg-red-500/[0.05] hover:border-red-500/40 transition-all"
+              onClick={() => !isManualMode && setIsResetConfirmOpen(true)}
+              disabled={isManualMode}
+              className={`w-full group/btn relative flex items-center justify-between p-5 rounded-2xl border transition-all ${
+                isManualMode 
+                ? 'opacity-60 cursor-not-allowed border-border-primary bg-bg-primary/50' 
+                : 'border-red-500/20 bg-red-500/[0.02] hover:bg-red-500/[0.05] hover:border-red-500/40'
+              }`}
             >
               <div className="text-left">
-                <div className="text-sm font-black text-red-500 uppercase tracking-wider mb-1">Hard Reset Database</div>
-                <div className="text-[10px] text-red-500/40 uppercase tracking-widest font-bold">Irreversibly purge the Sovereign Ledger (habitat.db).</div>
+                <div className="text-sm font-black text-red-500 uppercase tracking-wider mb-1 flex items-center gap-2">
+                  Hard Reset Database
+                  {isManualMode && <ShieldAlert size={14} className="text-red-500" />}
+                </div>
+                <div className="text-[10px] text-red-500/40 uppercase tracking-widest font-bold">
+                  {isManualMode ? 'Locked: Requires Automatic Mode' : 'Irreversibly purge the Sovereign Ledger (habitat.db).'}
+                </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center group-hover/btn:bg-red-500 group-hover/btn:border-red-500 transition-colors">
-                <Trash2 size={18} className="text-red-500 group-hover/btn:text-white transition-colors" />
+              <div className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors ${
+                isManualMode ? 'bg-bg-primary border-border-primary' : 'bg-red-500/10 border-red-500/20 group-hover/btn:bg-red-500 group-hover/btn:border-red-500'
+              }`}>
+                <Trash2 size={18} className={`transition-colors ${isManualMode ? 'text-red-500/30' : 'text-red-500 group-hover/btn:text-white'}`} />
               </div>
             </button>
 

@@ -43,3 +43,39 @@ Chronological record of wiki evolution, synthesis events, and system updates.
 ## [2026-05-07] delete | entities/polyP
 
 ## [2026-05-08] fix | broken-link-concepts/general-llm-cognition-concepts/isolated-poly-p.md
+
+## [2026-05-08] delete | concepts/isolated-poly-p
+
+## [2026-05-08] mkdir | test-api-dir
+
+## [2026-05-08] update | /test-security-dir/malicious-file
+
+## [2026-05-08] update | /test-security-dir/malicious-file
+
+## [2026-05-08] mkdir | test-api-dir
+
+## [2026-05-09] mkdir | test-api-dir
+
+## [2026-05-09] update | /test-security-dir/malicious-file
+
+## [2026-05-09] update | /test-security-dir/malicious-file
+
+## [2026-05-09] mkdir | test-api-dir
+
+## [2026-05-09] update | /test-security-dir/malicious-file
+
+## [2026-05-09] mkdir | test-api-dir
+
+## [2026-05-09] update | index-list
+
+## [2026-05-09] update | concepts/general-llm-cognition
+
+## [2026-05-09] update | index
+
+## [2026-05-09] update | concepts/concepts-index
+
+## [2026-05-09] update | index-list
+
+## [2026-05-09] update | index-list
+
+## [2026-05-09] update | index-list

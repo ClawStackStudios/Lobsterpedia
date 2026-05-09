@@ -12,7 +12,6 @@ import { IngestZone } from './features/reef-presentation/IngestZone';
 import { Footer } from './features/reef-presentation/Footer';
 import { LogTerminal } from './features/reef-presentation/LogTerminal';
 import { GraphView } from './features/reef-presentation/GraphView';
-import { GitHistory } from './features/reef-presentation/GitHistory';
 import { DreamDiary } from './features/reef-presentation/DreamDiary';
 import { SearchResults } from './features/reef-presentation/SearchResults';
 import { SystemicGraph } from './features/reef-presentation/SystemicGraph';
@@ -20,14 +19,18 @@ import { MaintenanceZone } from './features/reef-presentation/MaintenanceZone';
 import { ShipyardView } from './features/reef-presentation/ShipyardView';
 import { WikiDirectory } from './features/reef-presentation/WikiDirectory';
 import { Reef, HabitatLog, PolyP, AIProvider } from './features/shell-core/types';
-import { Search, List, Share2, Terminal, Network, GitBranch, FileText, Cpu, Menu, PanelLeftClose, PanelLeftOpen, Folder, ChevronRight, ChevronDown, GripVertical, Moon } from 'lucide-react';
+import { Search, List, Share2, Terminal, Network, FileText, Cpu, Menu, PanelLeftClose, PanelLeftOpen, Folder, ChevronRight, ChevronDown, GripVertical, Moon } from 'lucide-react';
 import { aiService } from './services/aiService';
 
-export type ViewSect = 'index' | 'article' | 'ingest' | 'logs' | 'graph' | 'git' | 'carapace' | 'search' | 'maintenance' | 'systemic-graph';
+export type ViewSect = 'index' | 'article' | 'ingest' | 'logs' | 'graph' | 'carapace' | 'search' | 'maintenance' | 'systemic-graph';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewSect>('index');
-  const [activePolyPId, setActivePolyPId] = useState<string>('index');
+  const [currentView, setCurrentView] = useState<ViewSect>(
+    () => (localStorage.getItem('lobsterpedia_view') as ViewSect) || 'index'
+  );
+  const [activePolyPId, setActivePolyPId] = useState<string>(
+    () => localStorage.getItem('lobsterpedia_page') || 'index'
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestedIngestTitle, setSuggestedIngestTitle] = useState<string | undefined>(undefined);
   const [aiProvider] = useState<AIProvider>('openrouter');
@@ -35,29 +38,44 @@ export default function App() {
     // Priority: Environment Variable > Default
     return import.meta.env.VITE_DEFAULT_OPENROUTER_MODEL || 'nousresearch/hermes-3-llama-3.1-405b:free';
   });
+  // Track whether the Sovereign Ledger is active to avoid 503 retry storms
+  const [isLedgerActive, setIsLedgerActive] = useState<boolean | null>(null);
 
+  // Probe ledger status once on mount — suppresses all ledger API noise when dormant
   useEffect(() => {
-    fetch('/api/ledger/config/model')
+    fetch('/api/ledger/status')
       .then(res => {
-        if (!res.ok) throw new Error("Ledger inactive or unreachable");
+        if (!res.ok) throw new Error('Ledger unreachable');
         return res.json();
       })
       .then(data => {
-        if (data.value) setOpenRouterModel(data.value);
+        const active = data.hatched === true;
+        setIsLedgerActive(active);
+        // Only fetch persisted model if ledger is active
+        if (active) {
+          return fetch('/api/ledger/config/model')
+            .then(res => res.ok ? res.json() : null)
+            .then(cfg => {
+              if (cfg?.value) setOpenRouterModel(cfg.value);
+            });
+        }
       })
-      .catch(err => {
-        console.log("[CrustAgent] Using environment default model (Ledger is dormant).");
+      .catch(() => {
+        setIsLedgerActive(false);
       });
   }, []);
 
-  // Persist model to Sovereign Ledger when it changes
+  // Persist model to Sovereign Ledger when it changes — only if ledger is active
   useEffect(() => {
+    if (!isLedgerActive) return; // Skip entirely when ledger is dormant
     fetch('/api/ledger/config/model', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: openRouterModel })
-    }).catch(err => console.warn("[CrustAgent] Failed to persist model to ledger:", err));
-  }, [openRouterModel]);
+    }).catch(() => {
+      // Silently fail — don't spam console on transient errors
+    });
+  }, [openRouterModel, isLedgerActive]);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -224,7 +242,7 @@ export default function App() {
           }]);
 
           // Trigger UI refreshes on significant signals
-          if (data.action === 'watch' || data.action === 'ingest' || data.action === 'ledger') {
+          if (['watch', 'ingest', 'ledger', 'update', 'delete'].includes(data.action)) {
             debouncedRefresh();
           }
         } catch (e) {
@@ -249,12 +267,16 @@ export default function App() {
 
   const moltNavigate = (view: ViewSect, id?: string) => {
     setCurrentView(view);
+    localStorage.setItem('lobsterpedia_view', view);
     if (view === 'ingest') {
       setSuggestedIngestTitle(id);
     } else {
       setSuggestedIngestTitle(undefined);
     }
-    if (id && view !== 'ingest') setActivePolyPId(id);
+    if (id && view !== 'ingest') {
+      setActivePolyPId(id);
+      localStorage.setItem('lobsterpedia_page', id);
+    }
   };
 
   const handleSearch = (query: string) => {
@@ -508,12 +530,9 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                     <button onClick={() => moltNavigate('systemic-graph')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all text-text-primary/70 hover:bg-border-primary/50`}>
                        <Share2 size={16} /> Immersive Mode
                     </button>
-                   <button onClick={() => moltNavigate('git')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'git' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
-                      <GitBranch size={16} /> Molt Timeline
-                   </button>
-                   <button onClick={() => moltNavigate('carapace')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'carapace' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
+                    <button onClick={() => moltNavigate('carapace')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'carapace' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
                       <Moon size={16} /> Carapace Dreamer
-                   </button>
+                    </button>
                 </nav>
               </div>
 
@@ -541,80 +560,53 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
             </motion.aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-hidden flex flex-col bg-bg-primary">
-              <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <main className="flex-1 overflow-hidden flex flex-row bg-bg-primary relative">
+              <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+                {/* Global Graph View Toggle - Hidden on small screens */}
+                {(currentView === 'index' || currentView === 'article' || currentView === 'search' || currentView === 'maintenance') && (
+                  <div className="absolute top-4 right-4 z-[60] hidden lg:block">
+                    <button
+                      onClick={() => setShowGraphSidebar(!showGraphSidebar)}
+                      className={`p-2 rounded-full border transition-all ${
+                        showGraphSidebar 
+                          ? 'bg-lobster text-white border-lobster shadow-lg' 
+                          : 'bg-card-bg text-text-primary/40 border-border-primary hover:border-lobster hover:text-lobster'
+                      }`}
+                      title={showGraphSidebar ? "Hide Topology" : "Show Topology"}
+                    >
+                      <Network size={18} />
+                    </button>
+                  </div>
+                )}
+
                 <AnimatePresence mode="wait">
                   {currentView === 'index' && (
                     <WikiIndex key="index" pages={reef} onNavigate={moltNavigate} />
                   )}
                   {currentView === 'article' && activePolyP && (
-                    <div className="h-full flex flex-col lg:flex-row overflow-hidden relative">
-                      <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-                        {/* Graph View Toggle - Hidden on small screens */}
-                        <div className="absolute top-4 right-4 z-40 hidden lg:block">
-                          <button
-                            onClick={() => setShowGraphSidebar(!showGraphSidebar)}
-                            className={`p-2 rounded-full border transition-all ${
-                              showGraphSidebar 
-                                ? 'bg-lobster text-white border-lobster shadow-lg' 
-                                : 'bg-card-bg text-text-primary/40 border-border-primary hover:border-lobster hover:text-lobster'
-                            }`}
-                            title={showGraphSidebar ? "Hide Topology" : "Show Topology"}
-                          >
-                            <Network size={18} />
-                          </button>
-                        </div>
-
-                        <ArticleView 
-                          key={`article-${activePolyPId}`} 
-                          article={activePolyP} 
-                          pages={reef} 
-                          issues={lintIssues}
-                          onRefreshIssues={loadLintIssues}
-                          onNavigate={moltNavigate} 
-                          aiProvider={aiProvider} 
-                          openRouterModel={openRouterModel}
-                          onHoverNode={setHoveredNodeId}
-                          externalHoveredId={hoveredNodeId}
-                          isManualMode={isManualMode}
-                        />
-                      </div>
-                      
-                      {showGraphSidebar && (
-                        <>
-                          {/* Resize Handle */}
-                          <div 
-                            onMouseDown={startResizing}
-                            className={`hidden lg:block w-1.5 h-full cursor-col-resize transition-colors z-30 relative group ${isResizing ? 'bg-lobster' : 'hover:bg-lobster/50 bg-border-primary'}`}
-                          >
-                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none">
-                                <GripVertical size={16} className="text-lobster" />
-                             </div>
-                          </div>
-
-                          <div 
-                            className="hidden lg:block border-l border-border-primary bg-card-bg relative overflow-hidden group select-none"
-                            style={{ width: `${graphSidebarWidth}px` }}
-                          >
-                            <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="bg-bg-primary/80 backdrop-blur border border-border-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-text-primary">
-                                 <Network size={12} className="text-lobster" /> topology_preview.pyp
-                              </div>
-                            </div>
-                            <GraphView reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
-                          </div>
-                        </>
-                      )}
-                    </div>
+                    <ArticleView
+                      key={`article-${activePolyPId}`}
+                      article={activePolyP}
+                      pages={reef}
+                      issues={lintIssues}
+                      onRefreshIssues={loadLintIssues}
+                      onRefresh={() => {
+                        loadReef();
+                        loadLintIssues();
+                      }}
+                      onNavigate={moltNavigate}
+                      aiProvider={aiProvider}
+                      openRouterModel={openRouterModel}
+                      onHoverNode={setHoveredNodeId}
+                      externalHoveredId={hoveredNodeId}
+                      isManualMode={isManualMode}
+                    />
                   )}
                   {currentView === 'ingest' && (
                     <IngestZone key="ingest" reef={reef} onIngest={pinchIngest} suggestedTitle={suggestedIngestTitle} />
                   )}
                   {currentView === 'graph' && (
                     <GraphView key="graph" reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
-                  )}
-                  {currentView === 'git' && (
-                    <GitHistory key="git" theme={theme} />
                   )}
                   {currentView === 'carapace' && (
                     <div className="p-8 max-w-5xl mx-auto w-full h-full overflow-y-auto custom-scrollbar">
@@ -643,6 +635,32 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                   )}
                 </AnimatePresence>
               </div>
+
+              {showGraphSidebar && (currentView === 'index' || currentView === 'article' || currentView === 'search' || currentView === 'maintenance') && (
+                <>
+                  {/* Resize Handle */}
+                  <div 
+                    onMouseDown={startResizing}
+                    className={`hidden lg:block w-1.5 h-full cursor-col-resize transition-colors z-[45] relative group ${isResizing ? 'bg-lobster' : 'hover:bg-lobster/50 bg-border-primary'}`}
+                  >
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 pointer-events-none">
+                        <GripVertical size={16} className="text-lobster" />
+                      </div>
+                  </div>
+
+                  <div 
+                    className="hidden lg:block border-l border-border-primary bg-card-bg relative overflow-hidden group select-none h-full"
+                    style={{ width: `${graphSidebarWidth}px` }}
+                  >
+                    <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-bg-primary/80 backdrop-blur border border-border-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-text-primary">
+                          <Network size={12} className="text-lobster" /> topology_preview.pyp
+                      </div>
+                    </div>
+                    <GraphView reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
+                  </div>
+                </>
+              )}
             </main>
           </div>
 

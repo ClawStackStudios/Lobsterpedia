@@ -22,7 +22,7 @@ Lobsterpedia is a high-performance, agentic knowledge management system where th
 - [x] AI-Powered Concept Synthesis
 - [x] Interactive Graph Topology
 - [x] Manual Mode Protocol
-- [x] Git-Style Version Visualization
+- [x] Sovereign Ledger Molt History
 - [x] Theme-Aware UI (Light/Dark)
 
 ### 🚀 High-Level Goals

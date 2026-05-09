@@ -1,6 +1,30 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterAll } from 'vitest';
 import request from 'supertest';
+import path from 'path';
+import fs from 'fs';
+
+const TEST_WIKI_PATH = path.join(process.cwd(), 'tests/test-wiki/ai-synthesis');
+
+// We mock the autoScanner so it doesn't trigger real LLM calls during tests
+vi.mock('../../src/server/services/autoScanner.js', () => ({
+  autoScanner: {
+    start: vi.fn(),
+    stop: vi.fn(),
+    scan: vi.fn().mockResolvedValue({ processed: 1, failed: 0 }),
+  }
+}));
+
+// Set test wiki path BEFORE importing app
+process.env.WIKI_PATH = TEST_WIKI_PATH;
+
 import { app } from '../../src/server/app.js';
+
+// Clean up test wiki after all tests
+afterAll(() => {
+  if (fs.existsSync(TEST_WIKI_PATH)) {
+    fs.rmSync(TEST_WIKI_PATH, { recursive: true, force: true });
+  }
+});
 
 // We mock the autoScanner so it doesn't trigger real LLM calls during tests
 vi.mock('../../src/server/services/autoScanner.js', () => ({

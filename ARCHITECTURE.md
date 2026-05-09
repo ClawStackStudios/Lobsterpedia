@@ -75,7 +75,7 @@ ROOT /
 
 ### 3. Telemetry & History
 - **LogTerminal.tsx**: Real-time shell telemetry via SSE (The Molt Logs).
-- **GitHistory.tsx**: Timeline visualization of the reef's evolution.
+- **Ledger Timeline**: The Sovereign Ledger (/api/ledger/history) provides the chronological molt history, replacing the previous Git-based approach.
 
 ## ⚙️ Core Engines
 

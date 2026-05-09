@@ -1,18 +1,35 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '../../src/server/app.js';
-import { wikiService } from '../../src/server/services/wikiService.js';
 import fs from 'fs';
 import path from 'path';
 
+const TEST_WIKI_PATH = path.join(process.cwd(), 'tests/test-wiki/api');
+
 describe('API Endpoints (Integration)', () => {
   const testDir = 'test-api-dir';
-  
+  let app: any;
+  let wikiService: any;
+
+  beforeAll(async () => {
+    process.env.WIKI_PATH = TEST_WIKI_PATH;
+    vi.resetModules();
+    const appMod = await import('../../src/server/app.js');
+    const svcMod = await import('../../src/server/services/wikiService.js');
+    app = appMod.app;
+    wikiService = svcMod.wikiService;
+  });
+
   afterAll(() => {
-    // Cleanup any test directories created
-    const testPath = path.join(wikiService.getWikiPath(), testDir);
-    if (fs.existsSync(testPath)) {
-      fs.rmSync(testPath, { recursive: true, force: true });
+    try {
+      const testPath = path.join(TEST_WIKI_PATH, testDir);
+      if (fs.existsSync(testPath)) {
+        fs.rmSync(testPath, { recursive: true, force: true });
+      }
+      if (fs.existsSync(TEST_WIKI_PATH)) {
+        fs.rmSync(TEST_WIKI_PATH, { recursive: true, force: true });
+      }
+    } catch {
+      // Directory may already be removed
     }
   });
 

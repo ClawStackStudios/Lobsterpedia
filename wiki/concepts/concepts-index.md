@@ -2,7 +2,7 @@
 title: "Concepts Index"
 type: "concept"
 author: "LLM"
-lastUpdated: "2026-05-07"
+lastUpdated: "2026-05-09"
 tags: ["concepts-index", "system", "index"]
 links: ["index-list", "index", "log.md"]
 externalUrls: []
@@ -10,8 +10,6 @@ confidence: 1
 supersededBy: ""
 ---
 # Concepts Index
-
-... (existing content unchanged) ...
 
 ## System Concepts
 

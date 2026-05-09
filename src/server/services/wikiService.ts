@@ -68,9 +68,9 @@ export class WikiService {
 
     // Ensure initial seed if empty (The Genetic Pearl)
     const files = fs.readdirSync(this.wikiPath);
-    const hasContent = files.some(f => f.endsWith('.md') && f !== 'log.md');
-    
-    if (!hasContent) {
+    const hasSeed = files.some(f => f === 'index.md');
+
+    if (!hasSeed) {
       const seedReef: Record<string, any> = {
         'index': {
           title: 'Lobsterpedia Knowledge Hub',

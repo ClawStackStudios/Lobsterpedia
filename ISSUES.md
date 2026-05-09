@@ -8,7 +8,6 @@
 ## ⚙️ Logic & Architecture
 - [ ] **Synchronous Filesystem Scanning**: `walkDir` is a blocking operation. For larger reefs (>1000 nodes), this will cause significant event-loop latency.
 - [ ] **Chokidar Resource Leak**: Every `/api/wiki/watch` connection spawns a new Chokidar instance. This should be a singleton broadcaster to prevent memory exhaustion when multiple tabs are open.
-- [ ] **Git Identity Hardcoding**: Commit metadata is fixed to `CrustAgent <agent@clawstack.com>`. User identity should be configurable in the Shipyard. < Add to ROADMAP.md >
 - [ ] **Auto-Ingest Registry Collision**: `.scanned.json` is a flat array. Could benefit from a map with timestamps to handle external modifications more efficiently.
 
 ## 🎨 UI/UX Redundancies
