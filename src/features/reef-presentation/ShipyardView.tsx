@@ -178,15 +178,27 @@ export const ShipyardView: React.FC<ShipyardViewProps> = ({
             </button>
 
             <button 
-              onClick={() => setIsResetConfirmOpen(true)}
-              className="w-full group/btn relative flex items-center justify-between p-5 rounded-2xl border border-red-500/20 bg-red-500/[0.02] hover:bg-red-500/[0.05] hover:border-red-500/40 transition-all"
+              onClick={() => !isManualMode && setIsResetConfirmOpen(true)}
+              disabled={isManualMode}
+              className={`w-full group/btn relative flex items-center justify-between p-5 rounded-2xl border transition-all ${
+                isManualMode 
+                ? 'opacity-60 cursor-not-allowed border-border-primary bg-bg-primary/50' 
+                : 'border-red-500/20 bg-red-500/[0.02] hover:bg-red-500/[0.05] hover:border-red-500/40'
+              }`}
             >
               <div className="text-left">
-                <div className="text-sm font-black text-red-500 uppercase tracking-wider mb-1">Hard Reset Database</div>
-                <div className="text-[10px] text-red-500/40 uppercase tracking-widest font-bold">Irreversibly purge the Sovereign Ledger (habitat.db).</div>
+                <div className="text-sm font-black text-red-500 uppercase tracking-wider mb-1 flex items-center gap-2">
+                  Hard Reset Database
+                  {isManualMode && <ShieldAlert size={14} className="text-red-500" />}
+                </div>
+                <div className="text-[10px] text-red-500/40 uppercase tracking-widest font-bold">
+                  {isManualMode ? 'Locked: Requires Automatic Mode' : 'Irreversibly purge the Sovereign Ledger (habitat.db).'}
+                </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center group-hover/btn:bg-red-500 group-hover/btn:border-red-500 transition-colors">
-                <Trash2 size={18} className="text-red-500 group-hover/btn:text-white transition-colors" />
+              <div className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors ${
+                isManualMode ? 'bg-bg-primary border-border-primary' : 'bg-red-500/10 border-red-500/20 group-hover/btn:bg-red-500 group-hover/btn:border-red-500'
+              }`}>
+                <Trash2 size={18} className={`transition-colors ${isManualMode ? 'text-red-500/30' : 'text-red-500 group-hover/btn:text-white'}`} />
               </div>
             </button>
 
