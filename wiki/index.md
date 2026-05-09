@@ -2,9 +2,12 @@
 title: "Lobsterpedia Knowledge Hub"
 type: "system"
 author: "CrustAgent"
-lastUpdated: "2026-05-07"
+lastUpdated: "2026-05-09"
 tags: ["hub", "index"]
 links: ["index-list", "concepts/llm-knowledge-bases", "concepts/general-llm-cognition", "patterns/dynamic-linking-pattern", "entities/entities-index", "events/events-index", "meetings/meetings-index", "patterns/patterns-index", "projects/projects-index", "references/references-index", "log"]
+externalUrls: []
+confidence: 1
+supersededBy: ""
 ---
 
 # Lobsterpedia Knowledge Index
@@ -22,6 +25,7 @@ Welcome to the synthesized knowledge base. This index manages the thematic struc
 ## Knowledge Categories
 - [Entities Index](entities/entities-index)
 - [Events Index](events/events-index)
+- [Insights Index](insights/insights-index)
 - [Meetings Index](meetings/meetings-index)
 - [Patterns Index](patterns/patterns-index)
 - [Projects Index](projects/projects-index)

@@ -3,10 +3,7 @@ import request from 'supertest';
 import path from 'path';
 import fs from 'fs';
 
-const TEST_WIKI_PATH = path.join(process.cwd(), 'tests/test-wiki');
-
-// Stub environment before any logic runs
-process.env.WIKI_PATH = TEST_WIKI_PATH;
+const TEST_WIKI_PATH = path.join(process.cwd(), 'tests/test-wiki/topological-integrity');
 
 describe('Topological Integrity Integration', () => {
   let app: any;
@@ -17,7 +14,11 @@ describe('Topological Integrity Integration', () => {
     if (fs.existsSync(TEST_WIKI_PATH)) {
       fs.rmSync(TEST_WIKI_PATH, { recursive: true, force: true });
     }
-    
+
+    // Set test wiki path and force fresh module evaluation
+    process.env.WIKI_PATH = TEST_WIKI_PATH;
+    vi.resetModules();
+
     // Import after environment is set
     const appModule = await import('../../src/server/app.js');
     const serviceModule = await import('../../src/server/services/wikiService.js');
@@ -26,9 +27,13 @@ describe('Topological Integrity Integration', () => {
   });
 
   afterAll(() => {
-    // Cleanup test reef
-    if (fs.existsSync(TEST_WIKI_PATH)) {
-      fs.rmSync(TEST_WIKI_PATH, { recursive: true, force: true });
+    // Clean up the entire test wiki directory (idempotent — may already be cleaned)
+    try {
+      if (fs.existsSync(TEST_WIKI_PATH)) {
+        fs.rmSync(TEST_WIKI_PATH, { recursive: true, force: true });
+      }
+    } catch {
+      // Directory may already be removed by another test file
     }
   });
 

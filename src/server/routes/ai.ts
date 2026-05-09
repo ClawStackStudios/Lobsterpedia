@@ -157,17 +157,18 @@ router.post("/fix", async (req, res) => {
 
     const data = await response.json();
     if (!response.ok) {
-       console.error("[CrustAgent] OpenRouter Fix Handshake Failed:", data.error || data);
+       // OWASP: Log the error but never leak API keys or full response data
+       console.error("[CrustAgent] OpenRouter Fix Handshake Failed:", data.error?.message || response.statusText);
        return res.status(response.status).json({ error: "OpenRouter failure: " + (data.error?.message || response.statusText) });
     }
 
     if (!data.choices || !data.choices[0]) {
-       console.error("[CrustAgent] OpenRouter returned empty choices:", data);
+       console.error("[CrustAgent] OpenRouter returned empty choices");
        return res.status(500).json({ error: "OpenRouter returned no response choices." });
     }
 
     const replyStr = data.choices[0].message.content;
-    
+
     // 🛡️ Robust JSON Extraction: Handle markdown code blocks, whitespace, and conversational filler
     let jsonContent = replyStr;
     const codeBlockMatch = replyStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -184,19 +185,18 @@ router.post("/fix", async (req, res) => {
     try {
       actions = JSON.parse(jsonContent.trim());
     } catch (e) {
-      console.error("[CrustAgent] Failed to parse LLM action JSON. Content was:", jsonContent);
-      console.error("[CrustAgent] Original reply was:", replyStr);
-      return res.status(500).json({ 
+      // OWASP: Don't log the raw reply — it may contain sensitive content from the wiki
+      console.error("[CrustAgent] Failed to parse LLM action JSON");
+      return res.status(500).json({
         error: "Broken action payload from LLM.",
         debug: {
           message: "The AI produced an invalid JSON structure.",
-          raw: replyStr.substring(0, 100) + "..."
         }
       });
     }
 
     if (!Array.isArray(actions)) {
-      console.error("[CrustAgent] LLM response was not an array:", actions);
+      console.error("[CrustAgent] LLM response was not an array");
       return res.status(500).json({ error: "LLM response is not a valid action set (expected an array)." });
     }
 

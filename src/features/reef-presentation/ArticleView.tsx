@@ -19,6 +19,7 @@ interface ArticleViewProps {
   pages: Reef;
   issues: any[];
   onRefreshIssues: () => void;
+  onRefresh: () => void;
   onNavigate: (view: any, id?: string) => void;
   onHoverNode?: (id: string | null) => void;
   externalHoveredId?: string | null;
@@ -80,14 +81,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
 
   // Citation State
   const [showCitations, setShowCitations] = useState(false);
-  const [showCrossReferences, setShowCrossReferences] = useState(true);
-
-  // History State
-  const [activeTab, setActiveTab] = useState<'content' | 'history'>('content');
-  const [historyLogs, setHistoryLogs] = useState<any[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [viewingHistoricalCommit, setViewingHistoricalCommit] = useState<any>(null);
-  const [historicalContent, setHistoricalContent] = useState<string | null>(null);
+  const [showCrossReferences, setShowCrossReferences] = useState(false);
 
   // Frontmatter State
   const [showFrontmatter, setShowFrontmatter] = useState(false);
@@ -103,60 +97,9 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, pages, issues
       setConfirmDelete(false);
       setSummary(null);
       setShowCitations(false);
-      setActiveTab('content');
-      setViewingHistoricalCommit(null);
-      setHistoricalContent(null);
       setShowActionsDropdown(false);
     }
   }, [article?.id]);
-
-  const loadHistory = async () => {
-    setIsLoadingHistory(true);
-    try {
-      const res = await fetch(`/api/git/history?file=${article.id}&_t=${Date.now()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setHistoryLogs(data.history || []);
-      }
-    } catch (err) {
-      console.error("Failed to load history", err);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'history') {
-      loadHistory();
-    }
-  }, [activeTab, article?.id]);
-
-  const viewHistoricalVersion = async (commit: any) => {
-    setViewingHistoricalCommit(commit);
-    setHistoricalContent(null);
-    try {
-      const res = await fetch(`/api/git/file/${commit.hash}/${article.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setHistoricalContent(data.content);
-      } else {
-        setHistoricalContent("Failed to load historical content.");
-      }
-    } catch (err) {
-      console.error("Failed to fetch historical version", err);
-      setHistoricalContent("Error loading content.");
-    }
-  };
-
-  const revertToHistorical = () => {
-    if (historicalContent) {
-      setEditContent(historicalContent);
-      setActiveTab('content');
-      setIsEditing(true);
-      setViewingHistoricalCommit(null);
-      setHistoricalContent(null);
-    }
-  };
 
   if (!article) return <div className="p-10 text-center font-medium text-text-primary/50">PolyP not found in this reef.</div>;
 
@@ -267,6 +210,7 @@ Summarize your findings with epistemic rigor.`;
       
       if (res.ok) {
         setIsEditing(false);
+        onRefresh();
       } else {
         console.error("Failed to save article");
       }
@@ -326,7 +270,7 @@ Summarize your findings with epistemic rigor.`;
       animate={{ opacity: 1 }}
       className="max-w-4xl mx-auto py-12 px-6"
     >
-      <div className="mb-10 border-b border-border-primary pb-8">
+      <div className="mb-10 border-b border-border-primary pb-8 relative z-50">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-xs text-text-primary/40 font-medium uppercase tracking-wider">
             <button onClick={() => onNavigate('index')} className="hover:underline cursor-pointer">wiki</button>
@@ -379,7 +323,7 @@ Summarize your findings with epistemic rigor.`;
                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className="absolute right-0 top-full mt-2 w-72 bg-card-bg border border-border-primary rounded-lg shadow-xl overflow-hidden z-10"
+                    className="absolute right-0 top-full mt-2 w-72 bg-card-bg border border-border-primary rounded-lg shadow-xl overflow-hidden z-[100]"
                   >
                     <div className="p-2 space-y-1">
                       <button
@@ -444,7 +388,23 @@ Summarize your findings with epistemic rigor.`;
                         {showCitations && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
                       </button>
 
-                      {article.id !== 'index' && (
+                      <button
+                        onClick={() => { setShowFrontmatter(!showFrontmatter); setShowActionsDropdown(false); }}
+                        className={`w-full p-3 rounded-lg border transition-all flex items-center justify-between group ${showFrontmatter ? 'bg-lobster text-white border-lobster shadow-lg shadow-lobster/20' : 'hover:bg-lobster/10 border-transparent hover:border-lobster/20'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${showFrontmatter ? 'bg-white/20' : 'bg-bg-primary text-text-primary/50 group-hover:text-lobster'}`}>
+                            <Library size={16} />
+                          </div>
+                          <div className="text-left">
+                            <div className={`text-xs font-black uppercase tracking-widest ${showFrontmatter ? 'text-white' : 'text-text-primary'}`}>Frontmatter</div>
+                            <div className={`text-[9px] font-mono ${showFrontmatter ? 'text-white/60' : 'text-text-primary/40'}`}>{showFrontmatter ? 'Visible' : 'Hidden'}</div>
+                          </div>
+                        </div>
+                        {showFrontmatter && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+                      </button>
+
+                      {article.id !== 'index' && article.id !== 'index-list' && (
                         <>
                           {!confirmDelete ? (
                             <button
@@ -525,6 +485,139 @@ Summarize your findings with epistemic rigor.`;
             )}
           </div>
         </div>
+
+        <AnimatePresence>
+          {showFrontmatter && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-10 p-8 bg-card-bg border border-border-primary rounded-xl shadow-xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-lobster/5 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none" />
+              <div className="flex items-center justify-between mb-6 relative z-10">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-lobster flex items-center gap-2">
+                  <Grip size={14} /> Artifact Frontmatter
+                </h3>
+                <button onClick={() => setShowFrontmatter(false)} className="text-text-primary/20 hover:text-lobster transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10">
+                <div>
+                  <div className="text-[8px] font-black uppercase tracking-widest text-text-primary/30 mb-1">Type</div>
+                  <div className="text-xs font-mono font-bold text-text-primary/70">{article.type}</div>
+                </div>
+                <div>
+                  <div className="text-[8px] font-black uppercase tracking-widest text-text-primary/30 mb-1">Author</div>
+                  <div className="text-xs font-mono font-bold text-text-primary/70">{article.author}</div>
+                </div>
+                <div>
+                  <div className="text-[8px] font-black uppercase tracking-widest text-text-primary/30 mb-1">Last Updated</div>
+                  <div className="text-xs font-mono font-bold text-text-primary/70">{article.lastUpdated}</div>
+                </div>
+                <div>
+                  <div className="text-[8px] font-black uppercase tracking-widest text-text-primary/30 mb-1">Confidence</div>
+                  <div className="text-xs font-mono font-bold text-lobster">{article.confidence ? `${Math.round(article.confidence * 100)}%` : 'N/A'}</div>
+                </div>
+              </div>
+
+              {article.tags && article.tags.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-border-primary/50 relative z-10">
+                  <div className="text-[8px] font-black uppercase tracking-widest text-text-primary/30 mb-3">Semantic Tags</div>
+                  <div className="flex flex-wrap gap-2">
+                    {article.tags.map(tag => (
+                      <span key={tag} className="px-2 py-1 bg-bg-primary border border-border-primary rounded text-[9px] font-bold text-text-primary/50 uppercase tracking-tighter">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showCitations && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-10 overflow-hidden"
+            >
+              <div className="p-8 bg-card-bg text-text-primary rounded-xl shadow-xl border border-border-primary relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-lobster/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                  <h3 className="text-lg font-black uppercase tracking-[0.2em] flex items-center gap-3">
+                    <Library size={20} className="text-lobster" /> 
+                    <span>Cited Knowledge Sources</span>
+                  </h3>
+                  <button 
+                    onClick={() => setShowCitations(false)} 
+                    className="text-text-primary/40 hover:text-lobster transition-colors p-1"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-6 relative z-10">
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-text-primary/30 uppercase tracking-widest border-b border-border-primary pb-2">Internal References</h4>
+                    {article.links && article.links.length > 0 ? (
+                      <div className="grid gap-2">
+                        {article.links.map(linkId => {
+                          const linked = pages[linkId];
+                          return (
+                            <button 
+                              key={linkId} 
+                              onClick={() => onNavigate('article', linkId)}
+                              className="flex items-center justify-between p-3 rounded bg-bg-primary/40 border border-border-primary hover:border-lobster/50 hover:bg-bg-primary transition-all text-left group cursor-pointer"
+                            >
+                              <div>
+                                <div className="text-xs font-bold text-text-primary group-hover:text-lobster transition-colors">{linked?.title || linkId}</div>
+                                <div className="text-[9px] text-text-primary/40 uppercase font-mono mt-0.5">{linked?.type || 'unknown substrate'}</div>
+                              </div>
+                              <ArrowRight size={14} className="text-text-primary/10 group-hover:text-lobster transition-all" />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-text-primary/30 italic">No internal pips detected.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-text-primary/30 uppercase tracking-widest border-b border-border-primary pb-2">External Substantiation</h4>
+                    {article.externalUrls && article.externalUrls.length > 0 ? (
+                      <div className="grid gap-2">
+                        {article.externalUrls.map(url => (
+                          <a 
+                            key={url} 
+                            href={url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-3 rounded bg-bg-primary/40 border border-border-primary hover:border-blue-500 hover:bg-bg-primary transition-all text-left group cursor-pointer"
+                          >
+                            <div className="overflow-hidden flex-1 pr-4">
+                              <div className="text-xs font-bold text-text-primary group-hover:text-blue-500 transition-colors truncate">{url}</div>
+                              <div className="text-[9px] text-text-primary/40 uppercase font-mono mt-0.5 italic">External Verification</div>
+                            </div>
+                            <ExternalLink size={14} className="text-text-primary/10 group-hover:text-blue-500 transition-all" />
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-text-primary/30 italic">No external URLs provided.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {isEditing ? (
           <div className="space-y-6">
@@ -635,76 +728,6 @@ Summarize your findings with epistemic rigor.`;
               isSaving={isSaving}
             />
           </div>
-        ) : activeTab === 'history' ? (
-           <div className="space-y-6 not-prose">
-             {isLoadingHistory ? (
-                <div className="flex items-center gap-2 text-text-primary/50 text-sm font-bold"><RefreshCw size={14} className="animate-spin" /> Loading history...</div>
-             ) : viewingHistoricalCommit ? (
-                <div className="border border-border-primary rounded-xl p-6 bg-bg-primary">
-                   <div className="flex justify-between items-center mb-6">
-                     <div>
-                       <h3 className="font-bold text-text-primary">Commit: {viewingHistoricalCommit.hash.substring(0, 8)}</h3>
-                       <p className="text-xs text-text-primary/50">{viewingHistoricalCommit.date}</p>
-                       <p className="text-sm mt-1 font-mono text-text-primary/70">{viewingHistoricalCommit.message}</p>
-                     </div>
-                     <div className="flex gap-2">
-                       <button onClick={revertToHistorical} className="bg-lobster text-white px-3 py-1.5 rounded text-xs font-bold uppercase hover:opacity-90 transition-opacity">Revert to this version</button>
-                       <button onClick={() => setViewingHistoricalCommit(null)} className="border border-border-primary text-text-primary/60 px-3 py-1.5 rounded text-xs font-bold uppercase hover:bg-card-bg transition-colors">Back</button>
-                     </div>
-                   </div>
-                   <div className="bg-card-bg p-6 border border-border-primary rounded-lg max-h-[500px] overflow-y-auto w-full prose prose-sm max-w-none">
-                     {historicalContent ? (
-                       <ReactMarkdown 
-                         remarkPlugins={[remarkGfm, remarkMath]}
-                         rehypePlugins={[rehypeKatex]}
-                         components={{
-                           h1: ({node, ...props}) => <h1 className="text-3xl font-black mb-6 mt-10 text-text-primary border-b border-border-primary pb-2" {...props} />,
-                           h2: ({node, ...props}) => <h2 className="text-2xl font-black mb-4 mt-8 text-text-primary/80" {...props} />,
-                           h3: ({node, ...props}) => <h3 className="text-xl font-bold mb-3 mt-6 text-text-primary/80" {...props} />,
-                           p: ({node, ...props}) => <p className="mb-6 leading-relaxed text-text-primary/70" {...props} />,
-                           ul: ({node, ...props}) => <ul className="list-disc list-inside mb-6 space-y-2 ml-4 text-text-primary/70" {...props} />,
-                           ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-6 space-y-2 ml-4 text-text-primary/70" {...props} />,
-                           li: ({node, ...props}) => <li className="mb-1" {...props} />,
-                           code({ node, className, children, ...props }) {
-                             const match = /language-(\w+)/.exec(className || '');
-                             return match ? (
-                               // @ts-ignore
-                               <SyntaxHighlighter style={vscDarkPlus as any} language={match[1]} PreTag="div" {...props}>
-                                 {String(children).replace(/\n$/, '')}
-                               </SyntaxHighlighter>
-                             ) : (
-                               <code className="bg-border-primary text-lobster px-1 py-0.5 rounded" {...props}>{children}</code>
-                             );
-                           }
-                         }}
-                       >
-                         {historicalContent}
-                       </ReactMarkdown>
-                     ) : (
-                       <div className="flex items-center gap-2 text-text-primary/50 text-sm"><RefreshCw size={14} className="animate-spin" /> Loading content...</div>
-                     )}
-                   </div>
-                </div>
-             ) : (
-               <div className="space-y-4">
-                 {historyLogs.length === 0 && <p className="text-text-primary/50 text-sm">No history found for this file.</p>}
-                 {historyLogs.map(log => (
-                   <div key={log.hash} className="flex justify-between items-center p-4 border-border-primary rounded-xl hover:border-lobster transition-colors group cursor-pointer" onClick={() => viewHistoricalVersion(log)}>
-                     <div>
-                       <div className="font-mono text-xs text-gray-500 flex items-center gap-2">
-                         <span className="font-bold text-gray-700">{log.hash.substring(0, 8)}</span>
-                         <span>•</span>
-                         <span>{new Date(log.date).toLocaleString()}</span>
-                       </div>
-                       <div className="font-medium text-gray-900 mt-1">{log.message}</div>
-                       <div className="text-xs text-gray-400 mt-1">{log.author_name}</div>
-                     </div>
-                     <Activity size={16} className="text-gray-300 group-hover:text-lobster transition-colors" />
-                   </div>
-                 ))}
-               </div>
-             )}
-           </div>
         ) : (
           <ReactMarkdown 
             remarkPlugins={[remarkGfm, remarkMath]}
@@ -776,7 +799,9 @@ Summarize your findings with epistemic rigor.`;
         )}
       </div>
 
-      {!isHealthy && !isEditing && activeTab === 'content' && (
+
+
+      {!isHealthy && !isEditing && (
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -804,7 +829,7 @@ Summarize your findings with epistemic rigor.`;
         </motion.div>
       )}
 
-      {article.links && article.links.length > 0 && !isEditing && activeTab === 'content' && (
+      {article.links && article.links.length > 0 && !isEditing && (
         <div className="my-10">
           <button 
             type="button"

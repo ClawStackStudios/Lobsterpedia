@@ -12,7 +12,6 @@ import { IngestZone } from './features/reef-presentation/IngestZone';
 import { Footer } from './features/reef-presentation/Footer';
 import { LogTerminal } from './features/reef-presentation/LogTerminal';
 import { GraphView } from './features/reef-presentation/GraphView';
-import { GitHistory } from './features/reef-presentation/GitHistory';
 import { DreamDiary } from './features/reef-presentation/DreamDiary';
 import { SearchResults } from './features/reef-presentation/SearchResults';
 import { SystemicGraph } from './features/reef-presentation/SystemicGraph';
@@ -20,14 +19,18 @@ import { MaintenanceZone } from './features/reef-presentation/MaintenanceZone';
 import { ShipyardView } from './features/reef-presentation/ShipyardView';
 import { WikiDirectory } from './features/reef-presentation/WikiDirectory';
 import { Reef, HabitatLog, PolyP, AIProvider } from './features/shell-core/types';
-import { Search, List, Share2, Terminal, Network, GitBranch, FileText, Cpu, Menu, PanelLeftClose, PanelLeftOpen, Folder, ChevronRight, ChevronDown, GripVertical, Moon } from 'lucide-react';
+import { Search, List, Share2, Terminal, Network, FileText, Cpu, Menu, PanelLeftClose, PanelLeftOpen, Folder, ChevronRight, ChevronDown, GripVertical, Moon } from 'lucide-react';
 import { aiService } from './services/aiService';
 
-export type ViewSect = 'index' | 'article' | 'ingest' | 'logs' | 'graph' | 'git' | 'carapace' | 'search' | 'maintenance' | 'systemic-graph';
+export type ViewSect = 'index' | 'article' | 'ingest' | 'logs' | 'graph' | 'carapace' | 'search' | 'maintenance' | 'systemic-graph';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewSect>('index');
-  const [activePolyPId, setActivePolyPId] = useState<string>('index');
+  const [currentView, setCurrentView] = useState<ViewSect>(
+    () => (localStorage.getItem('lobsterpedia_view') as ViewSect) || 'index'
+  );
+  const [activePolyPId, setActivePolyPId] = useState<string>(
+    () => localStorage.getItem('lobsterpedia_page') || 'index'
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestedIngestTitle, setSuggestedIngestTitle] = useState<string | undefined>(undefined);
   const [aiProvider] = useState<AIProvider>('openrouter');
@@ -35,29 +38,44 @@ export default function App() {
     // Priority: Environment Variable > Default
     return import.meta.env.VITE_DEFAULT_OPENROUTER_MODEL || 'nousresearch/hermes-3-llama-3.1-405b:free';
   });
+  // Track whether the Sovereign Ledger is active to avoid 503 retry storms
+  const [isLedgerActive, setIsLedgerActive] = useState<boolean | null>(null);
 
+  // Probe ledger status once on mount — suppresses all ledger API noise when dormant
   useEffect(() => {
-    fetch('/api/ledger/config/model')
+    fetch('/api/ledger/status')
       .then(res => {
-        if (!res.ok) throw new Error("Ledger inactive or unreachable");
+        if (!res.ok) throw new Error('Ledger unreachable');
         return res.json();
       })
       .then(data => {
-        if (data.value) setOpenRouterModel(data.value);
+        const active = data.hatched === true;
+        setIsLedgerActive(active);
+        // Only fetch persisted model if ledger is active
+        if (active) {
+          return fetch('/api/ledger/config/model')
+            .then(res => res.ok ? res.json() : null)
+            .then(cfg => {
+              if (cfg?.value) setOpenRouterModel(cfg.value);
+            });
+        }
       })
-      .catch(err => {
-        console.log("[CrustAgent] Using environment default model (Ledger is dormant).");
+      .catch(() => {
+        setIsLedgerActive(false);
       });
   }, []);
 
-  // Persist model to Sovereign Ledger when it changes
+  // Persist model to Sovereign Ledger when it changes — only if ledger is active
   useEffect(() => {
+    if (!isLedgerActive) return; // Skip entirely when ledger is dormant
     fetch('/api/ledger/config/model', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: openRouterModel })
-    }).catch(err => console.warn("[CrustAgent] Failed to persist model to ledger:", err));
-  }, [openRouterModel]);
+    }).catch(() => {
+      // Silently fail — don't spam console on transient errors
+    });
+  }, [openRouterModel, isLedgerActive]);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -224,7 +242,7 @@ export default function App() {
           }]);
 
           // Trigger UI refreshes on significant signals
-          if (data.action === 'watch' || data.action === 'ingest' || data.action === 'ledger') {
+          if (['watch', 'ingest', 'ledger', 'update', 'delete'].includes(data.action)) {
             debouncedRefresh();
           }
         } catch (e) {
@@ -249,12 +267,16 @@ export default function App() {
 
   const moltNavigate = (view: ViewSect, id?: string) => {
     setCurrentView(view);
+    localStorage.setItem('lobsterpedia_view', view);
     if (view === 'ingest') {
       setSuggestedIngestTitle(id);
     } else {
       setSuggestedIngestTitle(undefined);
     }
-    if (id && view !== 'ingest') setActivePolyPId(id);
+    if (id && view !== 'ingest') {
+      setActivePolyPId(id);
+      localStorage.setItem('lobsterpedia_page', id);
+    }
   };
 
   const handleSearch = (query: string) => {
@@ -508,12 +530,9 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                     <button onClick={() => moltNavigate('systemic-graph')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all text-text-primary/70 hover:bg-border-primary/50`}>
                        <Share2 size={16} /> Immersive Mode
                     </button>
-                   <button onClick={() => moltNavigate('git')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'git' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
-                      <GitBranch size={16} /> Molt Timeline
-                   </button>
-                   <button onClick={() => moltNavigate('carapace')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'carapace' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
+                    <button onClick={() => moltNavigate('carapace')} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all ${currentView === 'carapace' ? 'sidebar-item-active' : 'text-text-primary/70 hover:bg-border-primary/50'}`}>
                       <Moon size={16} /> Carapace Dreamer
-                   </button>
+                    </button>
                 </nav>
               </div>
 
@@ -565,14 +584,18 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                           </button>
                         </div>
 
-                        <ArticleView 
-                          key={`article-${activePolyPId}`} 
-                          article={activePolyP} 
-                          pages={reef} 
+                        <ArticleView
+                          key={`article-${activePolyPId}`}
+                          article={activePolyP}
+                          pages={reef}
                           issues={lintIssues}
                           onRefreshIssues={loadLintIssues}
-                          onNavigate={moltNavigate} 
-                          aiProvider={aiProvider} 
+                          onRefresh={() => {
+                            loadReef();
+                            loadLintIssues();
+                          }}
+                          onNavigate={moltNavigate}
+                          aiProvider={aiProvider}
                           openRouterModel={openRouterModel}
                           onHoverNode={setHoveredNodeId}
                           externalHoveredId={hoveredNodeId}
@@ -612,9 +635,6 @@ Focus on core concepts, architectural models, and summarizing the meaning. Keep 
                   )}
                   {currentView === 'graph' && (
                     <GraphView key="graph" reef={reef} onNavigate={moltNavigate} theme={theme} hoveredNodeId={hoveredNodeId} />
-                  )}
-                  {currentView === 'git' && (
-                    <GitHistory key="git" theme={theme} />
                   )}
                   {currentView === 'carapace' && (
                     <div className="p-8 max-w-5xl mx-auto w-full h-full overflow-y-auto custom-scrollbar">

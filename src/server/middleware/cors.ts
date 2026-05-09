@@ -27,7 +27,8 @@ export function getCorsConfig(): CorsOptions {
 
         if (isProduction) {
           if (allowedOrigins.includes(origin)) return callback(null, true);
-          console.warn(`⚠️  [CORS] Rejected origin in production: ${origin}`);
+          // OWASP: Log rejected origins for security audit but don't leak internal state
+          console.warn(`[CORS] Rejected origin in production`);
           return callback(new Error('CORS: Origin not allowed in production'));
         }
 

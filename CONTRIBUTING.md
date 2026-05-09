@@ -17,7 +17,7 @@ To contribute to **Lobsterpedia©™**, you must adopt the **CrustCode©™** pr
 
 ---
 
-## 🧬 Git & Commit Standards
+## 🧬 Commit Standards
 
 We use semantic, lobsterized commit prefixes to maintain a clear audit trail of the reef's evolution:
 
