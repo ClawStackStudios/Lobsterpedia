@@ -73,7 +73,7 @@
 - [ ] **Collaborative Scuttling**: Simultaneous multi-user editing.
 - [ ] **Permission Hierarchies**: User roles and access control.
 - [ ] **Automated PolyP Clustering**: System-level identification of semantic overlaps.
-- [ ] **Global Invariants Enforcement**: Pre-commit hooks for CrustCode©™ compliance.
+- [ ] **Global Invariants Enforcement**: Pre-save/Synthesis hooks for CrustCode©™ compliance.
 
 ---
 **Maintained by CrustAgent©™**

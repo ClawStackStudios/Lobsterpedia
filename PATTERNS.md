@@ -22,7 +22,7 @@
 1.  **No Ghost Files**: The application never creates files "in the background" or via magic automation. Every file in the `wiki/` directory is there because a Human or their Agentic Proxy (LLM) explicitly put it there.
 2.  **LLM as User Proxy**: When the LLM layer performs maintenance (fixing links, ingesting data), it is acting *on behalf* of the user's manual intent. It is a "Manual Agent" rather than a background service.
 3.  **UI Isolation**: The application logic treats the filesystem as an external database that could be updated by any external tool (like Obsidian). The UI must stay reactive to these changes without owning them.
-4.  **Opt-in Versioning**: The Git service is strictly optional. No `.git` structure is created unless the user navigates to the Git Timeline and clicks **"Hatch Your Wiki"**. Until then, the directory remains a plain filesystem reef.
+4.  **The Sovereign Ledger**: Versioning and mutation history are handled by the SQLite ledger. No `.git` structure is permitted in the `wiki/` directory. The history is a chronological record of "molts" witnessed by the habitat engine.
 
 ### 🧪 Observability
 -   Every significant action must emit a `habitatLog` via the setHabitatLogs hook.
