@@ -70,7 +70,7 @@ At some point you may want to build small tools that help the LLM operate on the
 - **Obsidian's graph view** is the best way to see the shape of your wiki — what's connected to what, which pages are hubs, which are orphans.
 - **Marp** is a markdown-based slide deck format. Obsidian has a plugin for it. Useful for generating presentations directly from wiki content.
 - **Dataview** is an Obsidian plugin that runs queries over page frontmatter. If your LLM adds YAML frontmatter to wiki pages (tags, dates, source counts), Dataview can generate dynamic tables and lists.
-- The wiki is just a git repo of markdown files. You get version history, branching, and collaboration for free.
+- The wiki uses a **Ledger (SQLite)** to track all mutations. You get a chronological audit trail (molts) and structural integrity for free.
 
 ## Why this works
 
