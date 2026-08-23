@@ -131,6 +131,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
         <button 
           onClick={() => { onNavigate('index'); setIsMenuOpen(false); }}
           className="w-8 h-8 md:w-10 md:h-10 bg-lobster/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-lobster/30 transition-all overflow-hidden"
+          aria-label="Home"
         >
           <img src={currentView === 'carapace' ? "/assets/sleeping-lobster-logo.png" : "/assets/logo.png"} alt="Lobsterpedia Logo" className="w-full h-full object-contain logo-mask" />
         </button>
@@ -163,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
             placeholder="Search reef..." 
             className="bg-white/10 border border-white/20 text-white text-xs px-4 py-1.5 rounded-md w-32 xl:w-64 focus:outline-none focus:border-lobster transition-all placeholder-white/30"
           />
-          <button type="submit" className="absolute right-3 top-2 text-white/30 hover:text-white transition-colors cursor-pointer">
+          <button type="submit" aria-label="Search" className="absolute right-3 top-2 text-white/30 hover:text-white transition-colors cursor-pointer">
             <Search size={14} />
           </button>
         </form>
@@ -180,6 +181,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="lg:hidden p-2 text-white/70 hover:text-white transition-all"
+          aria-label="Toggle navigation menu"
+          aria-expanded={isMenuOpen}
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -208,6 +211,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
                 <button 
                   onClick={() => setIsMenuOpen(false)}
                   className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  aria-label="Close navigation menu"
                 >
                   <X size={20} className="text-white" />
                 </button>
@@ -234,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
                     placeholder="Search reef..." 
                     className="bg-white/10 border border-white/20 text-white text-sm px-4 py-3 rounded-lg w-full focus:outline-none focus:border-lobster transition-all placeholder-white/30"
                   />
-                  <button type="submit" className="absolute right-4 top-3 text-white/30 hover:text-white transition-colors cursor-pointer">
+                  <button type="submit" aria-label="Search" className="absolute right-4 top-3 text-white/30 hover:text-white transition-colors cursor-pointer">
                     <Search size={18} />
                   </button>
                 </form>
