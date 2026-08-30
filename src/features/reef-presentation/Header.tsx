@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
       <div className="flex items-center gap-2 md:gap-3">
         <button 
           onClick={() => { onNavigate('index'); setIsMenuOpen(false); }}
-          className="w-8 h-8 md:w-10 md:h-10 bg-lobster/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-lobster/30 transition-all overflow-hidden"
+          className="w-8 h-8 md:w-10 md:h-10 bg-lobster/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-lobster/30 focus-visible:ring-2 focus-visible:ring-lobster transition-all overflow-hidden"
           aria-label="Home"
         >
           <img src={currentView === 'carapace' ? "/assets/sleeping-lobster-logo.png" : "/assets/logo.png"} alt="Lobsterpedia Logo" className="w-full h-full object-contain logo-mask" />
@@ -147,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
           <button 
             key={item.view}
             onClick={() => onNavigate(item.view)} 
-            className={`text-white/70 hover:text-white text-[10px] font-black transition-all flex items-center gap-2 uppercase tracking-widest ${item.highlight ? 'text-lobster' : ''}`}
+            className={`text-white/70 hover:text-white text-[10px] font-black transition-all flex items-center gap-2 uppercase tracking-widest focus-visible:ring-2 focus-visible:ring-lobster rounded-sm ${item.highlight ? 'text-lobster' : ''}`}
           >
             {item.icon} {item.label}
           </button>
@@ -160,18 +160,20 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
           <input 
             type="text" 
             value={searchQuery}
+            aria-label="Search reef"
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search reef..." 
-            className="bg-white/10 border border-white/20 text-white text-xs px-4 py-1.5 rounded-md w-32 xl:w-64 focus:outline-none focus:border-lobster transition-all placeholder-white/30"
+            className="bg-white/10 border border-white/20 text-white text-xs px-4 py-1.5 rounded-md w-32 xl:w-64 focus:outline-none focus:border-lobster focus-visible:ring-2 focus-visible:ring-lobster transition-all placeholder-white/30"
           />
-          <button type="submit" aria-label="Search" className="absolute right-3 top-2 text-white/30 hover:text-white transition-colors cursor-pointer">
+          <button type="submit" aria-label="Search" className="absolute right-3 top-2 text-white/30 hover:text-white focus-visible:ring-2 focus-visible:ring-lobster transition-colors cursor-pointer rounded-sm">
             <Search size={14} />
           </button>
         </form>
 
         <button 
           onClick={onToggleTheme}
-          className="p-2 bg-white/10 border border-white/20 text-white rounded-md hover:bg-lobster/20 transition-all flex items-center justify-center"
+          aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          className="p-2 bg-white/10 border border-white/20 text-white rounded-md hover:bg-lobster/20 focus-visible:ring-2 focus-visible:ring-lobster transition-all flex items-center justify-center"
           title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
           {isDark ? <Sun size={16} /> : <Moon size={16} />}
@@ -180,7 +182,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
         {/* Hamburger Toggle */}
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="lg:hidden p-2 text-white/70 hover:text-white transition-all"
+          className="lg:hidden p-2 text-white/70 hover:text-white focus-visible:ring-2 focus-visible:ring-lobster transition-all rounded-md"
           aria-label="Toggle navigation menu"
           aria-expanded={isMenuOpen}
         >
@@ -210,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Sea Navigation</span>
                 <button 
                   onClick={() => setIsMenuOpen(false)}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  className="p-2 hover:bg-white/10 rounded-full focus-visible:ring-2 focus-visible:ring-lobster transition-colors"
                   aria-label="Close navigation menu"
                 >
                   <X size={20} className="text-white" />
@@ -222,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
                   <button 
                     key={item.view}
                     onClick={() => { onNavigate(item.view); setIsMenuOpen(false); }} 
-                    className={`w-full flex items-center gap-4 px-4 py-4 rounded-lg text-sm font-bold uppercase tracking-widest transition-all ${item.highlight ? 'bg-lobster/20 text-lobster border border-lobster/30' : 'text-white/70 hover:bg-white/10'}`}
+                    className={`w-full flex items-center gap-4 px-4 py-4 rounded-lg text-sm font-bold uppercase tracking-widest focus-visible:ring-2 focus-visible:ring-lobster transition-all ${item.highlight ? 'bg-lobster/20 text-lobster border border-lobster/30' : 'text-white/70 hover:bg-white/10'}`}
                   >
                     {item.icon} {item.label}
                   </button>
@@ -234,11 +236,12 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch, onToggleTh
                   <input 
                     type="text" 
                     value={searchQuery}
+                    aria-label="Search reef"
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search reef..." 
-                    className="bg-white/10 border border-white/20 text-white text-sm px-4 py-3 rounded-lg w-full focus:outline-none focus:border-lobster transition-all placeholder-white/30"
+                    className="bg-white/10 border border-white/20 text-white text-sm px-4 py-3 rounded-lg w-full focus:outline-none focus:border-lobster focus-visible:ring-2 focus-visible:ring-lobster transition-all placeholder-white/30"
                   />
-                  <button type="submit" aria-label="Search" className="absolute right-4 top-3 text-white/30 hover:text-white transition-colors cursor-pointer">
+                  <button type="submit" aria-label="Search" className="absolute right-4 top-3 text-white/30 hover:text-white focus-visible:ring-2 focus-visible:ring-lobster transition-colors cursor-pointer rounded-sm">
                     <Search size={18} />
                   </button>
                 </form>
