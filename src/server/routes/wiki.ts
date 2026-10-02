@@ -42,7 +42,8 @@ router.post("/mkdir", (req, res) => {
   const safePath = path.resolve(path.join(wikiPath, dirPath));
   
   // 🛡️ Strict Boundary Check
-  if (!safePath.startsWith(wikiPath)) {
+  const wikiPrefix = wikiPath.endsWith(path.sep) ? wikiPath : wikiPath + path.sep;
+  if (!safePath.startsWith(wikiPrefix) && safePath !== wikiPath) {
     return res.status(403).json({ error: "Path traversal detected." });
   }
 
@@ -66,7 +67,10 @@ router.post("/move", (req, res) => {
   const safeNew = path.resolve(path.join(wikiPath, newPath));
 
   // 🛡️ Strict Boundary Check
-  if (!safeOld.startsWith(wikiPath) || !safeNew.startsWith(wikiPath)) {
+  const wikiPrefix = wikiPath.endsWith(path.sep) ? wikiPath : wikiPath + path.sep;
+  const isSafeOld = safeOld.startsWith(wikiPrefix) || safeOld === wikiPath;
+  const isSafeNew = safeNew.startsWith(wikiPrefix) || safeNew === wikiPath;
+  if (!isSafeOld || !isSafeNew) {
     return res.status(403).json({ error: "Path traversal detected." });
   }
 

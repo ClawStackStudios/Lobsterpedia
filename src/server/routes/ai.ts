@@ -212,7 +212,9 @@ router.post("/fix", async (req, res) => {
           const fPath = path.resolve(path.join(wikiPath, `${cleanFileId}.md`));
           
           // 🛡️ Path Traversal Security Check: Ensure fPath is strictly within wikiPath
-          if (!fPath.startsWith(path.resolve(wikiPath))) {
+          const resolvedWiki = path.resolve(wikiPath);
+          const wikiPrefix = resolvedWiki.endsWith(path.sep) ? resolvedWiki : resolvedWiki + path.sep;
+          if (!fPath.startsWith(wikiPrefix) && fPath !== resolvedWiki) {
             console.warn(`[CrustAgent] AI attempted to escape habitat boundary: ${cleanFileId}`);
             continue; 
           }

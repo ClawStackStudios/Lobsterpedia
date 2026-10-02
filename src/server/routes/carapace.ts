@@ -128,7 +128,9 @@ router.get('/page', (req, res) => {
     // Ensure the requested path is actually inside the carapace directory
     const resolvedPath = path.resolve(carapacePath, targetPath);
     
-    if (!resolvedPath.startsWith(path.resolve(carapacePath))) {
+    const resolvedCarapace = path.resolve(carapacePath);
+    const carapacePrefix = resolvedCarapace.endsWith(path.sep) ? resolvedCarapace : resolvedCarapace + path.sep;
+    if (!resolvedPath.startsWith(carapacePrefix) && resolvedPath !== resolvedCarapace) {
       return res.status(403).json({ error: 'Path traversal forbidden' });
     }
 
